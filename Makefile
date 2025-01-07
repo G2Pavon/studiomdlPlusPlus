@@ -69,7 +69,7 @@ INSTALL_PATH?=/usr/local/bin
 BUILD_DIR=build$(PATHSEP)build-$(ARCHPATH)
 BIN_DIR=build$(PATHSEP)bin-$(ARCHPATH)
 
-STUDIOMDL_SOURCES=bmpread.c cmdlib.c mathlib.c scriplib.c studiomdl.c trilib.c tristrip.c write.c
+STUDIOMDL_SOURCES=bmpread.c cmdlib.c mathlib.c scriplib.c studiomdl.c tristrip.c write.c
 STUDIOMDL_OBJECTS=$(patsubst %.c,$(BUILD_DIR)/%.o,$(STUDIOMDL_SOURCES))
 STUDIOMDL_DEFINES=-DSTUDIOMDL
 
