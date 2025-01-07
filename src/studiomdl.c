@@ -2706,30 +2706,6 @@ int Cmd_Sequence()
 	return 0;
 }
 
-int Cmd_Root(void)
-{
-	if (GetToken(false))
-	{
-		strcpyn(pivotname[0], token);
-		return 0;
-	}
-	return 1;
-}
-
-int Cmd_Pivot(void)
-{
-	if (GetToken(false))
-	{
-		int index = atoi(token);
-		if (GetToken(false))
-		{
-			strcpyn(pivotname[index], token);
-			return 0;
-		}
-	}
-	return 1;
-}
-
 int Cmd_Controller(void)
 {
 	if (GetToken(false))
@@ -3028,14 +3004,6 @@ void ParseScript(void)
 		else if (!stricmp(token, "$rotate")) // XDM
 		{
 			Cmd_Rotate();
-		}
-		else if (!strcmp(token, "$root"))
-		{
-			Cmd_Root();
-		}
-		else if (!strcmp(token, "$pivot"))
-		{
-			Cmd_Pivot();
 		}
 		else if (!strcmp(token, "$controller"))
 		{

@@ -14,7 +14,6 @@ EXTERN char cdpartial[256];
 EXTERN char cddir[256];
 EXTERN int cdtextureset;
 EXTERN char cdtexture[16][256];
-EXTERN char pivotname[32][256]; // names of the pivot points
 EXTERN float default_scale;
 EXTERN float scale_up;
 EXTERN float defaultzrotation;
