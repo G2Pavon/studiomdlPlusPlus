@@ -64,12 +64,6 @@ typedef struct tagRGBQUAD
 } RGBQUAD;
 // for biBitCount is 16/24/32, it may be useless
 
-typedef struct
-{
-	BYTE b;
-	BYTE g;
-	BYTE r;
-} RGB_data; // RGB TYPE, plz also make sure the order
 #endif
 
 int LoadBMP(const char *szFile, byte **ppbBits, byte **ppbPalette, int *width, int *height)
