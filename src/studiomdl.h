@@ -31,7 +31,6 @@ EXTERN vec3_t eyeposition;
 EXTERN int gflags;
 EXTERN vec3_t bbox[2];
 EXTERN vec3_t cbox[2];
-EXTERN int maxseqgroupsize; // remove this?
 EXTERN int clip_texcoords;
 EXTERN qboolean keep_all_bones;
 

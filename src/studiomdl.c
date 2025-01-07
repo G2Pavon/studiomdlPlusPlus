@@ -1001,50 +1001,6 @@ void SimplifyModel(void)
 		}
 		// printf("total %.0f changes %.0f\n", total, changes );
 	}
-
-	// auto groups
-	if (numseqgroups == 1 && maxseqgroupsize < 1024 * 1024)
-	{
-		int current = 0;
-
-		numseqgroups = 2;
-
-		for (i = 0; i < numseq; i++)
-		{
-			int accum = 0;
-
-			if (sequence[i].activity == 0)
-			{
-				for (q = 0; q < sequence[i].numblends; q++)
-				{
-					for (j = 0; j < numbones; j++)
-					{
-						for (k = 0; k < 6; k++)
-						{
-							accum += sequence[i].panim[q]->numanim[j][k] * sizeof(mstudioanimvalue_t);
-						}
-					}
-				}
-				accum += sequence[i].numblends * numbones * sizeof(mstudioanim_t);
-
-				if (current && current + accum > maxseqgroupsize)
-				{
-					numseqgroups++;
-					current = accum;
-				}
-				else
-				{
-					current += accum;
-				}
-				// printf("%d %d %d\n", numseqgroups, current, accum );
-				sequence[i].seqgroup = numseqgroups - 1;
-			}
-			else
-			{
-				sequence[i].seqgroup = 0;
-			}
-		}
-	}
 }
 
 int lookupControl(char *string)
@@ -2504,13 +2460,6 @@ int Cmd_SequenceGroup()
 	return 0;
 }
 
-int Cmd_SequenceGroupSize()
-{
-	GetToken(false);
-	maxseqgroupsize = 1024 * atoi(token);
-	return 0;
-}
-
 int lookupActivity(char *szActivity)
 {
 	int i;
@@ -3029,11 +2978,6 @@ void ParseScript(void)
 			Cmd_SequenceGroup();
 		}
 
-		else if (!strcmp(token, "$sequencegroupsize"))
-		{
-			Cmd_SequenceGroupSize();
-		}
-
 		else if (!strcmp(token, "$eyeposition"))
 		{
 			Cmd_Eyeposition();
@@ -3112,7 +3056,6 @@ int main(int argc, char **argv)
 	tag_reversed = 0;
 	tag_normals = 0;
 	flip_triangles = 1;
-	maxseqgroupsize = 1024 * 1024;
 	keep_all_bones = 0;
 
 	normal_blend = cos(2.0 * (Q_PI / 180.0));
@@ -3155,10 +3098,6 @@ int main(int argc, char **argv)
 				break;
 			case 'h':
 				dump_hboxes = 1;
-				break;
-			case 'g':
-				i++;
-				maxseqgroupsize = 1024 * atoi(argv[i]);
 				break;
 			case 'i':
 				ignore_warnings = 1;
