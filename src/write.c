@@ -20,7 +20,8 @@ byte *pStart;
 studiohdr_t *phdr;
 studioseqhdr_t *pseqhdr;
 
-#define ALIGN(a) a = (byte *)((int)((byte *)a + 3) & ~3)
+#define ALIGN(a) (((uintptr_t)(a) + 3) & ~(uintptr_t)3)
+
 void WriteBoneInfo()
 {
 	int i, j;
