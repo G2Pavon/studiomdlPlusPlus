@@ -13,6 +13,7 @@
 #ifdef WIN32
 #define PATHSEPARATOR(c) ((c) == '\\' || (c) == '/')
 #else // WIN32
+#include <unistd.h>
 #define PATHSEPARATOR(c) ((c) == '/')
 #endif // WIN32
 
@@ -91,7 +92,7 @@ void SetQdirFromPath(char *path)
 
 	if (!(path[0] == '/' || path[0] == '\\' || path[1] == ':'))
 	{ // path is partial
-		Q_getwd(temp);
+		Q_getwd(temp, 1024);
 		strcat(temp, path);
 		path = temp;
 	}
@@ -154,7 +155,7 @@ char *ExpandArg(char *path)
 
 	if (path[0] != '/' && path[0] != '\\' && path[1] != ':')
 	{
-		Q_getwd(full);
+		Q_getwd(full, 1024);
 		strcat(full, path);
 	}
 	else
@@ -227,13 +228,13 @@ double I_FloatTime(void)
 #endif
 }
 
-void Q_getwd(char *out)
+void Q_getwd(char *out, size_t bufSize)
 {
 #ifdef WIN32
-	_getcwd(out, 256);
+	_getcwd(out, bufSize);
 	strcat(out, "\\");
 #else
-	getwd(out);
+	getcwd(out, bufSize);
 #endif
 }
 
