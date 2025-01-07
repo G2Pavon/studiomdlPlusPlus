@@ -52,7 +52,7 @@ else ifeq ($(ARCH),-m64)
 endif
 
 CPPCHECK?=cppcheck
-CPPCHECKFLAGS= --enable=warning --enable=portability --platform=$(CHECKPLATFORM) --language=c++ -I common --force --quiet
+CPPCHECKFLAGS= --enable=all --platform=$(CHECKPLATFORM) --language=c --force --quiet
 
 # Darwin specific (macOS)
 ifeq ($(OS),Darwin)
@@ -90,8 +90,9 @@ studiomdl: $(BIN_DIR) $(STUDIOMDLDIRS) $(BIN_DIR)/studiomdl$(EXE)
 
 checkstudiomdl: studiomdl.log
 
-studiomdl.log: $(COMMON_SOURCES) $(addprefix studiomdl$(PATHSEP), $(STUDIOMDL_SOURCES))
-	$(CPPCHECK) $(COMMON_DEFINES) $(STUDIOMDL_DEFINES) $(CPPCHECKFLAGS) studiomdl 2>$@
+studiomdl.log: $(addprefix src/, $(STUDIOMDL_SOURCES))
+	$(CPPCHECK) $(COMMON_DEFINES) $(STUDIOMDL_DEFINES) $(CPPCHECKFLAGS) src 2>$@
+
 
 $(BIN_DIR)/studiomdl$(EXE): $(STUDIOMDL_OBJECTS)
 	$(CC) $(STUDIOMDL_OBJECTS) $(STUDIOMDL_COMMON_OBJECTS) $(OPTS) -o $@
