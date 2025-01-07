@@ -11,8 +11,6 @@ extern int scriptline;
 extern qboolean endofscript;
 
 void LoadScriptFile(char *filename);
-void ParseFromMemory(char *buffer, int size);
 
 qboolean GetToken(qboolean crossline);
-void UnGetToken(void);
 qboolean TokenAvailable(void);

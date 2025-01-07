@@ -5,5 +5,3 @@ typedef struct
 {
 	vec3_t verts[3];
 } triangle_t;
-
-void LoadTriangleList(char *filename, triangle_t **pptri, int *numtriangles);

@@ -16,7 +16,7 @@ int scriptline;
 
 char token[MAXTOKEN];
 qboolean endofscript;
-qboolean tokenready; // only true if UnGetToken was just called
+qboolean tokenready;
 
 void AddScriptToStack(char *filename)
 {
@@ -44,38 +44,6 @@ void LoadScriptFile(char *filename)
 
 	endofscript = false;
 	tokenready = false;
-}
-
-void ParseFromMemory(char *buffer, int size)
-{
-	script = scriptstack;
-	script++;
-	if (script == &scriptstack[MAX_INCLUDES])
-		Error("script file exceeded MAX_INCLUDES");
-	strcpy(script->filename, "memory buffer");
-
-	script->buffer = buffer;
-	script->line = 1;
-	script->script_p = script->buffer;
-	script->end_p = script->buffer + size;
-
-	endofscript = false;
-	tokenready = false;
-}
-
-/*
-Signals that the current token was not used, and should be reported
-for the next GetToken.  Note that
-
-GetToken (true);
-UnGetToken ();
-GetToken (false);
-
-could cross a line boundary.
-*/
-void UnGetToken(void)
-{
-	tokenready = true;
 }
 
 qboolean EndOfScript(qboolean crossline)

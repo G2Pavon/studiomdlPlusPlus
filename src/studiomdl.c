@@ -22,7 +22,6 @@
 #define stricmp strcasecmp
 #define strcmpi strcasecmp
 
-void Sys_Error(char *error, ...) {};
 void clip_rotations(vec3_t rot);
 
 #define strcpyn(a, b) strncpy(a, b, sizeof(a))
@@ -2376,16 +2375,6 @@ int Option_Deform(s_sequence_t *psequence)
 	return 0;
 }
 
-int Option_Motion(s_sequence_t *psequence)
-{
-	while (TokenAvailable())
-	{
-		GetToken(false);
-		psequence->motiontype |= lookupControl(token);
-	}
-	return 0;
-}
-
 int Option_Event(s_sequence_t *psequence)
 {
 	int event;
@@ -3222,7 +3211,6 @@ int main(int argc, char **argv)
 	// load the script
 	strcpy(path, argv[i]);
 	DefaultExtension(path, ".qc");
-	// SetQdirFromPath (path);
 	LoadScriptFile(path);
 	// parse it
 	ClearModel();
