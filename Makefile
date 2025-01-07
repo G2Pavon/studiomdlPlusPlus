@@ -34,7 +34,7 @@ endif
 
 CC=gcc
 
-ARCH?=-m32
+ARCH?=-m64
 USER_FLAGS=
 CFLAGS=-Wint-to-pointer-cast $(USER_FLAGS)
 
