@@ -1495,14 +1495,13 @@ void ResizeTexture(s_texture_t *ptexture)
 void Grab_Skin(s_texture_t *ptexture)
 {
 	char file1[1024];
-	int time1;
 
 	sprintf(file1, "%s/%s", cdpartial, ptexture->name);
 	ExpandPathAndArchive(file1);
 
 	if (cdtextureset)
 	{
-		int i;
+		int i, time1;
 		for (i = 0; i < cdtextureset; i++)
 		{
 			sprintf(file1, "%s/%s", cdtexture[i], ptexture->name);
@@ -1623,13 +1622,12 @@ int linecount;
 
 void Build_Reference(s_model_t *pmodel)
 {
-	int i, parent;
+	int i;
 	float angle[3];
 
 	for (i = 0; i < pmodel->numbones; i++)
 	{
-		float m[3][4];
-		vec3_t p;
+		int parent;
 
 		// convert to degrees
 		angle[0] = pmodel->skeleton[i].rot[0] * (180.0 / Q_PI);
@@ -1647,6 +1645,8 @@ void Build_Reference(s_model_t *pmodel)
 		}
 		else
 		{
+			vec3_t p;
+			float m[3][4];
 			// calc compound rotational matrices
 			// FIXME : Hey, it's orthogical so inv(A) == transpose(A)
 			AngleMatrix(angle, m);
@@ -1745,7 +1745,6 @@ void Grab_Triangles(s_model_t *pmodel)
 				if (fgets(line, sizeof(line), input) != NULL)
 				{
 					s_vertex_t p;
-					vec3_t tmp;
 					s_normal_t normal;
 
 					linecount++;
@@ -1783,6 +1782,7 @@ void Grab_Triangles(s_model_t *pmodel)
 						scale_vertex(p.org);
 
 						// move vertex position to object space.
+						vec3_t tmp;
 						VectorSubtract(p.org, bonefixup[p.bone].worldorg, tmp);
 						VectorTransform(tmp, bonefixup[p.bone].im, p.org);
 
@@ -2104,7 +2104,6 @@ int Option_Blank()
 
 void Cmd_Bodygroup()
 {
-	int is_started = 0;
 
 	if (!GetToken(false))
 		return;
@@ -2121,6 +2120,7 @@ void Cmd_Bodygroup()
 
 	do
 	{
+		int is_started = 0;
 		GetToken(true);
 		if (endofscript)
 			return;

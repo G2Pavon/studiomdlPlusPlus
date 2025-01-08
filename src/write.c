@@ -135,7 +135,6 @@ void WriteBoneInfo()
 	pData += numhitboxes * sizeof(mstudiobbox_t);
 	ALIGN(pData);
 }
-
 void WriteSequenceInfo()
 {
 	int i, j;
@@ -143,8 +142,6 @@ void WriteSequenceInfo()
 	mstudioseqgroup_t *pseqgroup;
 	mstudioseqdesc_t *pseqdesc;
 	mstudioseqdesc_t *pbaseseqdesc;
-	mstudioevent_t *pevent;
-	mstudiopivot_t *ppivot;
 	byte *ptransition;
 
 	// save sequence info
@@ -192,30 +189,34 @@ void WriteSequenceInfo()
 		totalseconds += sequence[i].numframes / sequence[i].fps;
 
 		// save events
-		pevent = (mstudioevent_t *)pData;
-		pseqdesc->numevents = sequence[i].numevents;
-		pseqdesc->eventindex = (pData - pStart);
-		pData += pseqdesc->numevents * sizeof(mstudioevent_t);
-		for (j = 0; j < sequence[i].numevents; j++)
 		{
-			pevent[j].frame = sequence[i].event[j].frame - sequence[i].frameoffset;
-			pevent[j].event = sequence[i].event[j].event;
-			memcpy(pevent[j].options, sequence[i].event[j].options, sizeof(pevent[j].options));
+			mstudioevent_t *pevent = (mstudioevent_t *)pData; // Declare inside the block
+			pseqdesc->numevents = sequence[i].numevents;
+			pseqdesc->eventindex = (pData - pStart);
+			pData += pseqdesc->numevents * sizeof(mstudioevent_t);
+			for (j = 0; j < sequence[i].numevents; j++)
+			{
+				pevent[j].frame = sequence[i].event[j].frame - sequence[i].frameoffset;
+				pevent[j].event = sequence[i].event[j].event;
+				memcpy(pevent[j].options, sequence[i].event[j].options, sizeof(pevent[j].options));
+			}
+			ALIGN(pData);
 		}
-		ALIGN(pData);
 
 		// save pivots
-		ppivot = (mstudiopivot_t *)pData;
-		pseqdesc->numpivots = sequence[i].numpivots;
-		pseqdesc->pivotindex = (pData - pStart);
-		pData += pseqdesc->numpivots * sizeof(mstudiopivot_t);
-		for (j = 0; j < sequence[i].numpivots; j++)
 		{
-			VectorCopy(sequence[i].pivot[j].org, ppivot[j].org);
-			ppivot[j].start = sequence[i].pivot[j].start - sequence[i].frameoffset;
-			ppivot[j].end = sequence[i].pivot[j].end - sequence[i].frameoffset;
+			mstudiopivot_t *ppivot = (mstudiopivot_t *)pData; // Declare inside the block
+			pseqdesc->numpivots = sequence[i].numpivots;
+			pseqdesc->pivotindex = (pData - pStart);
+			pData += pseqdesc->numpivots * sizeof(mstudiopivot_t);
+			for (j = 0; j < sequence[i].numpivots; j++)
+			{
+				VectorCopy(sequence[i].pivot[j].org, ppivot[j].org);
+				ppivot[j].start = sequence[i].pivot[j].start - sequence[i].frameoffset;
+				ppivot[j].end = sequence[i].pivot[j].end - sequence[i].frameoffset;
+			}
+			ALIGN(pData);
 		}
-		ALIGN(pData);
 	}
 
 	// save sequence group info
@@ -355,13 +356,8 @@ void WriteModel()
 	mstudiomodel_t *pmodel;
 	// vec3_t			*bbox;
 	byte *pbone;
-	vec3_t *pvert;
-	vec3_t *pnorm;
-	mstudiomesh_t *pmesh;
 	s_trianglevert_t *psrctri;
 	int cur;
-	int total_tris = 0;
-	int total_strips = 0;
 
 	pbodypart = (mstudiobodyparts_t *)pData;
 	phdr->numbodyparts = numbodyparts;
@@ -429,64 +425,69 @@ void WriteModel()
 		pData = pbone;
 
 		// save group info
-		pvert = (vec3_t *)pData;
-		pData += model[i]->numverts * sizeof(vec3_t);
-		pmodel[i].vertindex = ((byte *)pvert - pStart);
-		ALIGN(pData);
-
-		pnorm = (vec3_t *)pData;
-		pData += model[i]->numnorms * sizeof(vec3_t);
-		pmodel[i].normindex = ((byte *)pnorm - pStart);
-		ALIGN(pData);
-
-		for (j = 0; j < model[i]->numverts; j++)
 		{
-			VectorCopy(model[i]->vert[j].org, pvert[j]);
-		}
+			vec3_t *pvert = (vec3_t *)pData;
+			pData += model[i]->numverts * sizeof(vec3_t);
+			pmodel[i].vertindex = ((byte *)pvert - pStart);
+			ALIGN(pData);
 
-		for (j = 0; j < model[i]->numnorms; j++)
-		{
-			VectorCopy(model[i]->normal[normimap[j]].org, pnorm[j]);
-		}
-		printf("vertices  %6d bytes (%d vertices, %d normals)\n", pData - cur, model[i]->numverts, model[i]->numnorms);
-		cur = (int)pData;
+			vec3_t *pnorm = (vec3_t *)pData;
+			pData += model[i]->numnorms * sizeof(vec3_t);
+			pmodel[i].normindex = ((byte *)pnorm - pStart);
+			ALIGN(pData);
 
-		// save mesh info
-		pmesh = (mstudiomesh_t *)pData;
-		pmodel[i].nummesh = model[i]->nummesh;
-		pmodel[i].meshindex = (pData - pStart);
-		pData += pmodel[i].nummesh * sizeof(mstudiomesh_t);
-		ALIGN(pData);
-
-		total_tris = 0;
-		total_strips = 0;
-		for (j = 0; j < model[i]->nummesh; j++)
-		{
-			int numCmdBytes;
-			byte *pCmdSrc;
-
-			pmesh[j].numtris = model[i]->pmesh[j]->numtris;
-			pmesh[j].skinref = model[i]->pmesh[j]->skinref;
-			pmesh[j].numnorms = model[i]->pmesh[j]->numnorms;
-
-			psrctri = (s_trianglevert_t *)(model[i]->pmesh[j]->triangle);
-			for (k = 0; k < pmesh[j].numtris * 3; k++)
+			for (j = 0; j < model[i]->numverts; j++)
 			{
-				psrctri->normindex = normmap[psrctri->normindex];
-				psrctri++;
+				VectorCopy(model[i]->vert[j].org, pvert[j]);
 			}
 
-			numCmdBytes = BuildTris(model[i]->pmesh[j]->triangle, model[i]->pmesh[j], &pCmdSrc);
-
-			pmesh[j].triindex = (pData - pStart);
-			memcpy(pData, pCmdSrc, numCmdBytes);
-			pData += numCmdBytes;
-			ALIGN(pData);
-			total_tris += pmesh[j].numtris;
-			total_strips += numcommandnodes;
+			for (j = 0; j < model[i]->numnorms; j++)
+			{
+				VectorCopy(model[i]->normal[normimap[j]].org, pnorm[j]);
+			}
+			printf("vertices  %6d bytes (%d vertices, %d normals)\n", pData - cur, model[i]->numverts, model[i]->numnorms);
+			cur = (int)pData;
 		}
-		printf("mesh      %6d bytes (%d tris, %d strips)\n", pData - cur, total_tris, total_strips);
-		cur = (int)pData;
+		// save mesh info
+		{
+
+			mstudiomesh_t *pmesh;
+			pmesh = (mstudiomesh_t *)pData;
+			pmodel[i].nummesh = model[i]->nummesh;
+			pmodel[i].meshindex = (pData - pStart);
+			pData += pmodel[i].nummesh * sizeof(mstudiomesh_t);
+			ALIGN(pData);
+
+			int total_tris = 0;
+			int total_strips = 0;
+			for (j = 0; j < model[i]->nummesh; j++)
+			{
+				int numCmdBytes;
+				byte *pCmdSrc;
+
+				pmesh[j].numtris = model[i]->pmesh[j]->numtris;
+				pmesh[j].skinref = model[i]->pmesh[j]->skinref;
+				pmesh[j].numnorms = model[i]->pmesh[j]->numnorms;
+
+				psrctri = (s_trianglevert_t *)(model[i]->pmesh[j]->triangle);
+				for (k = 0; k < pmesh[j].numtris * 3; k++)
+				{
+					psrctri->normindex = normmap[psrctri->normindex];
+					psrctri++;
+				}
+
+				numCmdBytes = BuildTris(model[i]->pmesh[j]->triangle, model[i]->pmesh[j], &pCmdSrc);
+
+				pmesh[j].triindex = (pData - pStart);
+				memcpy(pData, pCmdSrc, numCmdBytes);
+				pData += numCmdBytes;
+				ALIGN(pData);
+				total_tris += pmesh[j].numtris;
+				total_strips += numcommandnodes;
+			}
+			printf("mesh      %6d bytes (%d tris, %d strips)\n", pData - cur, total_tris, total_strips);
+			cur = (int)pData;
+		}
 	}
 }
 

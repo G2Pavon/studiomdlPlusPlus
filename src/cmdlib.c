@@ -68,12 +68,12 @@ char *ExpandPath(char *path)
 char *ExpandPathAndArchive(char *path)
 {
 	char *expanded;
-	char archivename[1024];
 
 	expanded = ExpandPath(path);
 
 	if (archive)
 	{
+		char archivename[1024];
 		sprintf(archivename, "%s/%s", archivedir, path);
 		QCopyFile(expanded, archivename);
 	}
@@ -294,10 +294,11 @@ CreatePath
 */
 void CreatePath(char *path)
 {
-	char *ofs, c;
+	char *ofs;
 
 	for (ofs = path + 1; *ofs; ofs++)
 	{
+		char c;
 		c = *ofs;
 		if (c == '/' || c == '\\')
 		{ // create the directory
