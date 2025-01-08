@@ -5,13 +5,8 @@
 
 #include <math.h>
 
-#ifdef DOUBLEVEC_T
-typedef double vec_t;
-#else
-typedef float vec_t;
-#endif
-typedef vec_t vec3_t[3]; // x,y,z
-typedef vec_t vec4_t[4]; // x,y,z,w
+typedef float vec3_t[3]; // x,y,z
+typedef float vec4_t[4]; // x,y,z,w
 
 #define SIDE_FRONT 0
 #define SIDE_ON 2
@@ -62,7 +57,7 @@ int VectorCompare(const vec3_t v1, const vec3_t v2);
     }
 
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
-vec_t VectorNormalize(vec3_t v);
+float VectorNormalize(vec3_t v);
 
 void AngleMatrix(const vec3_t angles, float matrix[3][4]);
 void AngleIMatrix(const vec3_t angles, float matrix[3][4]);
