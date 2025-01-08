@@ -245,7 +245,7 @@ void WriteSequenceInfo()
 	}
 }
 
-byte *WriteAnimations(byte *pData, byte *pStart, int group)
+byte *WriteAnimations(byte *pData, const byte *pStart, int group)
 {
 	int i, j, k;
 	int q, n;

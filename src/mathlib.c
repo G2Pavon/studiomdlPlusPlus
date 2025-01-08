@@ -5,7 +5,7 @@
 
 vec3_t vec3_origin = {0, 0, 0};
 
-int VectorCompare(vec3_t v1, vec3_t v2)
+int VectorCompare(const vec3_t v1, const vec3_t v2)
 {
 	int i;
 
@@ -16,7 +16,7 @@ int VectorCompare(vec3_t v1, vec3_t v2)
 	return true;
 }
 
-void CrossProduct(vec3_t v1, vec3_t v2, vec3_t cross)
+void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross)
 {
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
 	cross[1] = v1[2] * v2[0] - v1[0] * v2[2];
