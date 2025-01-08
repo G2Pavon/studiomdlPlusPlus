@@ -4,35 +4,31 @@
 #define IDSTUDIOSEQHEADER (('Q' << 24) + ('S' << 16) + ('D' << 8) + 'I')
 // little-endian "IDSQ"
 
-#ifndef EXTERN
-#define EXTERN extern
-#endif
-
-EXTERN char outname[1024];
-EXTERN qboolean cdset;
-EXTERN char cdpartial[256];
-EXTERN char cddir[256];
-EXTERN int cdtextureset;
-EXTERN char cdtexture[16][256];
-EXTERN float default_scale;
-EXTERN float scale_up;
-EXTERN float defaultzrotation;
-EXTERN float zrotation;
-EXTERN char defaulttexture[16][256];
-EXTERN char sourcetexture[16][256];
-EXTERN int numrep;
-EXTERN int tag_reversed;
-EXTERN int tag_normals;
-EXTERN int flip_triangles;
-EXTERN float normal_blend;
-EXTERN int dump_hboxes;
-EXTERN int ignore_warnings;
-EXTERN vec3_t eyeposition;
-EXTERN int gflags;
-EXTERN vec3_t bbox[2];
-EXTERN vec3_t cbox[2];
-EXTERN int clip_texcoords;
-EXTERN qboolean keep_all_bones;
+extern char outname[1024];
+extern qboolean cdset;
+extern char cdpartial[256];
+extern char cddir[256];
+extern int cdtextureset;
+extern char cdtexture[16][256];
+extern float default_scale;
+extern float scale_up;
+extern float defaultzrotation;
+extern float zrotation;
+extern char defaulttexture[16][256];
+extern char sourcetexture[16][256];
+extern int numrep;
+extern int tag_reversed;
+extern int tag_normals;
+extern int flip_triangles;
+extern float normal_blend;
+extern int dump_hboxes;
+extern int ignore_warnings;
+extern vec3_t eyeposition;
+extern int gflags;
+extern vec3_t bbox[2];
+extern vec3_t cbox[2];
+extern int clip_texcoords;
+extern qboolean keep_all_bones;
 
 #define ROLL 2
 #define PITCH 0
@@ -70,9 +66,9 @@ typedef struct
 	float im[3][4];
 	float length;
 } s_bonefixup_t;
-EXTERN s_bonefixup_t bonefixup[MAXSTUDIOSRCBONES];
+extern s_bonefixup_t bonefixup[MAXSTUDIOSRCBONES];
 
-EXTERN int numbones;
+extern int numbones;
 typedef struct
 {
 	char name[32];		// bone name for symbolic links
@@ -87,17 +83,17 @@ typedef struct
 	int group;		   // hitgroup
 	vec3_t bmin, bmax; // bounding box
 } s_bonetable_t;
-EXTERN s_bonetable_t bonetable[MAXSTUDIOSRCBONES];
+extern s_bonetable_t bonetable[MAXSTUDIOSRCBONES];
 
-EXTERN int numrenamedbones;
+extern int numrenamedbones;
 typedef struct
 {
 	char from[32];
 	char to[32];
 } s_renamebone_t;
-EXTERN s_renamebone_t renamedbone[MAXSTUDIOSRCBONES];
+extern s_renamebone_t renamedbone[MAXSTUDIOSRCBONES];
 
-EXTERN int numhitboxes;
+extern int numhitboxes;
 typedef struct
 {
 	char name[32]; // bone name
@@ -106,16 +102,16 @@ typedef struct
 	int model;
 	vec3_t bmin, bmax; // bounding box
 } s_bbox_t;
-EXTERN s_bbox_t hitbox[MAXSTUDIOSRCBONES];
+extern s_bbox_t hitbox[MAXSTUDIOSRCBONES];
 
-EXTERN int numhitgroups;
+extern int numhitgroups;
 typedef struct
 {
 	int models;
 	int group;
 	char name[32]; // bone name
 } s_hitgroup_t;
-EXTERN s_hitgroup_t hitgroup[MAXSTUDIOSRCBONES];
+extern s_hitgroup_t hitgroup[MAXSTUDIOSRCBONES];
 
 typedef struct
 {
@@ -127,8 +123,8 @@ typedef struct
 	float end;
 } s_bonecontroller_t;
 
-EXTERN s_bonecontroller_t bonecontroller[MAXSTUDIOSRCBONES];
-EXTERN int numbonecontrollers;
+extern s_bonecontroller_t bonecontroller[MAXSTUDIOSRCBONES];
+extern int numbonecontrollers;
 
 typedef struct
 {
@@ -140,8 +136,8 @@ typedef struct
 	vec3_t org;
 } s_attachment_t;
 
-EXTERN s_attachment_t attachment[MAXSTUDIOSRCBONES];
-EXTERN int numattachments;
+extern s_attachment_t attachment[MAXSTUDIOSRCBONES];
+extern int numattachments;
 
 typedef struct
 {
@@ -150,10 +146,10 @@ typedef struct
 	int mirrored;
 } s_node_t;
 
-EXTERN char mirrored[MAXSTUDIOSRCBONES][64];
-EXTERN int nummirrored;
+extern char mirrored[MAXSTUDIOSRCBONES][64];
+extern int nummirrored;
 
-EXTERN int numani;
+extern int numani;
 typedef struct
 {
 	char name[64];
@@ -169,7 +165,7 @@ typedef struct
 	int numanim[MAXSTUDIOSRCBONES][6];
 	mstudioanimvalue_t *anim[MAXSTUDIOSRCBONES][6];
 } s_animation_t;
-EXTERN s_animation_t *panimation[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // each sequence can have 16 blends
+extern s_animation_t *panimation[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // each sequence can have 16 blends
 
 typedef struct
 {
@@ -186,7 +182,7 @@ typedef struct
 	int end;
 } s_pivot_t;
 
-EXTERN int numseq;
+extern int numseq;
 typedef struct
 {
 	int motiontype;
@@ -227,8 +223,8 @@ typedef struct
 	int nodeflags;
 } s_sequence_t;
 
-EXTERN s_sequence_t sequence[MAXSTUDIOSEQUENCES];
-EXTERN int numseqgroups;
+extern s_sequence_t sequence[MAXSTUDIOSEQUENCES];
+extern int numseqgroups;
 
 typedef struct
 {
@@ -236,9 +232,9 @@ typedef struct
 	char name[64];
 } s_sequencegroup_t;
 
-EXTERN s_sequencegroup_t sequencegroup[MAXSTUDIOSEQUENCES];
-EXTERN int numxnodes;
-EXTERN int xnode[100][100];
+extern s_sequencegroup_t sequencegroup[MAXSTUDIOSEQUENCES];
+extern int numxnodes;
+extern int xnode[100][100];
 
 typedef struct
 {
@@ -276,17 +272,17 @@ typedef struct
 	int parent;
 } s_texture_t;
 
-EXTERN s_texture_t texture[MAXSTUDIOSKINS];
-EXTERN int numtextures;
-// EXTERN  float gamma; // old; clashes with deprecated gamma
-EXTERN float texgamma;
-EXTERN int numskinref;
-EXTERN int numskinfamilies;
-EXTERN int skinref[256][MAXSTUDIOSKINS]; // [skin][skinref], returns texture index
-EXTERN int numtexturegroups;
-EXTERN int numtexturelayers[32];
-EXTERN int numtexturereps[32];
-EXTERN int texturegroup[32][32][32];
+extern s_texture_t texture[MAXSTUDIOSKINS];
+extern int numtextures;
+// extern  float gamma; // old; clashes with deprecated gamma
+extern float texgamma;
+extern int numskinref;
+extern int numskinfamilies;
+extern int skinref[256][MAXSTUDIOSKINS]; // [skin][skinref], returns texture index
+extern int numtexturegroups;
+extern int numtexturelayers[32];
+extern int numtexturereps[32];
+extern int texturegroup[32][32][32];
 
 typedef struct
 {
@@ -336,10 +332,10 @@ typedef struct s_model_s
 	struct s_model_s *next;
 } s_model_t;
 
-EXTERN int nummodels;
-EXTERN s_model_t *model[MAXSTUDIOMODELS];
-EXTERN vec3_t adjust;
-EXTERN vec3_t defaultadjust;
+extern int nummodels;
+extern s_model_t *model[MAXSTUDIOMODELS];
+extern vec3_t adjust;
+extern vec3_t defaultadjust;
 
 typedef struct
 {
@@ -349,8 +345,8 @@ typedef struct
 	s_model_t *pmodel[MAXSTUDIOMODELS];
 } s_bodypart_t;
 
-EXTERN int numbodyparts;
-EXTERN s_bodypart_t bodypart[MAXSTUDIOBODYPARTS];
+extern int numbodyparts;
+extern s_bodypart_t bodypart[MAXSTUDIOBODYPARTS];
 
 extern int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata);
 int LoadBMP(const char *szFile, byte **ppbBits, byte **ppbPalette, int *width, int *height);

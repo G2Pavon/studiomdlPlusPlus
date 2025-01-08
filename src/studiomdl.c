@@ -10,7 +10,7 @@
 #include "cmdlib.h"
 #include "scriplib.h"
 #include "mathlib.h"
-#define EXTERN
+#define extern
 #include "studio.h"
 #include "studiomdl.h"
 #include "monsters/activity.h"
