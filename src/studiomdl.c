@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <math.h>
+
 #include "cmdlib.h"
 #include "scriplib.h"
 #include "mathlib.h"
@@ -86,7 +87,7 @@ void ExtractMotion()
 						// printf("  %f %f %f\n", adj[0], adj[1], adj[2] );
 						for (q = 0; q < sequence[i].numblends; q++)
 						{
-							VectorSubtract(sequence[i].panim[q]->pos[k][j], adj, sequence[i].panim[q]->pos[k][j]);
+							VectorSubstract(sequence[i].panim[q]->pos[k][j], adj, sequence[i].panim[q]->pos[k][j]);
 						}
 					}
 				}
@@ -96,7 +97,7 @@ void ExtractMotion()
 		}
 		else
 		{
-			VectorSubtract(sequence[i].linearmovement, sequence[i].linearmovement, sequence[i].linearmovement);
+			VectorSubstract(sequence[i].linearmovement, sequence[i].linearmovement, sequence[i].linearmovement);
 		}
 	}
 
@@ -181,8 +182,8 @@ void ExtractMotion()
 					// printf("  %f %f %f\n", adj[0], adj[1], adj[2] );
 					for (q = 0; q < sequence[i].numblends; q++)
 					{
-						// VectorSubtract( sequence[i].panim[q]->pos[k][j], motion, sequence[i].panim[q]->pos[k][j] );
-						// VectorSubtract( sequence[i].panim[q]->rot[k][j], angles, sequence[i].panim[q]->pos[k][j] );
+						// VectorSubstract( sequence[i].panim[q]->pos[k][j], motion, sequence[i].panim[q]->pos[k][j] );
+						// VectorSubstract( sequence[i].panim[q]->rot[k][j], angles, sequence[i].panim[q]->pos[k][j] );
 					}
 				}
 			}
@@ -1783,7 +1784,7 @@ void Grab_Triangles(s_model_t *pmodel)
 
 						// move vertex position to object space.
 						vec3_t tmp;
-						VectorSubtract(p.org, bonefixup[p.bone].worldorg, tmp);
+						VectorSubstract(p.org, bonefixup[p.bone].worldorg, tmp);
 						VectorTransform(tmp, bonefixup[p.bone].im, p.org);
 
 						// move normal to object space.
@@ -1830,8 +1831,8 @@ void Grab_Triangles(s_model_t *pmodel)
 					vec3_t a1, a2, sn;
 					float x, y, z;
 
-					VectorSubtract(vert[1], vert[0], a1);
-					VectorSubtract(vert[2], vert[0], a2);
+					VectorSubstract(vert[1], vert[0], a1);
+					VectorSubstract(vert[2], vert[0], a2);
 					CrossProduct(a1, a2, sn);
 					VectorNormalize(sn);
 

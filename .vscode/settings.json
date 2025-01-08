@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "math.h": "c"
+        "math.h": "c",
+        "scriplib.h": "c",
+        "mathlib.h": "c",
+        "studiomdl.h": "c"
     }
 }

@@ -16,6 +16,39 @@ int VectorCompare(const vec3_t v1, const vec3_t v2)
 	return true;
 }
 
+void VectorCopy(const vec3_t v1, vec3_t v2)
+{
+	v2[0] = v1[0];
+	v2[1] = v1[1];
+	v2[2] = v1[2];
+}
+
+void VectorScale(const vec3_t v1, const float scalar, vec3_t v2)
+{
+	v2[0] = (scalar)*v1[0];
+	v2[1] = (scalar)*v1[1];
+	v2[2] = (scalar)*v1[2];
+}
+
+void VectorAdd(const vec3_t v1, const vec3_t v2, vec3_t v)
+{
+	v[0] = v1[0] + v2[0];
+	v[1] = v1[1] + v2[1];
+	v[2] = v1[2] + v2[2];
+}
+
+void VectorSubstract(const vec3_t v1, const vec3_t v2, vec3_t v)
+{
+	v[0] = v1[0] - v2[0];
+	v[1] = v1[1] - v2[1];
+	v[2] = v1[2] - v2[2];
+}
+
+float DotProduct(const vec3_t v1, const vec3_t v2)
+{
+	return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+}
+
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross)
 {
 	cross[0] = v1[1] * v2[2] - v1[2] * v2[1];
