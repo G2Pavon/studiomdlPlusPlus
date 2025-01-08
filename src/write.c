@@ -141,12 +141,10 @@ void WriteSequenceInfo()
 
 	mstudioseqgroup_t *pseqgroup;
 	mstudioseqdesc_t *pseqdesc;
-	mstudioseqdesc_t *pbaseseqdesc;
 	byte *ptransition;
 
 	// save sequence info
 	pseqdesc = (mstudioseqdesc_t *)pData;
-	pbaseseqdesc = pseqdesc;
 	phdr->numseq = numseq;
 	phdr->seqindex = (pData - pStart);
 	pData += numseq * sizeof(mstudioseqdesc_t);

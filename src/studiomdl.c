@@ -1194,7 +1194,6 @@ void adjust_vertex(float *org)
 
 void scale_vertex(float *org)
 {
-	float tmp = org[0];
 	org[0] = org[0] * scale_up;
 	org[1] = org[1] * scale_up;
 	org[2] = org[2] * scale_up;
@@ -1530,7 +1529,6 @@ void Grab_Skin(s_texture_t *ptexture)
 void SetSkinValues()
 {
 	int i, j;
-	int index;
 
 	for (i = 0; i < numtextures; i++)
 	{
@@ -1590,7 +1588,6 @@ void SetSkinValues()
 			skinref[i][j] = j;
 		}
 	}
-	index = 0;
 	for (i = 0; i < numtexturelayers[0]; i++)
 	{
 		for (j = 0; j < numtexturereps[0]; j++)
@@ -2140,8 +2137,6 @@ void Cmd_Bodygroup()
 
 void Cmd_Body()
 {
-	int is_started = 0;
-
 	if (!GetToken(false))
 		return;
 
