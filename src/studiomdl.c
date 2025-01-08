@@ -343,8 +343,8 @@ void SimplifyModel(void)
 {
 	int i, j, k;
 	int n, m, q;
-	vec3_t *defaultpos[MAXSTUDIOSRCBONES];
-	vec3_t *defaultrot[MAXSTUDIOSRCBONES];
+	vec3_t *defaultpos[MAXSTUDIOSRCBONES] = {0};
+	vec3_t *defaultrot[MAXSTUDIOSRCBONES] = {0};
 	int iError = 0;
 
 	OptimizeAnimations();
@@ -696,8 +696,8 @@ void SimplifyModel(void)
 	// relink animations
 	for (i = 0; i < numseq; i++)
 	{
-		vec3_t *origpos[MAXSTUDIOSRCBONES];
-		vec3_t *origrot[MAXSTUDIOSRCBONES];
+		vec3_t *origpos[MAXSTUDIOSRCBONES] = {0};
+		vec3_t *origrot[MAXSTUDIOSRCBONES] = {0};
 
 		for (q = 0; q < sequence[i].numblends; q++)
 		{
@@ -1261,7 +1261,8 @@ void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
 		{
 			float min_u = 10;
 			float max_u = -10;
-			float k_max_u, n_min_u;
+			float k_max_u = 0;
+			float n_min_u = 0;
 			k = -1;
 			n = -1;
 			for (i = 0; i < pmesh->numtris; i++)
@@ -1304,7 +1305,8 @@ void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
 		{
 			float min_v = 10;
 			float max_v = -10;
-			float k_max_v, n_min_v;
+			float k_max_v = 0;
+			float n_min_v = 0;
 			k = -1;
 			n = -1;
 			for (i = 0; i < pmesh->numtris; i++)
@@ -1500,7 +1502,8 @@ void Grab_Skin(s_texture_t *ptexture)
 
 	if (cdtextureset)
 	{
-		int i, time1;
+		int i;
+		int time1 = -1;
 		for (i = 0; i < cdtextureset; i++)
 		{
 			sprintf(file1, "%s/%s", cdtexture[i], ptexture->name);
