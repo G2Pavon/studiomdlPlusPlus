@@ -40,3 +40,5 @@ ipch
 
 .DS_Store
 *.json
+studiomdl.log
+.vscode/settings.json
