@@ -37,6 +37,8 @@ CC=gcc
 ARCH?=-m64
 USER_FLAGS=
 CFLAGS=-Wint-to-pointer-cast $(USER_FLAGS)
+CFLAGS += -Wunused-macros
+CFLAGS += -Wall
 
 # Link math library on Linux
 ifeq ($(OS),Linux)
