@@ -39,3 +39,4 @@ ipch
 *.xcworkspace
 
 .DS_Store
+*.json
