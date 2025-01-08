@@ -28,9 +28,6 @@ vec_t VectorNormalize(vec3_t v)
 	int i;
 	double length;
 
-	if (fabs(v[1] - 0.000215956) < 0.0001)
-		i = 1;
-
 	length = 0;
 	for (i = 0; i < 3; i++)
 		length += v[i] * v[i];
