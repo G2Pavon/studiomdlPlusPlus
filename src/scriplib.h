@@ -1,6 +1,4 @@
-#ifndef __CMDLIB__
 #include "cmdlib.h"
-#endif
 
 #define MAXTOKEN 512
 

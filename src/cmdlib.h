@@ -9,87 +9,68 @@
 #include <time.h>
 #include <stdarg.h>
 
-#ifdef __cplusplus
-extern "C"
+typedef enum
 {
-#endif
+	false,
+	true
+} qboolean;
 
-#ifndef __CMDUTIL__
-#define __CMDUTIL__
-#ifndef _NOENUMQBOOL
-	typedef enum
-	{
-		false,
-		true
-	} qboolean;
-#else
-	typedef int qboolean;
-#undef true
-#undef false
-#define true 1
-#define false 0
-#endif
-
-	typedef unsigned char byte;
-#endif
+typedef unsigned char byte;
 
 // the dec offsetof macro doesn't work very well...
 #define myoffsetof(type, identifier) ((size_t) & ((type *)0)->identifier)
 
-	// set these before calling CheckParm
-	extern int myargc;
-	extern char **myargv;
+// set these before calling CheckParm
+extern int myargc;
+extern char **myargv;
 
-	int filelength(FILE *f);
-	int FileTime(char *path);
+int filelength(FILE *f);
+int FileTime(char *path);
 
-	void Q_mkdir(char *path);
+void Q_mkdir(char *path);
 
-	extern char qdir[1024];
-	extern char gamedir[1024];
-	char *ExpandPath(char *path); // from scripts
-	char *ExpandPathAndArchive(char *path);
+extern char qdir[1024];
+extern char gamedir[1024];
+char *ExpandPath(char *path); // from scripts
+char *ExpandPathAndArchive(char *path);
 
-	void Error(char *error, ...);
+void Error(char *error, ...);
 
-	FILE *SafeOpenWrite(char *filename);
-	FILE *SafeOpenRead(char *filename);
-	void SafeRead(FILE *f, void *buffer, int count);
-	void SafeWrite(FILE *f, void *buffer, int count);
+FILE *SafeOpenWrite(char *filename);
+FILE *SafeOpenRead(char *filename);
+void SafeRead(FILE *f, void *buffer, int count);
+void SafeWrite(FILE *f, void *buffer, int count);
 
-	int LoadFile(char *filename, void **bufferptr);
-	void SaveFile(char *filename, void *buffer, int count);
+int LoadFile(char *filename, void **bufferptr);
+void SaveFile(char *filename, void *buffer, int count);
 
-	void DefaultExtension(char *path, char *extension);
-	void StripExtension(char *path);
+void DefaultExtension(char *path, char *extension);
+void StripExtension(char *path);
 
-	void ExtractFileBase(char *path, char *dest);
+void ExtractFileBase(char *path, char *dest);
 
-	extern char com_token[1024];
-	extern qboolean com_eof;
+extern char com_token[1024];
+extern qboolean com_eof;
 
-	void CreatePath(char *path);
-	void QCopyFile(char *from, char *to);
+void CreatePath(char *path);
+void QCopyFile(char *from, char *to);
 
-	extern qboolean archive;
-	extern char archivedir[1024];
+extern qboolean archive;
+extern char archivedir[1024];
 
-	extern qboolean verbose;
+extern qboolean verbose;
 
-	typedef struct
-	{
-		char name[56];
-		int filepos, filelen;
-	} packfile_t;
+typedef struct
+{
+	char name[56];
+	int filepos, filelen;
+} packfile_t;
 
-	typedef struct
-	{
-		char id[4];
-		int dirofs;
-		int dirlen;
-	} packheader_t;
+typedef struct
+{
+	char id[4];
+	int dirofs;
+	int dirlen;
+} packheader_t;
 
-#endif
-#ifdef __cplusplus
-}
 #endif

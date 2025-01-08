@@ -16,7 +16,7 @@
 #ifndef _STUDIO_H_
 #define _STUDIO_H_
 
-#if !defined(_WIN32)
+#ifndef _WIN32
 #include <stdint.h>
 #endif
 
@@ -161,14 +161,6 @@ typedef struct
 	vec3_t bbmin; // bounding box
 	vec3_t bbmax;
 } mstudiobbox_t;
-
-#if !defined(CACHE_USER) && !defined(QUAKEDEF_H)
-#define CACHE_USER
-typedef struct cache_user_s
-{
-	void *data;
-} cache_user_t;
-#endif
 
 //
 // demand loaded sequence groups
@@ -333,16 +325,6 @@ typedef struct
 	int numnorms;  // per mesh normals
 	int normindex; // normal vec3_t
 } mstudiomesh_t;
-
-// triangles
-#if 0
-typedef struct
-{
-	short				vertindex;		// index into vertex array
-	short				normindex;		// index into normal array
-	short				s,t;			// s,t position on skin
-} mstudiotrivert_t;
-#endif
 
 // lighting options
 #define STUDIO_NF_FLATSHADE 0x0001

@@ -12,7 +12,7 @@
  *   without written permission from Valve LLC.
  *
  ****/
-#if !defined(STUDIO_EVENTH)
+#ifndef STUDIO_EVENTH
 #define STUDIO_EVENTH
 #ifdef _WIN32
 #pragma once

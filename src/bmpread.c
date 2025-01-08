@@ -5,7 +5,7 @@
 #include <STDIO.H>
 #endif
 
-#if !defined(_WIN32)
+#ifndef _WIN32
 #include <stdio.h>
 #include <stdlib.h>
 

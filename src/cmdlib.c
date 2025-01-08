@@ -6,10 +6,6 @@
 #include <direct.h>
 #endif
 
-#ifdef NeXT
-#include <libc.h>
-#endif
-
 #ifdef WIN32
 #define PATHSEPARATOR(c) ((c) == '\\' || (c) == '/')
 #else // WIN32
