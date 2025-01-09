@@ -161,7 +161,7 @@ int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *wi
 	pb = pbPal;
 
 	// Copy over used entries
-	for (i = 0; i < (int)bmih.biClrUsed; i++)
+	for (i = 0; i < static_cast<int>(bmih.biClrUsed); i++)
 	{
 		*pb++ = rgrgbPalette[i].rgbRed;
 		*pb++ = rgrgbPalette[i].rgbGreen;

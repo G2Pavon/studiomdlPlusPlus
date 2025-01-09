@@ -561,7 +561,7 @@ void WriteFile(void)
 	pData = WriteAnimations(pData, pStart, 0);
 
 	WriteSequenceInfo();
-	printf("sequences %6d bytes (%d frames) [%d:%02d]\n", pData - pStart - total, totalframes, (int)totalseconds / 60, (int)totalseconds % 60);
+	printf("sequences %6d bytes (%d frames) [%d:%02d]\n", pData - pStart - total, totalframes, static_cast<int>(totalseconds) / 60, static_cast<int>(totalseconds) % 60);
 	total = pData - pStart;
 
 	WriteModel();

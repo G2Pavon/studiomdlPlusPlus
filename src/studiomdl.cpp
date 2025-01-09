@@ -1118,9 +1118,9 @@ int lookup_vertex(s_model_t *pmodel, s_vertex_t *pv)
 	int i;
 
 	// assume 2 digits of accuracy
-	pv->org[0] = (int)(pv->org[0] * 100) / 100.0;
-	pv->org[1] = (int)(pv->org[1] * 100) / 100.0;
-	pv->org[2] = (int)(pv->org[2] * 100) / 100.0;
+	pv->org[0] = static_cast<int>(pv->org[0] * 100) / 100.0;
+	pv->org[1] = static_cast<int>(pv->org[1] * 100) / 100.0;
+	pv->org[2] = static_cast<int>(pv->org[2] * 100) / 100.0;
 
 	for (i = 0; i < pmodel->numverts; i++)
 	{
@@ -1155,10 +1155,7 @@ void scale_vertex(float *org)
 
 float adjust_texcoord(float coord)
 {
-	if ((coord - floor(coord)) > 0.5)
-		return ceil(coord);
-	else
-		return floor(coord);
+	return static_cast<int>(std::round(coord));
 }
 
 // Called for the base frame
@@ -1244,7 +1241,7 @@ void ResizeTexture(s_texture_t *ptexture)
 	ptexture->size = ptexture->skinwidth * ptexture->skinheight + 256 * 3;
 
 	printf("BMP %s [%d %d] (%.0f%%)  %6d bytes\n", ptexture->name, ptexture->skinwidth, ptexture->skinheight,
-		   ((ptexture->skinwidth * ptexture->skinheight) / (float)(ptexture->srcwidth * ptexture->srcheight)) * 100.0,
+		   ((ptexture->skinwidth * ptexture->skinheight) / static_cast<float>(ptexture->srcwidth * ptexture->srcheight)) * 100.0,
 		   ptexture->size);
 
 	if (ptexture->size > 1024 * 1024)
@@ -2462,7 +2459,7 @@ int Cmd_Controller(void)
 
 			if (bonecontroller[numbonecontrollers].type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
 			{
-				if (((int)(bonecontroller[numbonecontrollers].start + 360) % 360) == ((int)(bonecontroller[numbonecontrollers].end + 360) % 360))
+				if ((static_cast<int>(bonecontroller[numbonecontrollers].start + 360) % 360) == (static_cast<int>(bonecontroller[numbonecontrollers].end + 360) % 360))
 				{
 					bonecontroller[numbonecontrollers].type |= STUDIO_RLOOP;
 				}
