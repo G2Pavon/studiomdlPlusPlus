@@ -1,8 +1,4 @@
-#define STUDIO_VERSION 10
-#define IDSTUDIOHEADER (('T' << 24) + ('S' << 16) + ('D' << 8) + 'I')
-// little-endian "IDST"
-#define IDSTUDIOSEQHEADER (('Q' << 24) + ('S' << 16) + ('D' << 8) + 'I')
-// little-endian "IDSQ"
+
 
 extern char outname[1024];
 extern bool cdset;

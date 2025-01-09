@@ -6,10 +6,8 @@
 typedef float vec3_t[3]; // x,y,z
 typedef float vec4_t[4]; // x,y,z,w
 
-#define Q_PI 3.14159265358979323846
-
-// Use this definition globally
-#define EPSILON 0.001
+constexpr double Q_PI = 3.14159265358979323846;
+constexpr float EPSILON = 0.001;
 
 int VectorCompare(const vec3_t v1, const vec3_t v2);
 void VectorCopy(const vec3_t v1, vec3_t v2);

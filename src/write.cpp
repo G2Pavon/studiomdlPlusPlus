@@ -488,7 +488,7 @@ void WriteModel()
 	}
 }
 
-#define FILEBUFFER (16 * 1024 * 1024)
+constexpr int FILEBUFFER = 16 * 1024 * 1024;
 
 void WriteFile(void)
 {

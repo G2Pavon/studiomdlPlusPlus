@@ -29,26 +29,26 @@ Studio models are position independent, so the cache manager can move them.
 */
 
 // header
-#define STUDIO_VERSION 10
-#define IDSTUDIOHEADER (('T' << 24) + ('S' << 16) + ('D' << 8) + 'I') // little-endian "IDST"
-#define IDSEQGRPHEADER (('Q' << 24) + ('S' << 16) + ('D' << 8) + 'I') // little-endian "IDSQ"
+constexpr int STUDIO_VERSION = 10;
+constexpr int IDSTUDIOHEADER = (('T' << 24) + ('S' << 16) + ('D' << 8) + 'I');	  // little-endian "IDST"
+constexpr int IDSTUDIOSEQHEADER = (('Q' << 24) + ('S' << 16) + ('D' << 8) + 'I'); // little-endian "IDSQ"
 
-#define MAXSTUDIOTRIANGLES 20000 // max triangles per model
-#define MAXSTUDIOVERTS 2048		 // max vertices per submodel
-#define MAXSTUDIOSEQUENCES 2048	 // total animation sequences
-#define MAXSTUDIOSKINS 100		 // total textures
-#define MAXSTUDIOSRCBONES 512	 // bones allowed at source movement
-#define MAXSTUDIOBONES 128		 // total bones actually used
-#define MAXSTUDIOMODELS 32		 // sub-models per model
-#define MAXSTUDIOBODYPARTS 32	 // body parts per submodel
-#define MAXSTUDIOGROUPS 16		 // sequence groups (e.g. barney01.mdl, barney02.mdl, e.t.c)
-#define MAXSTUDIOANIMATIONS 2048 // max frames per sequence
-#define MAXSTUDIOMESHES 256		 // max textures per model
-#define MAXSTUDIOEVENTS 1024	 // events per model
-#define MAXSTUDIOPIVOTS 256		 // pivot points
-#define MAXSTUDIOBLENDS 16		 // max anim blends
-#define MAXSTUDIOCONTROLLERS 8	 // max controllers per model
-#define MAXSTUDIOATTACHMENTS 4	 // max attachments per model
+constexpr int MAXSTUDIOTRIANGLES = 20000; // max triangles per model
+constexpr int MAXSTUDIOVERTS = 2048;	  // max vertices per submodel
+constexpr int MAXSTUDIOSEQUENCES = 2048;  // total animation sequences
+constexpr int MAXSTUDIOSKINS = 100;		  // total textures
+constexpr int MAXSTUDIOSRCBONES = 512;	  // bones allowed at source movement
+constexpr int MAXSTUDIOBONES = 128;		  // total bones actually used
+constexpr int MAXSTUDIOMODELS = 32;		  // sub-models per model
+constexpr int MAXSTUDIOBODYPARTS = 32;	  // body parts per submodel
+constexpr int MAXSTUDIOGROUPS = 16;		  // sequence groups (e.g. barney01.mdl, barney02.mdl, e.t.c)
+constexpr int MAXSTUDIOANIMATIONS = 2048; // max frames per sequence
+constexpr int MAXSTUDIOMESHES = 256;	  // max textures per model
+constexpr int MAXSTUDIOEVENTS = 1024;	  // events per model
+constexpr int MAXSTUDIOPIVOTS = 256;	  // pivot points
+constexpr int MAXSTUDIOBLENDS = 16;		  // max anim blends
+constexpr int MAXSTUDIOCONTROLLERS = 8;	  // max controllers per model
+constexpr int MAXSTUDIOATTACHMENTS = 4;	  // max attachments per model
 
 typedef struct
 {
