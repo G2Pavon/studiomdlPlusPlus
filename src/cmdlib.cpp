@@ -6,15 +6,7 @@
 
 #include <sys/stat.h>
 
-#ifdef WIN32
-#include <direct.h>
-#endif
-
-#ifdef WIN32
-#define PATHSEPARATOR(c) ((c) == '\\' || (c) == '/')
-#else // WIN32
 #define PATHSEPARATOR(c) ((c) == '/')
-#endif // WIN32
 
 #include "cmdlib.h"
 
@@ -76,13 +68,8 @@ char *ExpandPathAndArchive(char *path)
 
 void Q_mkdir(char *path)
 {
-#ifdef WIN32
-	if (_mkdir(path) != -1)
-		return;
-#else
 	if (mkdir(path, 0777) != -1)
 		return;
-#endif
 	if (errno != EEXIST)
 		Error("mkdir %s: %s", path, strerror(errno));
 }

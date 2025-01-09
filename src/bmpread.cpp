@@ -1,12 +1,5 @@
 #include <cstring>
 #include <cstdint>
-
-#if defined(_WIN32)
-#include <windows.h>
-#include <STDIO.H>
-#endif
-
-#ifndef _WIN32
 #include <cstdio>
 #include <cstdlib>
 
