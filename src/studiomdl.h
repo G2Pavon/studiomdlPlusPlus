@@ -28,39 +28,39 @@ extern bool keep_all_bones;
 extern void WriteFile(void);
 void *kalloc(int num, int size);
 
-typedef struct
+struct s_trianglevert_t
 {
 	int vertindex;
 	int normindex; // index into normal array
 	int s, t;
 	float u, v;
-} s_trianglevert_t;
+};
 
-typedef struct
+struct s_vertex_t
 {
 	int bone;	// bone transformation index
 	vec3_t org; // original position
-} s_vertex_t;
+};
 
-typedef struct
+struct s_normal_t
 {
 	int skinref;
 	int bone;	// bone transformation index
 	vec3_t org; // original position
-} s_normal_t;
+};
 
 // dstudiobone_t bone[MAXSTUDIOBONES];
-typedef struct
+struct s_bonefixup_t
 {
 	vec3_t worldorg;
 	float m[3][4];
 	float im[3][4];
 	float length;
-} s_bonefixup_t;
+};
 extern s_bonefixup_t bonefixup[MAXSTUDIOSRCBONES];
 
 extern int numbones;
-typedef struct
+struct s_bonetable_t
 {
 	char name[32];		// bone name for symbolic links
 	int parent;			// parent bone
@@ -73,38 +73,38 @@ typedef struct
 	vec3_t rotscale;   // rotation values scale
 	int group;		   // hitgroup
 	vec3_t bmin, bmax; // bounding box
-} s_bonetable_t;
+};
 extern s_bonetable_t bonetable[MAXSTUDIOSRCBONES];
 
 extern int numrenamedbones;
-typedef struct
+struct s_renamebone_t
 {
 	char from[32];
 	char to[32];
-} s_renamebone_t;
+};
 extern s_renamebone_t renamedbone[MAXSTUDIOSRCBONES];
 
 extern int numhitboxes;
-typedef struct
+struct s_bbox_t
 {
 	char name[32]; // bone name
 	int bone;
 	int group; // hitgroup
 	int model;
 	vec3_t bmin, bmax; // bounding box
-} s_bbox_t;
+};
 extern s_bbox_t hitbox[MAXSTUDIOSRCBONES];
 
 extern int numhitgroups;
-typedef struct
+struct s_hitgroup_t
 {
 	int models;
 	int group;
 	char name[32]; // bone name
-} s_hitgroup_t;
+};
 extern s_hitgroup_t hitgroup[MAXSTUDIOSRCBONES];
 
-typedef struct
+struct s_bonecontroller_t
 {
 	char name[32];
 	int bone;
@@ -112,12 +112,12 @@ typedef struct
 	int index;
 	float start;
 	float end;
-} s_bonecontroller_t;
+};
 
 extern s_bonecontroller_t bonecontroller[MAXSTUDIOSRCBONES];
 extern int numbonecontrollers;
 
-typedef struct
+struct s_attachment_t
 {
 	char name[32];
 	char bonename[32];
@@ -125,23 +125,23 @@ typedef struct
 	int bone;
 	int type;
 	vec3_t org;
-} s_attachment_t;
+};
 
 extern s_attachment_t attachment[MAXSTUDIOSRCBONES];
 extern int numattachments;
 
-typedef struct
+struct s_node_t
 {
 	char name[64];
 	int parent;
 	int mirrored;
-} s_node_t;
+};
 
 extern char mirrored[MAXSTUDIOSRCBONES][64];
 extern int nummirrored;
 
 extern int numani;
-typedef struct
+struct s_animation_t
 {
 	char name[64];
 	int startframe;
@@ -155,26 +155,26 @@ typedef struct
 	vec3_t *rot[MAXSTUDIOSRCBONES];
 	int numanim[MAXSTUDIOSRCBONES][6];
 	mstudioanimvalue_t *anim[MAXSTUDIOSRCBONES][6];
-} s_animation_t;
+};
 extern s_animation_t *panimation[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // each sequence can have 16 blends
 
-typedef struct
+struct s_event_t
 {
 	int event;
 	int frame;
 	char options[64];
-} s_event_t;
+};
 
-typedef struct
+struct s_pivot_t
 {
 	int index;
 	vec3_t org;
 	int start;
 	int end;
-} s_pivot_t;
+};
 
 extern int numseq;
-typedef struct
+struct s_sequence_t
 {
 	int motiontype;
 	vec3_t linearmovement;
@@ -212,33 +212,33 @@ typedef struct
 	int entrynode;
 	int exitnode;
 	int nodeflags;
-} s_sequence_t;
+};
 
 extern s_sequence_t sequence[MAXSTUDIOSEQUENCES];
 extern int numseqgroups;
 
-typedef struct
+struct s_sequencegroup_t
 {
 	char label[32];
 	char name[64];
-} s_sequencegroup_t;
+};
 
 extern s_sequencegroup_t sequencegroup[MAXSTUDIOSEQUENCES];
 extern int numxnodes;
 extern int xnode[100][100];
 
-typedef struct
+struct rgb_t
 {
 	byte r, g, b;
-} rgb_t;
-typedef struct
+};
+struct rgb2_t
 {
 	byte b, g, r, x;
-} rgb2_t;
+};
 
 // FIXME: what about texture overrides inline with loading models
 
-typedef struct
+struct s_texture_t
 {
 	char name[64];
 	int flags;
@@ -261,7 +261,7 @@ typedef struct
 	int size;
 	void *pdata;
 	int parent;
-} s_texture_t;
+};
 
 extern s_texture_t texture[MAXSTUDIOSKINS];
 extern int numtextures;
@@ -275,7 +275,7 @@ extern int numtexturelayers[32];
 extern int numtexturereps[32];
 extern int texturegroup[32][32][32];
 
-typedef struct
+struct s_mesh_t
 {
 	int alloctris;
 	int numtris;
@@ -283,15 +283,15 @@ typedef struct
 
 	int skinref;
 	int numnorms;
-} s_mesh_t;
+};
 
-typedef struct
+struct s_bone_t
 {
 	vec3_t pos;
 	vec3_t rot;
-} s_bone_t;
+};
 
-typedef struct s_model_s
+struct s_model_t
 {
 	char name[64];
 
@@ -321,20 +321,20 @@ typedef struct s_model_s
 	int numframes;
 	float interval;
 	struct s_model_s *next;
-} s_model_t;
+};
 
 extern int nummodels;
 extern s_model_t *model[MAXSTUDIOMODELS];
 extern vec3_t adjust;
 extern vec3_t defaultadjust;
 
-typedef struct
+struct s_bodypart_t
 {
 	char name[32];
 	int nummodels;
 	int base;
 	s_model_t *pmodel[MAXSTUDIOMODELS];
-} s_bodypart_t;
+};
 
 extern int numbodyparts;
 extern s_bodypart_t bodypart[MAXSTUDIOBODYPARTS];
