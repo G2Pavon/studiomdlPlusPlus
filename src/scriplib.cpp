@@ -73,7 +73,7 @@ qboolean GetToken(qboolean crossline)
 {
 	char *token_p;
 
-	if (tokenready) // is a token allready waiting?
+	if (tokenready) // is a token already waiting?
 	{
 		tokenready = qfalse;
 		return qtrue;
@@ -82,39 +82,49 @@ qboolean GetToken(qboolean crossline)
 	if (script->script_p >= script->end_p)
 		return EndOfScript(crossline);
 
-skipspace:
+	// Skip spaces and comments
 	while (*script->script_p <= 32)
 	{
 		if (script->script_p >= script->end_p)
 			return EndOfScript(crossline);
+
 		if (*script->script_p++ == '\n')
 		{
 			if (!crossline)
 				Error("Line %i is incomplete\n", scriptline);
 			scriptline = script->line++;
 		}
+
+		// Check for comment (semicolon or line comment)
+		if (*script->script_p == ';' || *script->script_p == '#' ||
+			(*script->script_p == '/' && *((script->script_p) + 1) == '/'))
+		{
+			if (!crossline)
+				Error("Line %i is incomplete\n", scriptline);
+
+			while (*script->script_p != '\n')
+			{
+				if (script->script_p >= script->end_p)
+					return EndOfScript(crossline);
+				script->script_p++;
+			}
+
+			// Continue skipping spaces after the comment
+			if (script->script_p < script->end_p)
+				continue;
+			return EndOfScript(crossline);
+		}
 	}
 
 	if (script->script_p >= script->end_p)
 		return EndOfScript(crossline);
 
-	if (*script->script_p == ';' || *script->script_p == '#' ||			// semicolon and # is comment field
-		(*script->script_p == '/' && *((script->script_p) + 1) == '/')) // also make // a comment field
-	{
-		if (!crossline)
-			Error("Line %i is incomplete\n", scriptline);
-		while (*script->script_p++ != '\n')
-			if (script->script_p >= script->end_p)
-				return EndOfScript(crossline);
-		goto skipspace;
-	}
-
-	// copy token
+	// Copy token
 	token_p = token;
 
 	if (*script->script_p == '"')
 	{
-		// quoted token
+		// Quoted token
 		script->script_p++;
 		while (*script->script_p != '"')
 		{
@@ -126,7 +136,8 @@ skipspace:
 		}
 		script->script_p++;
 	}
-	else // regular token
+	else // Regular token
+	{
 		while (*script->script_p > 32 && *script->script_p != ';')
 		{
 			*token_p++ = *script->script_p++;
@@ -135,6 +146,7 @@ skipspace:
 			if (token_p == &token[MAXTOKEN])
 				Error("Token too large on line %i\n", scriptline);
 		}
+	}
 
 	*token_p = 0;
 

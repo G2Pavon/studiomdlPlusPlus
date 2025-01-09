@@ -59,7 +59,6 @@ typedef struct tagRGBQUAD
 // for biBitCount is 16/24/32, it may be useless
 
 #endif
-
 int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height)
 {
 	int i, rc = 0;
@@ -77,64 +76,63 @@ int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *wi
 	if (!(ppbPalette != NULL && ppbBits != NULL))
 	{
 		fprintf(stderr, "invalid BMP file\n");
-		rc = -1000;
-		goto GetOut;
+		return -1000;
 	}
 
 	// File exists?
-	if ((pfile = fopen(szFile, "rb")) == NULL)
+	pfile = fopen(szFile, "rb");
+	if (pfile == NULL)
 	{
 		fprintf(stderr, "unable to open BMP file\n");
-		rc = -1;
-		goto GetOut;
+		return -1;
 	}
 
 	// Read file header
-	if (fread(&bmfh, sizeof bmfh, 1 /*count*/, pfile) != 1)
+	if (fread(&bmfh, sizeof bmfh, 1, pfile) != 1)
 	{
-		rc = -2;
-		goto GetOut;
+		fclose(pfile);
+		return -2;
 	}
 
 	// Bogus file header check
 	if (!(bmfh.bfReserved1 == 0 && bmfh.bfReserved2 == 0))
 	{
-		rc = -2000;
-		goto GetOut;
+		fclose(pfile);
+		return -2000;
 	}
 
 	// Read info header
-	if (fread(&bmih, sizeof bmih, 1 /*count*/, pfile) != 1)
+	if (fread(&bmih, sizeof bmih, 1, pfile) != 1)
 	{
-		rc = -3;
-		goto GetOut;
+		fclose(pfile);
+		return -3;
 	}
 
 	// Bogus info header check
 	if (!(bmih.biSize == sizeof bmih && bmih.biPlanes == 1))
 	{
 		fprintf(stderr, "invalid BMP file header\n");
-		rc = -3000;
-		goto GetOut;
+		fclose(pfile);
+		return -3000;
 	}
 
 	// Bogus bit depth?  Only 8-bit supported.
 	if (bmih.biBitCount != 8)
 	{
 		fprintf(stderr, "BMP file not 8 bit\n");
-		rc = -4;
-		goto GetOut;
+		fclose(pfile);
+		return -4;
 	}
 
 	// Bogus compression?  Only non-compressed supported.
 	if (bmih.biCompression != BI_RGB)
 	{
 		fprintf(stderr, "invalid BMP compression type\n");
-		rc = -5;
-		goto GetOut;
+		fclose(pfile);
+		return -5;
 	}
 
-	// Figure out how many entires are actually in the table
+	// Figure out how many entries are actually in the table
 	if (bmih.biClrUsed == 0)
 	{
 		bmih.biClrUsed = 256;
@@ -146,18 +144,18 @@ int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *wi
 	}
 
 	// Read palette (bmih.biClrUsed entries)
-	if (fread(rgrgbPalette, cbPalBytes, 1 /*count*/, pfile) != 1)
+	if (fread(rgrgbPalette, cbPalBytes, 1, pfile) != 1)
 	{
-		rc = -6;
-		goto GetOut;
+		fclose(pfile);
+		return -6;
 	}
 
-	// convert to a packed 768 byte palette
+	// Convert to a packed 768-byte palette
 	pbPal = (uint8_t *)malloc(768);
 	if (pbPal == NULL)
 	{
-		rc = -7;
-		goto GetOut;
+		fclose(pfile);
+		return -7;
 	}
 
 	pb = pbPal;
@@ -170,7 +168,7 @@ int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *wi
 		*pb++ = rgrgbPalette[i].rgbBlue;
 	}
 
-	// Fill in unused entires will 0,0,0
+	// Fill in unused entries with 0,0,0
 	for (i = bmih.biClrUsed; i < 256; i++)
 	{
 		*pb++ = 0;
@@ -181,18 +179,19 @@ int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *wi
 	// Read bitmap bits (remainder of file)
 	cbBmpBits = bmfh.bfSize - ftell(pfile);
 	pb = (uint8_t *)malloc(cbBmpBits);
-	if (fread(pb, cbBmpBits, 1 /*count*/, pfile) != 1)
+	if (fread(pb, cbBmpBits, 1, pfile) != 1)
 	{
-		rc = -7;
-		goto GetOut;
+		free(pb);
+		fclose(pfile);
+		return -7;
 	}
 
 	pbBmpBits = (uint8_t *)malloc(cbBmpBits);
 
-	// data is actually stored with the width being rounded up to a multiple of 4
+	// Data is actually stored with the width being rounded up to a multiple of 4
 	biTrueWidth = (bmih.biWidth + 3) & ~3;
 
-	// reverse the order of the data.
+	// Reverse the order of the data
 	pb += (bmih.biHeight - 1) * biTrueWidth;
 	for (i = 0; i < bmih.biHeight; i++)
 	{
@@ -205,13 +204,11 @@ int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *wi
 
 	*width = (uint16_t)bmih.biWidth;
 	*height = (uint16_t)bmih.biHeight;
+
 	// Set output parameters
 	*ppbPalette = pbPal;
 	*ppbBits = pbBmpBits;
 
-GetOut:
-	if (pfile)
-		fclose(pfile);
-
+	fclose(pfile);
 	return rc;
 }

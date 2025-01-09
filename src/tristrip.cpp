@@ -92,7 +92,7 @@ int StripLength(int starttri, int startv)
 			k = neighboredge[starttri][(startv + 2) % 3];
 		}
 		if (j == -1 || used[j])
-			goto done;
+			break;
 
 		stripverts[stripcount] = (k + 2) % 3;
 		striptris[stripcount] = j;
@@ -103,8 +103,6 @@ int StripLength(int starttri, int startv)
 		starttri = j;
 		startv = k;
 	}
-
-done:
 
 	// clear the temp used flags
 	for (j = 0; j < pmesh->numtris; j++)
@@ -136,7 +134,7 @@ int FanLength(int starttri, int startv)
 		k = neighboredge[starttri][(startv + 2) % 3];
 
 		if (j == -1 || used[j])
-			goto done;
+			break;
 
 		stripverts[stripcount] = (k + 2) % 3;
 		striptris[stripcount] = j;
@@ -147,9 +145,6 @@ int FanLength(int starttri, int startv)
 		starttri = j;
 		startv = k;
 	}
-
-done:
-
 	// clear the temp used flags
 	for (j = 0; j < pmesh->numtris; j++)
 		if (used[j] == 2)
