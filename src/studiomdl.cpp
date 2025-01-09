@@ -2675,6 +2675,10 @@ void Cmd_TexRenderMode(void)
 	{
 		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
 	}
+	else if (!strcmp(token, "flatshade"))
+	{
+		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
+	}
 	else
 		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);
 }
