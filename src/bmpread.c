@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdint.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -9,22 +10,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef int LONG;
-typedef unsigned long ULONG;
-typedef unsigned char BYTE;
-typedef unsigned char byte;
-typedef unsigned int DWORD;
-typedef unsigned short WORD;
-
 // __attribute__((packed)) on non-Intel arch may cause some unexpected error, plz be informed.
 
 typedef struct tagBITMAPFILEHEADER
 {
-	WORD bfType;	  // 2  /* Magic identifier */
-	DWORD bfSize;	  // 4  /* File size in bytes */
-	WORD bfReserved1; // 2
-	WORD bfReserved2; // 2
-	DWORD bfOffBits;  // 4 /* Offset to image data, bytes */
+	uint16_t bfType;	  // 2  /* Magic identifier */
+	uint32_t bfSize;	  // 4  /* File size in bytes */
+	uint16_t bfReserved1; // 2
+	uint16_t bfReserved2; // 2
+	uint32_t bfOffBits;	  // 4 /* Offset to image data, bytes */
 } __attribute__((packed)) BITMAPFILEHEADER;
 
 typedef enum
@@ -42,42 +36,42 @@ typedef enum
 
 typedef struct tagBITMAPINFOHEADER
 {
-	DWORD biSize;		  // 4 /* Header size in bytes */
-	LONG biWidth;		  // 4 /* Width of image */
-	LONG biHeight;		  // 4 /* Height of image */
-	WORD biPlanes;		  // 2 /* Number of colour planes */
-	WORD biBitCount;	  // 2 /* Bits per pixel */
-	DWORD biCompression;  // 4 /* Compression type */
-	DWORD biSizeImage;	  // 4 /* Image size in bytes */
-	LONG biXPelsPerMeter; // 4
-	LONG biYPelsPerMeter; // 4 /* Pixels per meter */
-	DWORD biClrUsed;	  // 4 /* Number of colours */
-	DWORD biClrImportant; // 4 /* Important colours */
+	uint32_t biSize;		 // 4 /* Header size in bytes */
+	int32_t biWidth;		 // 4 /* Width of image */
+	int32_t biHeight;		 // 4 /* Height of image */
+	uint16_t biPlanes;		 // 2 /* Number of colour planes */
+	uint16_t biBitCount;	 // 2 /* Bits per pixel */
+	uint32_t biCompression;	 // 4 /* Compression type */
+	uint32_t biSizeImage;	 // 4 /* Image size in bytes */
+	int32_t biXPelsPerMeter; // 4
+	int32_t biYPelsPerMeter; // 4 /* Pixels per meter */
+	uint32_t biClrUsed;		 // 4 /* Number of colours */
+	uint32_t biClrImportant; // 4 /* Important colours */
 } __attribute__((packed)) BITMAPINFOHEADER;
 
 typedef struct tagRGBQUAD
 {
-	BYTE rgbBlue;
-	BYTE rgbGreen;
-	BYTE rgbRed;
-	BYTE rgbReserved;
+	uint8_t rgbBlue;
+	uint8_t rgbGreen;
+	uint8_t rgbRed;
+	uint8_t rgbReserved;
 } RGBQUAD;
 // for biBitCount is 16/24/32, it may be useless
 
 #endif
 
-int LoadBMP(const char *szFile, byte **ppbBits, byte **ppbPalette, int *width, int *height)
+int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height)
 {
 	int i, rc = 0;
 	FILE *pfile = NULL;
 	BITMAPFILEHEADER bmfh;
 	BITMAPINFOHEADER bmih;
 	RGBQUAD rgrgbPalette[256];
-	ULONG cbBmpBits;
-	BYTE *pbBmpBits;
-	byte *pb, *pbPal = NULL;
-	ULONG cbPalBytes;
-	ULONG biTrueWidth;
+	uint32_t cbBmpBits;
+	uint8_t *pbBmpBits;
+	uint8_t *pb, *pbPal = NULL;
+	uint32_t cbPalBytes;
+	uint32_t biTrueWidth;
 
 	// Bogus parameter check
 	if (!(ppbPalette != NULL && ppbBits != NULL))
@@ -209,8 +203,8 @@ int LoadBMP(const char *szFile, byte **ppbBits, byte **ppbPalette, int *width, i
 	pb += biTrueWidth;
 	free(pb);
 
-	*width = (WORD)bmih.biWidth;
-	*height = (WORD)bmih.biHeight;
+	*width = (uint16_t)bmih.biWidth;
+	*height = (uint16_t)bmih.biHeight;
 	// Set output parameters
 	*ppbPalette = pbPal;
 	*ppbBits = pbBmpBits;
