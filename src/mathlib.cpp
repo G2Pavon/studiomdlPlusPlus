@@ -1,5 +1,7 @@
 // mathlib.c -- math primitives
 
+#include <cmath>
+
 #include "cmdlib.h"
 #include "mathlib.h"
 

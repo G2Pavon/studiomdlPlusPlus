@@ -2,12 +2,6 @@
 #define __CMDLIB__
 
 #include <cstdio>
-#include <cstring>
-#include <cstdlib>
-#include <cerrno>
-#include <cctype>
-#include <ctime>
-#include <cstdarg>
 
 extern bool archive;
 

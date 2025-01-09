@@ -1,4 +1,9 @@
 #include <cstdint>
+#include <cstdarg>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+
 #include <sys/stat.h>
 
 #ifdef WIN32

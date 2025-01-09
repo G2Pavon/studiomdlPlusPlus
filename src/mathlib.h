@@ -3,8 +3,6 @@
 
 // mathlib.h
 
-#include <math.h>
-
 typedef float vec3_t[3]; // x,y,z
 typedef float vec4_t[4]; // x,y,z,w
 

@@ -1,3 +1,6 @@
+#include <cstring>
+#include <cstdlib>
+
 #include "cmdlib.h"
 #include "scriplib.h"
 #include "mathlib.h"

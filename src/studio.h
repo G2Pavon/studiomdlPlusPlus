@@ -16,7 +16,7 @@
 #ifndef _STUDIO_H_
 #define _STUDIO_H_
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "studio_event.h"
 /*

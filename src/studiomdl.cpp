@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include <cctype>
 
 #include "cmdlib.h"
 #include "scriplib.h"
