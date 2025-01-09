@@ -1208,13 +1208,7 @@ float adjust_texcoord(float coord)
 		return floor(coord);
 }
 
-/*
-============
-SetSkinValues
-
-Called for the base frame
-============
-*/
+// Called for the base frame
 void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
 {
 	int i, j;
@@ -1231,7 +1225,7 @@ void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
 			for (j = 0; j < 3; j++)
 			{
 				pmesh->triangle[i][j].s = 0;
-				pmesh->triangle[i][j].t = +1;
+				pmesh->triangle[i][j].t = +1; // ??
 			}
 			ptexture->max_s = 63;
 			ptexture->min_s = 0;
@@ -1288,7 +1282,7 @@ void ResizeTexture(s_texture_t *ptexture)
 	byte *pdest;
 	int srcadjwidth;
 
-	// Keep the original texture width and height without resizing to avoid uv shift
+	// Keep the original texture without resizing to avoid uv shift
 	ptexture->skintop = ptexture->min_t;
 	ptexture->skinleft = ptexture->min_s;
 	ptexture->skinwidth = ptexture->srcwidth;
@@ -1344,7 +1338,6 @@ void ResizeTexture(s_texture_t *ptexture)
 		memcpy(pdest, ptexture->ppal, 256 * sizeof(rgb_t));
 	}
 
-	// Clean up
 	free(ptexture->ppicture);
 	free(ptexture->ppal);
 }

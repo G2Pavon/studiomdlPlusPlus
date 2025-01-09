@@ -16,10 +16,9 @@
 #ifndef _STUDIO_H_
 #define _STUDIO_H_
 
-#ifndef _WIN32
 #include <stdint.h>
-#endif
 
+#include "studio_event.h"
 /*
 ==============================================================================
 
@@ -33,21 +32,6 @@ Studio models are position independent, so the cache manager can move them.
 #define STUDIO_VERSION 10
 #define IDSTUDIOHEADER (('T' << 24) + ('S' << 16) + ('D' << 8) + 'I') // little-endian "IDST"
 #define IDSEQGRPHEADER (('Q' << 24) + ('S' << 16) + ('D' << 8) + 'I') // little-endian "IDSQ"
-
-// #define MAXSTUDIOTRIANGLES	20000	// TODO: tune this
-// #define MAXSTUDIOVERTS		2048	// TODO: tune this
-// #define MAXSTUDIOSEQUENCES	2048	// total animation sequences -- KSH incremented
-// #define MAXSTUDIOSKINS		100		// total textures
-// #define MAXSTUDIOSRCBONES	512		// bones allowed at source movement
-// #define MAXSTUDIOBONES		128		// total bones actually used
-// #define MAXSTUDIOMODELS		32		// sub-models per model
-// #define MAXSTUDIOBODYPARTS	32
-// #define MAXSTUDIOGROUPS		16
-// #define MAXSTUDIOANIMATIONS	2048
-// #define MAXSTUDIOMESHES		256
-// #define MAXSTUDIOEVENTS		1024
-// #define MAXSTUDIOPIVOTS		256
-// #define MAXSTUDIOCONTROLLERS 8
 
 #define MAXSTUDIOTRIANGLES 32768 // max triangles per model
 #define MAXSTUDIOVERTS 4096		 // max vertices per submodel
@@ -169,11 +153,7 @@ typedef struct
 {
 	char label[32]; // textual name
 	char name[64];	// file name
-#if defined(_WIN32)
-	int32 unused1; // was "cache"  - index pointer
-#else
 	int32_t unused1;
-#endif
 	int unused2; // was "data" -  hack for group 0
 } mstudioseqgroup_t;
 
@@ -222,18 +202,6 @@ typedef struct
 
 	int nextseq; // auto advancing sequences
 } mstudioseqdesc_t;
-
-// events
-#include "studio_event.h"
-/*
-typedef struct
-{
-	int 				frame;
-	int					event;
-	int					type;
-	char				options[64];
-} mstudioevent_t;
-*/
 
 // pivots
 typedef struct
@@ -330,10 +298,10 @@ typedef struct
 #define STUDIO_NF_FLATSHADE 0x0001
 #define STUDIO_NF_CHROME 0x0002
 #define STUDIO_NF_FULLBRIGHT 0x0004
-#define STUDIO_NF_NOMIPS 0x0008
-#define STUDIO_NF_ALPHA 0x0010
+// #define STUDIO_NF_NOMIPS 0x0008
+// #define STUDIO_NF_ALPHA 0x0010
 #define STUDIO_NF_ADDITIVE 0x0020
-#define STUDIO_NF_TRANSPARENT 0x0040
+#define STUDIO_NF_TRANSPARENT 0x0040 // or STUDIO_NF_MASKED
 
 // motion flags
 #define STUDIO_X 0x0001
@@ -356,14 +324,5 @@ typedef struct
 
 // sequence flags
 #define STUDIO_LOOPING 0x0001
-
-// bone flags
-#define STUDIO_HAS_NORMALS 0x0001
-#define STUDIO_HAS_VERTICES 0x0002
-#define STUDIO_HAS_BBOX 0x0004
-#define STUDIO_HAS_CHROME 0x0008 // if any of the textures have chrome on them
-
-#define RAD_TO_STUDIO (32768.0 / M_PI)
-#define STUDIO_TO_RAD (M_PI / 32768.0)
 
 #endif
