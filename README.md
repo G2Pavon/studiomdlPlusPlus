@@ -5,6 +5,7 @@ C++ fork of fnky studiomdl
 - Removed unused code
 - 64 bit
 - UV shift correction (using DoomMusic's fix and removing texture resizing hack, didn't test too much to confirm if it works well tbh)
+- Flatshade texture mode
 
 >Note: developed on linux
 
