@@ -8,18 +8,10 @@
 typedef float vec3_t[3]; // x,y,z
 typedef float vec4_t[4]; // x,y,z,w
 
-#define SIDE_FRONT 0
-#define SIDE_ON 2
-#define SIDE_BACK 1
-#define SIDE_CROSS -2
-
 #define Q_PI 3.14159265358979323846
 
-extern vec3_t vec3_origin;
-
 // Use this definition globally
-#define ON_EPSILON 0.01
-#define EQUAL_EPSILON 0.001
+#define EPSILON 0.001
 
 int VectorCompare(const vec3_t v1, const vec3_t v2);
 void VectorCopy(const vec3_t v1, vec3_t v2);

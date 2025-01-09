@@ -3,8 +3,6 @@
 #include "cmdlib.h"
 #include "mathlib.h"
 
-vec3_t vec3_origin = {0, 0, 0};
-
 int VectorCompare(const vec3_t v1, const vec3_t v2)
 {
 	int i;
