@@ -1,5 +1,4 @@
-#include "cmdlib.h"
-#include <sys/types.h>
+#include <cstdint>
 #include <sys/stat.h>
 
 #ifdef WIN32
@@ -9,9 +8,10 @@
 #ifdef WIN32
 #define PATHSEPARATOR(c) ((c) == '\\' || (c) == '/')
 #else // WIN32
-#include <unistd.h>
 #define PATHSEPARATOR(c) ((c) == '/')
 #endif // WIN32
+
+#include "cmdlib.h"
 
 bool archive;
 char archivedir[1024];

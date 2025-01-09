@@ -3,6 +3,14 @@
         "math.h": "c",
         "scriplib.h": "c",
         "mathlib.h": "c",
-        "studiomdl.h": "c"
+        "studiomdl.h": "c",
+        "cstring": "cpp",
+        "cstdint": "cpp",
+        "cstdio": "cpp",
+        "random": "cpp",
+        "cstdlib": "cpp",
+        "cerrno": "cpp",
+        "cstdarg": "cpp",
+        "cmath": "cpp"
     }
 }

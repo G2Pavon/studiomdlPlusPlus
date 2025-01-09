@@ -1,5 +1,5 @@
-#include <string.h>
-#include <stdint.h>
+#include <cstring>
+#include <cstdint>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -7,8 +7,8 @@
 #endif
 
 #ifndef _WIN32
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 // __attribute__((packed)) on non-Intel arch may cause some unexpected error, plz be informed.
 

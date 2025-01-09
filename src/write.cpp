@@ -1,9 +1,3 @@
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <cstdint>
-
 #include "cmdlib.h"
 #include "scriplib.h"
 #include "mathlib.h"

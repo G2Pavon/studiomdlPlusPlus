@@ -1,7 +1,4 @@
 // tristrip - convert triangle list into tristrips and fans
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
 #include "cmdlib.h"
 #include "scriplib.h"
 #include "mathlib.h"
