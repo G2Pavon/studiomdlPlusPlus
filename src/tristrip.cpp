@@ -79,7 +79,7 @@ int StripLength(int starttri, int startv)
 	striptris[2] = starttri;
 	stripcount = 3;
 
-	while (1)
+	while (true)
 	{
 		if (stripcount & 1)
 		{
@@ -128,7 +128,7 @@ int FanLength(int starttri, int startv)
 	striptris[2] = starttri;
 	stripcount = 3;
 
-	while (1)
+	while (true)
 	{
 		j = neighbortri[starttri][(startv + 2) % 3];
 		k = neighboredge[starttri][(startv + 2) % 3];

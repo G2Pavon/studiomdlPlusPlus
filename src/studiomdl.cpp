@@ -277,7 +277,7 @@ void MakeTransitions()
 	}
 
 	// Add multi-stage transitions
-	while (1)
+	while (true)
 	{
 		iHit = 0;
 		for (i = 1; i <= numxnodes; i++)
@@ -1474,7 +1474,7 @@ void Grab_Triangles(s_model_t *pmodel)
 	Build_Reference(pmodel);
 
 	// load the base triangles
-	while (1)
+	while (true)
 	{
 		if (fgets(line, sizeof(line), input) != NULL)
 		{
@@ -1894,7 +1894,7 @@ void Cmd_Bodygroup()
 	}
 	strcpyn(bodypart[numbodyparts].name, token);
 
-	while (1)
+	while (true)
 	{
 		int is_started = 0;
 		GetToken(qtrue);
@@ -2283,7 +2283,7 @@ int Cmd_Sequence()
 	sequence[numseq].blendstart[0] = 0.0;
 	sequence[numseq].blendend[0] = 1.0;
 
-	while (1)
+	while (true)
 	{
 		if (depth > 0)
 		{
@@ -2547,7 +2547,7 @@ int Cmd_TextureGroup()
 	if (numskinref == 0)
 		numskinref = numtextures;
 
-	while (1)
+	while (true)
 	{
 		if (!GetToken(qtrue))
 		{
@@ -2695,10 +2695,10 @@ void Cmd_TexRenderMode(void)
 }
 void ParseScript(void)
 {
-	while (1)
+	while (true)
 	{
 		// Look for a line starting with a $ command
-		while (1)
+		while (true)
 		{
 			GetToken(qtrue);
 			if (endofscript)
