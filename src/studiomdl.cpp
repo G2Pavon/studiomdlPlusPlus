@@ -37,10 +37,6 @@ void kmemset(void *ptr, int value, int size)
 	return;
 }
 
-void ClearModel(void)
-{
-}
-
 void ExtractMotion()
 {
 	int i, j, k;
@@ -2894,7 +2890,6 @@ int main(int argc, char **argv)
 	DefaultExtension(path, ".qc");
 	LoadScriptFile(path);
 	// parse it
-	ClearModel();
 	strcpy(outname, argv[i]);
 	ParseScript();
 	SetSkinValues();
