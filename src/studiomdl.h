@@ -30,10 +30,6 @@ extern vec3_t cbox[2];
 extern int clip_texcoords;
 extern qboolean keep_all_bones;
 
-#define ROLL 2
-#define PITCH 0
-#define YAW 1
-
 extern void WriteFile(void);
 void *kalloc(int num, int size);
 

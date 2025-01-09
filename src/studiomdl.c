@@ -10,14 +10,11 @@
 #include "cmdlib.h"
 #include "scriplib.h"
 #include "mathlib.h"
-#define extern
+#define extern // ??
 #include "studio.h"
 #include "studiomdl.h"
 #include "monsters/activity.h"
 #include "monsters/activitymap.h"
-
-#define min(a, b) fmin(a, b)
-#define max(a, b) fmax(a, b)
 
 #define strnicmp strncasecmp
 #define stricmp strcasecmp
@@ -30,15 +27,12 @@ void clip_rotations(vec3_t rot);
 int k_memtotal;
 void *kalloc(int num, int size)
 {
-	// printf( "calloc( %d, %d )\n", num, size );
-	// printf( "%d ", num * size );
 	k_memtotal += num * size;
 	return calloc(num, size);
 }
 
 void kmemset(void *ptr, int value, int size)
 {
-	// printf( "kmemset( %x, %d, %d )\n", ptr, value, size );
 	memset(ptr, value, size);
 	return;
 }
@@ -73,7 +67,6 @@ void ExtractMotion()
 			if (type & STUDIO_LZ)
 				motion[2] = ppos[k][2] - ppos[0][2];
 
-			// printf("%f %f %f\n", motion[0], motion[1], motion[2] );
 			for (j = 0; j < sequence[i].numframes; j++)
 			{
 				vec3_t adj;
@@ -84,7 +77,6 @@ void ExtractMotion()
 						ppos = sequence[i].panim[0]->pos[k];
 
 						VectorScale(motion, j * 1.0 / (sequence[i].numframes - 1), adj);
-						// printf("  %f %f %f\n", adj[0], adj[1], adj[2] );
 						for (q = 0; q < sequence[i].numblends; q++)
 						{
 							VectorSubstract(sequence[i].panim[q]->pos[k][j], adj, sequence[i].panim[q]->pos[k][j]);
@@ -153,7 +145,6 @@ void ExtractMotion()
 		vec3_t angles = {0, 0, 0};
 
 		type = sequence[i].motiontype;
-		// printf("%f %f %f\n", motion[0], motion[1], motion[2] );
 		for (j = 0; j < sequence[i].numframes; j++)
 		{
 			ppos = sequence[i].panim[0]->pos[0];
@@ -174,19 +165,6 @@ void ExtractMotion()
 
 			VectorCopy(motion, sequence[i].automovepos[j]);
 			VectorCopy(angles, sequence[i].automoveangle[j]);
-
-			for (k = 0; k < sequence[i].panim[0]->numbones; k++)
-			{
-				if (sequence[i].panim[0]->node[k].parent == -1)
-				{
-					// printf("  %f %f %f\n", adj[0], adj[1], adj[2] );
-					for (q = 0; q < sequence[i].numblends; q++)
-					{
-						// VectorSubstract( sequence[i].panim[q]->pos[k][j], motion, sequence[i].panim[q]->pos[k][j] );
-						// VectorSubstract( sequence[i].panim[q]->rot[k][j], angles, sequence[i].panim[q]->pos[k][j] );
-					}
-				}
-			}
 		}
 	}
 }
@@ -249,12 +227,7 @@ void OptimizeAnimations(void)
 		}
 
 		sequence[i].frameoffset = sequence[i].panim[0]->startframe;
-		// printf("\n");
 	}
-	/*
-	if (iError)
-		exit(1);
-	*/
 }
 
 int findNode(char *name)
@@ -410,7 +383,6 @@ void SimplifyModel(void)
 				if (k == -1)
 				{
 					// create new bone
-					// printf("%d : %s\n", numbones, model[i]->node[j].name );
 					k = numbones;
 					strcpyn(bonetable[k].name, model[i]->node[j].name);
 					if ((n = model[i]->node[j].parent) != -1)
@@ -494,7 +466,6 @@ void SimplifyModel(void)
 
 			if (k == -1)
 			{
-				// printf("unknown bone \"%s\" in sequence \"%s\"\n", sequence[i].panim[0]->node[j].name, sequence[i].name );
 				sequence[i].panim[0]->bonemap[j] = -1;
 			}
 			else
@@ -520,8 +491,6 @@ void SimplifyModel(void)
 				}
 				sequence[i].panim[0]->bonemap[j] = k;
 				sequence[i].panim[0]->boneimap[k] = j;
-				// VectorCopy( sequence[i].panim[0]->pos[j][0].org, bonetable[k].pos );
-				// VectorCopy( sequence[i].panim[0]->rot[j][0].org, bonetable[k].rot );
 			}
 		}
 	}
@@ -725,7 +694,6 @@ void SimplifyModel(void)
 				}
 			}
 		}
-		// printf("%s %f\n", sequence[i].name, sequence[i].panim[0]->pos[3][0][0] );
 	}
 
 	// find scales for all bones
@@ -805,9 +773,7 @@ void SimplifyModel(void)
 				bonetable[j].rotscale[k - 3] = scale;
 				break;
 			}
-			// printf("%.0f ", 1.0 / scale );
 		}
-		// printf("\n" );
 	}
 
 	// find bounding box for each sequence
@@ -880,12 +846,6 @@ void SimplifyModel(void)
 
 		VectorCopy(bmin, sequence[i].bmin);
 		VectorCopy(bmax, sequence[i].bmax);
-
-		/*
-		printf("%s : %.0f %.0f %.0f %.0f %.0f %.0f\n",
-			sequence[i].name, bmin[0], bmax[0], bmin[1], bmax[1], bmin[2], bmax[2] );
-		*/
-		// printf("%s  %.2f\n", sequence[i].name, sequence[i].panim[0]->pos[9][0][0] / bonetable[9].pos[0] );
 	}
 
 	// reduce animations
@@ -972,7 +932,6 @@ void SimplifyModel(void)
 								total++;
 								if (pcount->num.total != pcount->num.valid)
 								{
-									// if (j == 0) printf("%d:%d   ", pcount->num.valid, pcount->num.total );
 									pcount = pvalue;
 									pvalue = pcount + 1;
 								}
@@ -982,7 +941,6 @@ void SimplifyModel(void)
 							}
 							pcount->num.total++;
 						}
-						// if (j == 0) printf("%d:%d\n", pcount->num.valid, pcount->num.total );
 
 						sequence[i].panim[q]->numanim[j][k] = pvalue - data;
 						if (sequence[i].panim[q]->numanim[j][k] == 2 && value[0] == 0)
@@ -994,13 +952,10 @@ void SimplifyModel(void)
 							sequence[i].panim[q]->anim[j][k] = kalloc(pvalue - data, sizeof(mstudioanimvalue_t));
 							memmove(sequence[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(mstudioanimvalue_t));
 						}
-						// printf("%d(%d) ", sequence[i].panim[q]->numanim[j][k], n );
 					}
-					// printf("\n");
 				}
 			}
 		}
-		// printf("total %.0f changes %.0f\n", total, changes );
 	}
 }
 
@@ -1143,7 +1098,6 @@ int lookup_normal(s_model_t *pmodel, s_normal_t *pnormal)
 	int i;
 	for (i = 0; i < pmodel->numnorms; i++)
 	{
-		// if (VectorCompare( pmodel->normal[i].org, pnormal->org )
 		if (DotProduct(pmodel->normal[i].org, pnormal->org) > normal_blend && pmodel->normal[i].bone == pnormal->bone && pmodel->normal[i].skinref == pnormal->skinref)
 		{
 			return i;
@@ -1456,12 +1410,6 @@ void SetSkinValues()
 		numskinfamilies = 1;
 		numskinref = numtextures;
 	}
-
-	// printf ("width: %i  height: %i\n",width, height);
-	/*
-	printf ("adjusted width: %i height: %i  top : %i  left: %i\n",
-			pmesh->skinwidth, pmesh->skinheight, pmesh->skintop, pmesh->skinleft );
-	*/
 }
 
 char filename[1024];
@@ -1507,13 +1455,6 @@ void Build_Reference(s_model_t *pmodel)
 			VectorTransform(pmodel->skeleton[i].pos, bonefixup[parent].m, p);
 			VectorAdd(p, bonefixup[parent].worldorg, bonefixup[i].worldorg);
 		}
-		// printf("%3d %f %f %f\n", i, bonefixup[i].worldorg[0], bonefixup[i].worldorg[1], bonefixup[i].worldorg[2] );
-		/*
-		AngleMatrix( angle, m );
-		printf("%8.4f %8.4f %8.4f\n", m[0][0], m[1][0], m[2][0] );
-		printf("%8.4f %8.4f %8.4f\n", m[0][1], m[1][1], m[2][1] );
-		printf("%8.4f %8.4f %8.4f\n", m[0][2], m[1][2], m[2][2] );
-		*/
 	}
 }
 
@@ -1529,9 +1470,7 @@ void Grab_Triangles(s_model_t *pmodel)
 
 	Build_Reference(pmodel);
 
-	//
 	// load the base triangles
-	//
 	while (1)
 	{
 		if (fgets(line, sizeof(line), input) != NULL)
@@ -1609,13 +1548,6 @@ void Grab_Triangles(s_model_t *pmodel)
 							fprintf(stderr, "%d %s :\n%s", linecount, filename, line);
 							exit(1);
 						}
-
-						/*
-						if (ptriv->u > 2.0)
-						{
-							printf("%d %f\n", linecount, ptriv->u );
-						}
-						*/
 
 						VectorCopy(p.org, vert[j]);
 						VectorCopy(normal.org, norm[j]);
@@ -1782,13 +1714,6 @@ int Grab_Nodes(s_node_t *pnodes)
 		linecount++;
 		if (sscanf(line, "%d \"%[^\"]\" %d", &index, name, &parent) == 3)
 		{
-			// check for duplicated bones
-			/*
-			if (strlen(pnodes[index].name) != 0)
-			{
-				Error( "bone \"%s\" exists more than once\n", name );
-			}
-			*/
 
 			strcpyn(pnodes[index].name, name);
 			pnodes[index].parent = parent;
@@ -2730,8 +2655,6 @@ void Cmd_Renamebone()
 
 	numrenamedbones++;
 }
-
-// STUDIO_NF_FULLBRIGHT
 
 void Cmd_TexRenderMode(void)
 {
