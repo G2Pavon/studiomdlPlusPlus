@@ -2837,7 +2837,7 @@ int main(int argc, char **argv)
 	texgamma = 1.8;
 
 	if (argc == 1)
-		Error("usage: studiomdl <flags>\n [-t texture]\n -r(tag reversed)\n -n(tag bad normals)\n -f(flip all triangles)\n [-a normal_blend_angle]\n -h(dump hboxes)\n -i(ignore warnings)\n [-g max_sequencegroup_size(K)]\n file.qc");
+		Error("usage: studiomdl <flags>\n [-t texture]\n -r(tag reversed)\n -n(tag bad normals)\n -f(flip all triangles)\n [-a normal_blend_angle]\n -h(dump hboxes)\n -i(ignore warnings) \n b(keep all unused bones)\n file.qc");
 
 	for (i = 1; i < argc - 1; i++)
 	{
