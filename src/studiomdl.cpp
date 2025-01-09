@@ -2807,10 +2807,6 @@ void ParseScript(void)
 		{
 			Cmd_Attachment();
 		}
-		else if (!strcmp(token, "$cliptotextures"))
-		{
-			clip_texcoords = 1;
-		}
 		else if (!strcmp(token, "$renamebone"))
 		{
 			Cmd_Renamebone();

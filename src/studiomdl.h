@@ -27,7 +27,6 @@ extern vec3_t eyeposition;
 extern int gflags;
 extern vec3_t bbox[2];
 extern vec3_t cbox[2];
-extern int clip_texcoords;
 extern bool keep_all_bones;
 
 extern void WriteFile(void);
