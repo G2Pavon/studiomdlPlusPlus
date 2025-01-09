@@ -1,6 +1,6 @@
 ## studiomdl++
 
-This is a C++ port forked from fnky studiomdl
+This is a C++ fork of fnky studiomdl
 
 - Removed unused code
 - 64 bit
