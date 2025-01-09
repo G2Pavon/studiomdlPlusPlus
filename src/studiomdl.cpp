@@ -256,13 +256,12 @@ void MatrixCopy(float in[3][4], float out[3][4])
 		}
 	}
 }
-
 void MakeTransitions()
 {
 	int i, j, k;
 	int iHit;
 
-	// add in direct node transitions
+	// Add in direct node transitions
 	for (i = 0; i < numseq; i++)
 	{
 		if (sequence[i].entrynode != sequence[i].exitnode)
@@ -277,23 +276,23 @@ void MakeTransitions()
 			numxnodes = sequence[i].entrynode;
 	}
 
-	// add multi-stage transitions
-	do
+	// Add multi-stage transitions
+	while (1)
 	{
 		iHit = 0;
 		for (i = 1; i <= numxnodes; i++)
 		{
 			for (j = 1; j <= numxnodes; j++)
 			{
-				// if I can't go there directly
+				// If I can't go there directly
 				if (i != j && xnode[i - 1][j - 1] == 0)
 				{
 					for (k = 1; k < numxnodes; k++)
 					{
-						// but I found someone who knows how that I can get to
+						// But I found someone who knows how that I can get to
 						if (xnode[k - 1][j - 1] > 0 && xnode[i - 1][k - 1] > 0)
 						{
-							// then go to them
+							// Then go to them
 							xnode[i - 1][j - 1] = -xnode[i - 1][k - 1];
 							iHit = 1;
 							break;
@@ -302,7 +301,8 @@ void MakeTransitions()
 				}
 			}
 		}
-		// reset previous pass so the links can be used in the next pass
+
+		// Reset previous pass so the links can be used in the next pass
 		for (i = 1; i <= numxnodes; i++)
 		{
 			for (j = 1; j <= numxnodes; j++)
@@ -310,7 +310,10 @@ void MakeTransitions()
 				xnode[i - 1][j - 1] = abs(xnode[i - 1][j - 1]);
 			}
 		}
-	} while (iHit);
+
+		if (!iHit)
+			break; // No more transitions are added
+	}
 }
 
 void SimplifyModel(void)
@@ -1878,7 +1881,6 @@ int Option_Blank()
 
 void Cmd_Bodygroup()
 {
-
 	if (!GetToken(qfalse))
 		return;
 
@@ -1892,21 +1894,30 @@ void Cmd_Bodygroup()
 	}
 	strcpyn(bodypart[numbodyparts].name, token);
 
-	do
+	while (1)
 	{
 		int is_started = 0;
 		GetToken(qtrue);
 		if (endofscript)
 			return;
-		else if (token[0] == '{')
+
+		if (token[0] == '{')
+		{
 			is_started = 1;
+		}
 		else if (token[0] == '}')
+		{
 			break;
+		}
 		else if (stricmp("studio", token) == 0)
+		{
 			Option_Studio();
+		}
 		else if (stricmp("blank", token) == 0)
+		{
 			Option_Blank();
-	} while (1);
+		}
+	}
 
 	numbodyparts++;
 	return;
@@ -2682,22 +2693,26 @@ void Cmd_TexRenderMode(void)
 	else
 		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);
 }
-
 void ParseScript(void)
 {
 	while (1)
 	{
-		do
-		{ // look for a line starting with a $ command
+		// Look for a line starting with a $ command
+		while (1)
+		{
 			GetToken(qtrue);
 			if (endofscript)
 				return;
+
 			if (token[0] == '$')
 				break;
+
+			// Skip the rest of the line
 			while (TokenAvailable())
 				GetToken(qfalse);
-		} while (1);
+		}
 
+		// Process recognized commands
 		if (!strcmp(token, "$modelname"))
 		{
 			Cmd_Modelname();
@@ -2736,32 +2751,26 @@ void ParseScript(void)
 		{
 			Cmd_Body();
 		}
-
 		else if (!strcmp(token, "$bodygroup"))
 		{
 			Cmd_Bodygroup();
 		}
-
 		else if (!strcmp(token, "$sequence"))
 		{
 			Cmd_Sequence();
 		}
-
 		else if (!strcmp(token, "$sequencegroup"))
 		{
 			Cmd_SequenceGroup();
 		}
-
 		else if (!strcmp(token, "$eyeposition"))
 		{
 			Cmd_Eyeposition();
 		}
-
 		else if (!strcmp(token, "$origin"))
 		{
 			Cmd_Origin();
 		}
-
 		else if (!strcmp(token, "$bbox"))
 		{
 			Cmd_BBox();
@@ -2786,7 +2795,6 @@ void ParseScript(void)
 		{
 			Cmd_TextureGroup();
 		}
-
 		else if (!strcmp(token, "$hgroup"))
 		{
 			Cmd_Hitgroup();
