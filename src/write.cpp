@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <cstdint>
+
 #include "cmdlib.h"
 #include "scriplib.h"
 #include "mathlib.h"
@@ -375,7 +377,7 @@ void WriteModel()
 	}
 	ALIGN(pData);
 
-	cur = (int)pData;
+	cur = reinterpret_cast<intptr_t>(pData);
 	for (i = 0; i < nummodels; i++)
 	{
 		int normmap[MAXSTUDIOVERTS];
@@ -444,7 +446,7 @@ void WriteModel()
 				VectorCopy(model[i]->normal[normimap[j]].org, pnorm[j]);
 			}
 			printf("vertices  %6d bytes (%d vertices, %d normals)\n", pData - cur, model[i]->numverts, model[i]->numnorms);
-			cur = (int)pData;
+			cur = reinterpret_cast<intptr_t>(pData);
 		}
 		// save mesh info
 		{
@@ -484,7 +486,7 @@ void WriteModel()
 				total_strips += numcommandnodes;
 			}
 			printf("mesh      %6d bytes (%d tris, %d strips)\n", pData - cur, total_tris, total_strips);
-			cur = (int)pData;
+			cur = reinterpret_cast<intptr_t>(pData);
 		}
 	}
 }
@@ -497,7 +499,7 @@ void WriteFile(void)
 	int total = 0;
 	int i;
 
-	pStart = kalloc(1, FILEBUFFER);
+	pStart = (byte *)kalloc(1, FILEBUFFER);
 
 	StripExtension(outname);
 

@@ -153,7 +153,7 @@ int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *wi
 	}
 
 	// convert to a packed 768 byte palette
-	pbPal = malloc(768);
+	pbPal = (uint8_t *)malloc(768);
 	if (pbPal == NULL)
 	{
 		rc = -7;
@@ -180,14 +180,14 @@ int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *wi
 
 	// Read bitmap bits (remainder of file)
 	cbBmpBits = bmfh.bfSize - ftell(pfile);
-	pb = malloc(cbBmpBits);
+	pb = (uint8_t *)malloc(cbBmpBits);
 	if (fread(pb, cbBmpBits, 1 /*count*/, pfile) != 1)
 	{
 		rc = -7;
 		goto GetOut;
 	}
 
-	pbBmpBits = malloc(cbBmpBits);
+	pbBmpBits = (uint8_t *)malloc(cbBmpBits);
 
 	// data is actually stored with the width being rounded up to a multiple of 4
 	biTrueWidth = (bmih.biWidth + 3) & ~3;

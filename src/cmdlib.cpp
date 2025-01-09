@@ -60,7 +60,7 @@ char *ExpandPathAndArchive(char *path)
 
 	expanded = ExpandPath(path);
 
-	if (archive)
+	if (archive == qtrue)
 	{
 		char archivename[1024];
 		sprintf(archivename, "%s/%s", archivedir, path);

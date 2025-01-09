@@ -9,11 +9,12 @@
 #include <time.h>
 #include <stdarg.h>
 
-typedef enum
+enum qboolean
 {
-	false,
-	true
-} qboolean;
+	qfalse,
+	qtrue
+};
+extern qboolean archive;
 
 typedef unsigned char byte;
 

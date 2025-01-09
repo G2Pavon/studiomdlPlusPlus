@@ -42,8 +42,8 @@ void LoadScriptFile(char *filename)
 	script = scriptstack;
 	AddScriptToStack(filename);
 
-	endofscript = false;
-	tokenready = false;
+	endofscript = qfalse;
+	tokenready = qfalse;
 }
 
 qboolean EndOfScript(qboolean crossline)
@@ -53,15 +53,15 @@ qboolean EndOfScript(qboolean crossline)
 
 	if (!strcmp(script->filename, "memory buffer"))
 	{
-		endofscript = true;
-		return false;
+		endofscript = qtrue;
+		return qfalse;
 	}
 
 	free(script->buffer);
 	if (script == scriptstack + 1)
 	{
-		endofscript = true;
-		return false;
+		endofscript = qtrue;
+		return qfalse;
 	}
 	script--;
 	scriptline = script->line;
@@ -75,8 +75,8 @@ qboolean GetToken(qboolean crossline)
 
 	if (tokenready) // is a token allready waiting?
 	{
-		tokenready = false;
-		return true;
+		tokenready = qfalse;
+		return qtrue;
 	}
 
 	if (script->script_p >= script->end_p)
@@ -140,12 +140,12 @@ skipspace:
 
 	if (!strcmp(token, "$include"))
 	{
-		GetToken(false);
+		GetToken(qfalse);
 		AddScriptToStack(token);
 		return GetToken(crossline);
 	}
 
-	return true;
+	return qtrue;
 }
 
 // turns true if there is another token on the line
@@ -156,19 +156,19 @@ qboolean TokenAvailable(void)
 	search_p = script->script_p;
 
 	if (search_p >= script->end_p)
-		return false;
+		return qfalse;
 
 	while (*search_p <= 32)
 	{
 		if (*search_p == '\n')
-			return false;
+			return qfalse;
 		search_p++;
 		if (search_p == script->end_p)
-			return false;
+			return qfalse;
 	}
 
 	if (*search_p == ';')
-		return false;
+		return qfalse;
 
-	return true;
+	return qtrue;
 }

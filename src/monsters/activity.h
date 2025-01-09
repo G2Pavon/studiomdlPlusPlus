@@ -103,6 +103,4 @@ typedef struct
 	char *name;
 } activity_map_t;
 
-extern activity_map_t activity_map[];
-
 #endif // ACTIVITY_H

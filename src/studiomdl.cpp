@@ -392,8 +392,8 @@ void SimplifyModel(void)
 					bonetable[k].bonecontroller = 0;
 					bonetable[k].flags = 0;
 					// set defaults
-					defaultpos[k] = kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
-					defaultrot[k] = kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
+					defaultpos[k] = (vec3_t *)kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
+					defaultrot[k] = (vec3_t *)kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
 					for (n = 0; n < MAXSTUDIOANIMATIONS; n++)
 					{
 						VectorCopy(model[i]->skeleton[j].pos, defaultpos[k][n]);
@@ -949,7 +949,7 @@ void SimplifyModel(void)
 						}
 						else
 						{
-							sequence[i].panim[q]->anim[j][k] = kalloc(pvalue - data, sizeof(mstudioanimvalue_t));
+							sequence[i].panim[q]->anim[j][k] = (mstudioanimvalue_t *)kalloc(pvalue - data, sizeof(mstudioanimvalue_t));
 							memmove(sequence[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(mstudioanimvalue_t));
 						}
 					}
@@ -1067,7 +1067,7 @@ s_mesh_t *lookup_mesh(s_model_t *pmodel, char *texturename)
 	}
 
 	pmodel->nummesh = i + 1;
-	pmodel->pmesh[i] = kalloc(1, sizeof(s_mesh_t));
+	pmodel->pmesh[i] = (s_mesh_t *)kalloc(1, sizeof(s_mesh_t));
 	pmodel->pmesh[i]->skinref = j;
 
 	return pmodel->pmesh[i];
@@ -1081,12 +1081,12 @@ s_trianglevert_t *lookup_triangle(s_mesh_t *pmesh, int index)
 		pmesh->alloctris = index + 256;
 		if (pmesh->triangle)
 		{
-			pmesh->triangle = realloc(pmesh->triangle, pmesh->alloctris * sizeof(*pmesh->triangle));
+			pmesh->triangle = static_cast<s_trianglevert_t(*)[3]>(realloc(pmesh->triangle, pmesh->alloctris * sizeof(*pmesh->triangle)));
 			kmemset(&pmesh->triangle[start], 0, (pmesh->alloctris - start) * sizeof(*pmesh->triangle));
 		}
 		else
 		{
-			pmesh->triangle = kalloc(pmesh->alloctris, sizeof(*pmesh->triangle));
+			pmesh->triangle = static_cast<s_trianglevert_t(*)[3]>(kalloc(pmesh->alloctris, sizeof(*pmesh->triangle)));
 		}
 	}
 
@@ -1253,7 +1253,7 @@ void ResizeTexture(s_texture_t *ptexture)
 		printf("%.0f %.0f %.0f %.0f\n", ptexture->min_s, ptexture->max_s, ptexture->min_t, ptexture->max_t);
 		Error("texture too large\n");
 	}
-	pdest = malloc(ptexture->size);
+	pdest = (byte *)malloc(ptexture->size);
 	ptexture->pdata = pdest;
 
 	// Data is saved as a multiple of 4
@@ -1806,34 +1806,34 @@ void Cmd_Eyeposition(void)
 {
 	// rotate points into frame of reference so model points down the positive x
 	// axis
-	GetToken(false);
+	GetToken(qfalse);
 	eyeposition[1] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	eyeposition[0] = -atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	eyeposition[2] = atof(token);
 }
 
 void Cmd_Flags(void)
 {
-	GetToken(false);
+	GetToken(qfalse);
 	gflags = atoi(token);
 }
 
 void Cmd_Modelname(void)
 {
-	GetToken(false);
+	GetToken(qfalse);
 	strcpyn(outname, token);
 }
 
 void Option_Studio()
 {
-	if (!GetToken(false))
+	if (!GetToken(qfalse))
 		return;
 
-	model[nummodels] = kalloc(1, sizeof(s_model_t));
+	model[nummodels] = (s_model_t *)kalloc(1, sizeof(s_model_t));
 	bodypart[numbodyparts].pmodel[bodypart[numbodyparts].nummodels] = model[nummodels];
 
 	strcpyn(model[nummodels]->name, token);
@@ -1844,14 +1844,14 @@ void Option_Studio()
 
 	while (TokenAvailable())
 	{
-		GetToken(false);
+		GetToken(qfalse);
 		if (stricmp("reverse", token) == 0)
 		{
 			flip_triangles = 0;
 		}
 		else if (stricmp("scale", token) == 0)
 		{
-			GetToken(false);
+			GetToken(qfalse);
 			scale_up = atof(token);
 		}
 	}
@@ -1866,7 +1866,7 @@ void Option_Studio()
 
 int Option_Blank()
 {
-	model[nummodels] = kalloc(1, sizeof(s_model_t));
+	model[nummodels] = (s_model_t *)(1, sizeof(s_model_t));
 	bodypart[numbodyparts].pmodel[bodypart[numbodyparts].nummodels] = model[nummodels];
 
 	strcpyn(model[nummodels]->name, "blank");
@@ -1879,7 +1879,7 @@ int Option_Blank()
 void Cmd_Bodygroup()
 {
 
-	if (!GetToken(false))
+	if (!GetToken(qfalse))
 		return;
 
 	if (numbodyparts == 0)
@@ -1895,7 +1895,7 @@ void Cmd_Bodygroup()
 	do
 	{
 		int is_started = 0;
-		GetToken(true);
+		GetToken(qtrue);
 		if (endofscript)
 			return;
 		else if (token[0] == '{')
@@ -1914,7 +1914,7 @@ void Cmd_Bodygroup()
 
 void Cmd_Body()
 {
-	if (!GetToken(false))
+	if (!GetToken(qfalse))
 		return;
 
 	if (numbodyparts == 0)
@@ -1945,8 +1945,8 @@ void Grab_Animation(s_animation_t *panim)
 
 	for (index = 0; index < panim->numbones; index++)
 	{
-		panim->pos[index] = kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
-		panim->rot[index] = kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
+		panim->pos[index] = (vec3_t *)kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
+		panim->rot[index] = (vec3_t *)kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
 	}
 
 	cz = cos(zrotation);
@@ -2028,8 +2028,8 @@ void Shift_Animation(s_animation_t *panim)
 		k_memtotal -= MAXSTUDIOANIMATIONS * sizeof(vec3_t) * 2;
 		k_memtotal += size * 2;
 
-		ppos = kalloc(1, size);
-		prot = kalloc(1, size);
+		ppos = (vec3_t *)kalloc(1, size);
+		prot = (vec3_t *)kalloc(1, size);
 
 		memmove(ppos, &panim->pos[j][panim->startframe], size);
 		memmove(prot, &panim->rot[j][panim->startframe], size);
@@ -2113,11 +2113,11 @@ int Option_Event(s_sequence_t *psequence)
 		exit(0);
 	}
 
-	GetToken(false);
+	GetToken(qfalse);
 	event = atoi(token);
 	psequence->event[psequence->numevents].event = event;
 
-	GetToken(false);
+	GetToken(qfalse);
 	psequence->event[psequence->numevents].frame = atoi(token);
 
 	psequence->numevents++;
@@ -2125,7 +2125,7 @@ int Option_Event(s_sequence_t *psequence)
 	// option token
 	if (TokenAvailable())
 	{
-		GetToken(false);
+		GetToken(qfalse);
 		if (token[0] == '}') // opps, hit the end
 			return 1;
 		// found an option
@@ -2137,7 +2137,7 @@ int Option_Event(s_sequence_t *psequence)
 
 int Option_Fps(s_sequence_t *psequence)
 {
-	GetToken(false);
+	GetToken(qfalse);
 
 	psequence->fps = atof(token);
 
@@ -2152,13 +2152,13 @@ int Option_AddPivot(s_sequence_t *psequence)
 		exit(0);
 	}
 
-	GetToken(false);
+	GetToken(qfalse);
 	psequence->pivot[psequence->numpivots].index = atoi(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	psequence->pivot[psequence->numpivots].start = atoi(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	psequence->pivot[psequence->numpivots].end = atoi(token);
 
 	psequence->numpivots++;
@@ -2168,50 +2168,50 @@ int Option_AddPivot(s_sequence_t *psequence)
 
 void Cmd_Origin(void)
 {
-	GetToken(false);
+	GetToken(qfalse);
 	defaultadjust[0] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	defaultadjust[1] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	defaultadjust[2] = atof(token);
 
 	if (TokenAvailable())
 	{
-		GetToken(false);
+		GetToken(qfalse);
 		defaultzrotation = (atof(token) + 90) * (Q_PI / 180.0);
 	}
 }
 
 void Option_Origin(void)
 {
-	GetToken(false);
+	GetToken(qfalse);
 	adjust[0] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	adjust[1] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	adjust[2] = atof(token);
 }
 
 void Option_Rotate(void)
 {
-	GetToken(false);
+	GetToken(qfalse);
 	zrotation = (atof(token) + 90) * (Q_PI / 180.0);
 }
 
 void Cmd_ScaleUp(void)
 {
 
-	GetToken(false);
+	GetToken(qfalse);
 	default_scale = scale_up = atof(token);
 }
 
 void Cmd_Rotate(void) // XDM
 {
-	if (!GetToken(false))
+	if (!GetToken(qfalse))
 		return;
 	zrotation = (atof(token) + 90) * (Q_PI / 180.0);
 }
@@ -2219,13 +2219,13 @@ void Cmd_Rotate(void) // XDM
 void Option_ScaleUp(void)
 {
 
-	GetToken(false);
+	GetToken(qfalse);
 	scale_up = atof(token);
 }
 
 int Cmd_SequenceGroup()
 {
-	GetToken(false);
+	GetToken(qfalse);
 	strcpyn(sequencegroup[numseqgroups].label, token);
 	numseqgroups++;
 
@@ -2258,7 +2258,7 @@ int Cmd_Sequence()
 	int start = 0;
 	int end = MAXSTUDIOANIMATIONS - 1;
 
-	if (!GetToken(false))
+	if (!GetToken(qfalse))
 		return 0;
 
 	strcpyn(sequence[numseq].name, token);
@@ -2276,7 +2276,7 @@ int Cmd_Sequence()
 	{
 		if (depth > 0)
 		{
-			if (!GetToken(true))
+			if (!GetToken(qtrue))
 			{
 				break;
 			}
@@ -2289,7 +2289,7 @@ int Cmd_Sequence()
 			}
 			else
 			{
-				GetToken(false);
+				GetToken(qfalse);
 			}
 		}
 
@@ -2344,37 +2344,37 @@ int Cmd_Sequence()
 		}
 		else if (strnicmp("frame", token, 5) == 0)
 		{
-			GetToken(false);
+			GetToken(qfalse);
 			start = atoi(token);
-			GetToken(false);
+			GetToken(qfalse);
 			end = atoi(token);
 		}
 		else if (strnicmp("blend", token, 5) == 0)
 		{
-			GetToken(false);
+			GetToken(qfalse);
 			sequence[numseq].blendtype[0] = lookupControl(token);
-			GetToken(false);
+			GetToken(qfalse);
 			sequence[numseq].blendstart[0] = atof(token);
-			GetToken(false);
+			GetToken(qfalse);
 			sequence[numseq].blendend[0] = atof(token);
 		}
 		else if (strnicmp("node", token, 4) == 0)
 		{
-			GetToken(false);
+			GetToken(qfalse);
 			sequence[numseq].entrynode = sequence[numseq].exitnode = atoi(token);
 		}
 		else if (strnicmp("transition", token, 4) == 0)
 		{
-			GetToken(false);
+			GetToken(qfalse);
 			sequence[numseq].entrynode = atoi(token);
-			GetToken(false);
+			GetToken(qfalse);
 			sequence[numseq].exitnode = atoi(token);
 		}
 		else if (strnicmp("rtransition", token, 4) == 0)
 		{
-			GetToken(false);
+			GetToken(qfalse);
 			sequence[numseq].entrynode = atoi(token);
-			GetToken(false);
+			GetToken(qfalse);
 			sequence[numseq].exitnode = atoi(token);
 			sequence[numseq].nodeflags |= 1;
 		}
@@ -2384,13 +2384,13 @@ int Cmd_Sequence()
 		}
 		else if (stricmp("animation", token) == 0)
 		{
-			GetToken(false);
+			GetToken(qfalse);
 			strcpyn(smdfilename[numblends++], token);
 		}
 		else if ((i = lookupActivity(token)) != 0)
 		{
 			sequence[numseq].activity = i;
-			GetToken(false);
+			GetToken(qfalse);
 			sequence[numseq].actweight = atoi(token);
 		}
 		else
@@ -2412,7 +2412,7 @@ int Cmd_Sequence()
 	}
 	for (i = 0; i < numblends; i++)
 	{
-		panimation[numani] = kalloc(1, sizeof(s_animation_t));
+		panimation[numani] = (s_animation_t *)malloc(sizeof(s_animation_t));
 		sequence[numseq].panim[i] = panimation[numani];
 		sequence[numseq].panim[i]->startframe = start;
 		sequence[numseq].panim[i]->endframe = end;
@@ -2429,7 +2429,7 @@ int Cmd_Sequence()
 
 int Cmd_Controller(void)
 {
-	if (GetToken(false))
+	if (GetToken(qfalse))
 	{
 		if (!strcmpi("mouth", token))
 		{
@@ -2439,18 +2439,18 @@ int Cmd_Controller(void)
 		{
 			bonecontroller[numbonecontrollers].index = atoi(token);
 		}
-		if (GetToken(false))
+		if (GetToken(qfalse))
 		{
 			strcpyn(bonecontroller[numbonecontrollers].name, token);
-			GetToken(false);
+			GetToken(qfalse);
 			if ((bonecontroller[numbonecontrollers].type = lookupControl(token)) == -1)
 			{
 				printf("unknown bonecontroller type '%s'\n", token);
 				return 0;
 			}
-			GetToken(false);
+			GetToken(qfalse);
 			bonecontroller[numbonecontrollers].start = atof(token);
-			GetToken(false);
+			GetToken(qfalse);
 			bonecontroller[numbonecontrollers].end = atof(token);
 
 			if (bonecontroller[numbonecontrollers].type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
@@ -2468,55 +2468,55 @@ int Cmd_Controller(void)
 
 void Cmd_BBox(void)
 {
-	GetToken(false);
+	GetToken(qfalse);
 	bbox[0][0] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	bbox[0][1] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	bbox[0][2] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	bbox[1][0] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	bbox[1][1] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	bbox[1][2] = atof(token);
 }
 
 void Cmd_CBox(void)
 {
-	GetToken(false);
+	GetToken(qfalse);
 	cbox[0][0] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	cbox[0][1] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	cbox[0][2] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	cbox[1][0] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	cbox[1][1] = atof(token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	cbox[1][2] = atof(token);
 }
 
 void Cmd_Mirror(void)
 {
-	GetToken(false);
+	GetToken(qfalse);
 	strcpyn(mirrored[nummirrored++], token);
 }
 
 void Cmd_Gamma(void)
 {
-	GetToken(false);
+	GetToken(qfalse);
 	texgamma = atof(token);
 }
 
@@ -2530,7 +2530,7 @@ int Cmd_TextureGroup()
 	if (numtextures == 0)
 		Error("texturegroups must follow model loading\n");
 
-	if (!GetToken(false))
+	if (!GetToken(qfalse))
 		return 0;
 
 	if (numskinref == 0)
@@ -2538,7 +2538,7 @@ int Cmd_TextureGroup()
 
 	while (1)
 	{
-		if (!GetToken(true))
+		if (!GetToken(qtrue))
 		{
 			break;
 		}
@@ -2582,9 +2582,9 @@ int Cmd_TextureGroup()
 
 int Cmd_Hitgroup()
 {
-	GetToken(false);
+	GetToken(qfalse);
 	hitgroup[numhitgroups].group = atoi(token);
-	GetToken(false);
+	GetToken(qfalse);
 	strcpyn(hitgroup[numhitgroups].name, token);
 	numhitgroups++;
 
@@ -2593,21 +2593,21 @@ int Cmd_Hitgroup()
 
 int Cmd_Hitbox()
 {
-	GetToken(false);
+	GetToken(qfalse);
 	hitbox[numhitboxes].group = atoi(token);
-	GetToken(false);
+	GetToken(qfalse);
 	strcpyn(hitbox[numhitboxes].name, token);
-	GetToken(false);
+	GetToken(qfalse);
 	hitbox[numhitboxes].bmin[0] = atof(token);
-	GetToken(false);
+	GetToken(qfalse);
 	hitbox[numhitboxes].bmin[1] = atof(token);
-	GetToken(false);
+	GetToken(qfalse);
 	hitbox[numhitboxes].bmin[2] = atof(token);
-	GetToken(false);
+	GetToken(qfalse);
 	hitbox[numhitboxes].bmax[0] = atof(token);
-	GetToken(false);
+	GetToken(qfalse);
 	hitbox[numhitboxes].bmax[1] = atof(token);
-	GetToken(false);
+	GetToken(qfalse);
 	hitbox[numhitboxes].bmax[2] = atof(token);
 
 	numhitboxes++;
@@ -2618,26 +2618,26 @@ int Cmd_Hitbox()
 int Cmd_Attachment()
 {
 	// index
-	GetToken(false);
+	GetToken(qfalse);
 	attachment[numattachments].index = atoi(token);
 
 	// bone name
-	GetToken(false);
+	GetToken(qfalse);
 	strcpyn(attachment[numattachments].bonename, token);
 
 	// position
-	GetToken(false);
+	GetToken(qfalse);
 	attachment[numattachments].org[0] = atof(token);
-	GetToken(false);
+	GetToken(qfalse);
 	attachment[numattachments].org[1] = atof(token);
-	GetToken(false);
+	GetToken(qfalse);
 	attachment[numattachments].org[2] = atof(token);
 
 	if (TokenAvailable())
-		GetToken(false);
+		GetToken(qfalse);
 
 	if (TokenAvailable())
-		GetToken(false);
+		GetToken(qfalse);
 
 	numattachments++;
 	return 0;
@@ -2646,11 +2646,11 @@ int Cmd_Attachment()
 void Cmd_Renamebone()
 {
 	// from
-	GetToken(false);
+	GetToken(qfalse);
 	strcpy(renamedbone[numrenamedbones].from, token);
 
 	// to
-	GetToken(false);
+	GetToken(qfalse);
 	strcpy(renamedbone[numrenamedbones].to, token);
 
 	numrenamedbones++;
@@ -2659,10 +2659,10 @@ void Cmd_Renamebone()
 void Cmd_TexRenderMode(void)
 {
 	char tex_name[256];
-	GetToken(false);
+	GetToken(qfalse);
 	strcpy(tex_name, token);
 
-	GetToken(false);
+	GetToken(qfalse);
 	if (!strcmp(token, "additive"))
 	{
 		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_ADDITIVE;
@@ -2685,13 +2685,13 @@ void ParseScript(void)
 	{
 		do
 		{ // look for a line starting with a $ command
-			GetToken(true);
+			GetToken(qtrue);
 			if (endofscript)
 				return;
 			if (token[0] == '$')
 				break;
 			while (TokenAvailable())
-				GetToken(false);
+				GetToken(qfalse);
 		} while (1);
 
 		if (!strcmp(token, "$modelname"))
@@ -2702,8 +2702,8 @@ void ParseScript(void)
 		{
 			if (cdset)
 				Error("Two $cd in one model");
-			cdset = true;
-			GetToken(false);
+			cdset = qtrue;
+			GetToken(qfalse);
 			strcpy(cdpartial, token);
 			strcpy(cddir, ExpandPath(token));
 		}
@@ -2711,7 +2711,7 @@ void ParseScript(void)
 		{
 			while (TokenAvailable())
 			{
-				GetToken(false);
+				GetToken(qfalse);
 				strcpy(cdtexture[cdtextureset], ExpandPath(token));
 				cdtextureset++;
 			}
@@ -2826,7 +2826,7 @@ int main(int argc, char **argv)
 	tag_reversed = 0;
 	tag_normals = 0;
 	flip_triangles = 1;
-	keep_all_bones = 0;
+	keep_all_bones = qfalse;
 
 	normal_blend = cos(2.0 * (Q_PI / 180.0));
 
@@ -2873,7 +2873,7 @@ int main(int argc, char **argv)
 				ignore_warnings = 1;
 				break;
 			case 'b':
-				keep_all_bones = 1;
+				keep_all_bones = qtrue;
 				break;
 			}
 		}
