@@ -55,7 +55,7 @@ bool EndOfScript(bool crossline)
 	if (!crossline)
 		Error("Line %i is incomplete\n", scriptline);
 
-	if (!strcmp(script->filename, "memory buffer"))
+	if (!std::strcmp(script->filename, "memory buffer"))
 	{
 		endofscript = true;
 		return false;
@@ -154,7 +154,7 @@ bool GetToken(bool crossline)
 
 	*token_p = 0;
 
-	if (!strcmp(token, "$include"))
+	if (!std::strcmp(token, "$include"))
 	{
 		GetToken(false);
 		AddScriptToStack(token);

@@ -18,7 +18,6 @@
 
 #define strnicmp strncasecmp
 #define stricmp strcasecmp
-#define strcmpi strcasecmp
 
 void clip_rotations(vec3_t rot);
 
@@ -28,12 +27,12 @@ int k_memtotal;
 void *kalloc(int num, int size)
 {
 	k_memtotal += num * size;
-	return calloc(num, size);
+	return std::calloc(num, size);
 }
 
 void kmemset(void *ptr, int value, int size)
 {
-	memset(ptr, value, size);
+	std::memset(ptr, value, size);
 	return;
 }
 
@@ -232,7 +231,7 @@ int findNode(char *name)
 
 	for (k = 0; k < numbones; k++)
 	{
-		if (strcmp(bonetable[k].name, name) == 0)
+		if (std::strcmp(bonetable[k].name, name) == 0)
 		{
 			return k;
 		}
@@ -357,7 +356,7 @@ void SimplifyModel(void)
 		{
 			for (k = 0; k < numrenamedbones; k++)
 			{
-				if (!strcmp(model[i]->node[j].name, renamedbone[k].from))
+				if (!std::strcmp(model[i]->node[j].name, renamedbone[k].from))
 				{
 					strcpy(model[i]->node[j].name, renamedbone[k].to);
 					break;
@@ -443,7 +442,7 @@ void SimplifyModel(void)
 		{
 			for (k = 0; k < numrenamedbones; k++)
 			{
-				if (!strcmp(sequence[i].panim[0]->node[j].name, renamedbone[k].from))
+				if (!std::strcmp(sequence[i].panim[0]->node[j].name, renamedbone[k].from))
 				{
 					strcpy(sequence[i].panim[0]->node[j].name, renamedbone[k].to);
 					break;
@@ -479,7 +478,7 @@ void SimplifyModel(void)
 				if (bonetable[k].parent != -1)
 					szNode = bonetable[bonetable[k].parent].name;
 
-				if (strcmp(szAnim, szNode))
+				if (std::strcmp(szAnim, szNode))
 				{
 					printf("illegal parent bone replacement in sequence \"%s\"\n\t\"%s\" has \"%s\", reference has \"%s\"\n",
 						   sequence[i].name,
@@ -550,7 +549,7 @@ void SimplifyModel(void)
 	{
 		for (k = 0; k < numbones; k++)
 		{
-			if (strcmpi(bonetable[k].name, hitgroup[j].name) == 0)
+			if (std::strcmp(bonetable[k].name, hitgroup[j].name) == 0)
 			{
 				bonetable[k].group = hitgroup[j].group;
 				break;
@@ -651,7 +650,7 @@ void SimplifyModel(void)
 		{
 			for (k = 0; k < numbones; k++)
 			{
-				if (strcmpi(bonetable[k].name, hitbox[j].name) == 0)
+				if (std::strcmp(bonetable[k].name, hitbox[j].name) == 0)
 				{
 					hitbox[j].bone = k;
 					break;
@@ -893,7 +892,7 @@ void SimplifyModel(void)
 
 						sequence[i].panim[q]->numanim[j][k] = 0;
 
-						memset(data, 0, sizeof(data));
+						std::memset(data, 0, sizeof(data));
 						pcount = data;
 						pvalue = pcount + 1;
 
@@ -949,7 +948,7 @@ void SimplifyModel(void)
 						else
 						{
 							sequence[i].panim[q]->anim[j][k] = (mstudioanimvalue_t *)kalloc(pvalue - data, sizeof(mstudioanimvalue_t));
-							memmove(sequence[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(mstudioanimvalue_t));
+							std::memcpy(sequence[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(mstudioanimvalue_t));
 						}
 					}
 				}
@@ -1482,7 +1481,7 @@ void Grab_Triangles(s_model_t *pmodel)
 			linecount++;
 
 			// check for end
-			if (strcmp("end\n", line) == 0)
+			if (std::strcmp("end\n", line) == 0)
 				return;
 
 			// strip off trailing smag
@@ -1685,11 +1684,11 @@ void Grab_Skeleton(s_node_t *pnodes, s_bone_t *pbones)
 		}
 		else if (sscanf(line, "%s %d", cmd, &index))
 		{
-			if (strcmp(cmd, "time") == 0)
+			if (std::strcmp(cmd, "time") == 0)
 			{
 				// pbones = pnode->bones[index] = kalloc(1, sizeof( s_bones_t ));
 			}
-			else if (strcmp(cmd, "end") == 0)
+			else if (std::strcmp(cmd, "end") == 0)
 			{
 				return;
 			}
@@ -1717,7 +1716,7 @@ int Grab_Nodes(s_node_t *pnodes)
 			// check for mirrored bones;
 			for (i = 0; i < nummirrored; i++)
 			{
-				if (strcmp(name, mirrored[i]) == 0)
+				if (std::strcmp(name, mirrored[i]) == 0)
 					pnodes[index].mirrored = 1;
 			}
 			if ((!pnodes[index].mirrored) && parent != -1)
@@ -1757,22 +1756,22 @@ void Grab_Studio(s_model_t *pmodel)
 	{
 		linecount++;
 		sscanf(line, "%s %d", cmd, &option);
-		if (strcmp(cmd, "version") == 0)
+		if (std::strcmp(cmd, "version") == 0)
 		{
 			if (option != 1)
 			{
 				Error("bad version\n");
 			}
 		}
-		else if (strcmp(cmd, "nodes") == 0)
+		else if (std::strcmp(cmd, "nodes") == 0)
 		{
 			pmodel->numbones = Grab_Nodes(pmodel->node);
 		}
-		else if (strcmp(cmd, "skeleton") == 0)
+		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
 			Grab_Skeleton(pmodel->node, pmodel->skeleton);
 		}
-		else if (strcmp(cmd, "triangles") == 0)
+		else if (std::strcmp(cmd, "triangles") == 0)
 		{
 			Grab_Triangles(pmodel);
 		}
@@ -1993,11 +1992,11 @@ void Grab_Animation(s_animation_t *panim)
 		}
 		else if (sscanf(line, "%s %d", cmd, &index))
 		{
-			if (strcmp(cmd, "time") == 0)
+			if (std::strcmp(cmd, "time") == 0)
 			{
 				t = index;
 			}
-			else if (strcmp(cmd, "end") == 0)
+			else if (std::strcmp(cmd, "end") == 0)
 			{
 				panim->startframe = start;
 				panim->endframe = end;
@@ -2035,8 +2034,8 @@ void Shift_Animation(s_animation_t *panim)
 		ppos = (vec3_t *)kalloc(1, size);
 		prot = (vec3_t *)kalloc(1, size);
 
-		memmove(ppos, &panim->pos[j][panim->startframe], size);
-		memmove(prot, &panim->rot[j][panim->startframe], size);
+		std::memcpy(ppos, &panim->pos[j][panim->startframe], size);
+		std::memcpy(prot, &panim->rot[j][panim->startframe], size);
 
 		free(panim->pos[j]);
 		free(panim->rot[j]);
@@ -2072,18 +2071,18 @@ void Option_Animation(char *name, s_animation_t *panim)
 	{
 		linecount++;
 		sscanf(line, "%s %d", cmd, &option);
-		if (strcmp(cmd, "version") == 0)
+		if (std::strcmp(cmd, "version") == 0)
 		{
 			if (option != 1)
 			{
 				Error("bad version\n");
 			}
 		}
-		else if (strcmp(cmd, "nodes") == 0)
+		else if (std::strcmp(cmd, "nodes") == 0)
 		{
 			panim->numbones = Grab_Nodes(panim->node);
 		}
-		else if (strcmp(cmd, "skeleton") == 0)
+		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
 			Grab_Animation(panim);
 			Shift_Animation(panim);
@@ -2435,7 +2434,7 @@ int Cmd_Controller(void)
 {
 	if (GetToken(false))
 	{
-		if (!strcmpi("mouth", token))
+		if (!std::strcmp("mouth", token))
 		{
 			bonecontroller[numbonecontrollers].index = 4;
 		}
@@ -2667,19 +2666,19 @@ void Cmd_TexRenderMode(void)
 	strcpy(tex_name, token);
 
 	GetToken(false);
-	if (!strcmp(token, "additive"))
+	if (!std::strcmp(token, "additive"))
 	{
 		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_ADDITIVE;
 	}
-	else if (!strcmp(token, "masked"))
+	else if (!std::strcmp(token, "masked"))
 	{
 		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_TRANSPARENT;
 	}
-	else if (!strcmp(token, "fullbright"))
+	else if (!std::strcmp(token, "fullbright"))
 	{
 		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
 	}
-	else if (!strcmp(token, "flatshade"))
+	else if (!std::strcmp(token, "flatshade"))
 	{
 		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_FLATSHADE;
 	}
@@ -2706,11 +2705,11 @@ void ParseScript(void)
 		}
 
 		// Process recognized commands
-		if (!strcmp(token, "$modelname"))
+		if (!std::strcmp(token, "$modelname"))
 		{
 			Cmd_Modelname();
 		}
-		else if (!strcmp(token, "$cd"))
+		else if (!std::strcmp(token, "$cd"))
 		{
 			if (cdset)
 				Error("Two $cd in one model");
@@ -2719,7 +2718,7 @@ void ParseScript(void)
 			strcpy(cdpartial, token);
 			strcpy(cddir, ExpandPath(token));
 		}
-		else if (!strcmp(token, "$cdtexture"))
+		else if (!std::strcmp(token, "$cdtexture"))
 		{
 			while (TokenAvailable())
 			{
@@ -2728,7 +2727,7 @@ void ParseScript(void)
 				cdtextureset++;
 			}
 		}
-		else if (!strcmp(token, "$scale"))
+		else if (!std::strcmp(token, "$scale"))
 		{
 			Cmd_ScaleUp();
 		}
@@ -2736,75 +2735,75 @@ void ParseScript(void)
 		{
 			Cmd_Rotate();
 		}
-		else if (!strcmp(token, "$controller"))
+		else if (!std::strcmp(token, "$controller"))
 		{
 			Cmd_Controller();
 		}
-		else if (!strcmp(token, "$body"))
+		else if (!std::strcmp(token, "$body"))
 		{
 			Cmd_Body();
 		}
-		else if (!strcmp(token, "$bodygroup"))
+		else if (!std::strcmp(token, "$bodygroup"))
 		{
 			Cmd_Bodygroup();
 		}
-		else if (!strcmp(token, "$sequence"))
+		else if (!std::strcmp(token, "$sequence"))
 		{
 			Cmd_Sequence();
 		}
-		else if (!strcmp(token, "$sequencegroup"))
+		else if (!std::strcmp(token, "$sequencegroup"))
 		{
 			Cmd_SequenceGroup();
 		}
-		else if (!strcmp(token, "$eyeposition"))
+		else if (!std::strcmp(token, "$eyeposition"))
 		{
 			Cmd_Eyeposition();
 		}
-		else if (!strcmp(token, "$origin"))
+		else if (!std::strcmp(token, "$origin"))
 		{
 			Cmd_Origin();
 		}
-		else if (!strcmp(token, "$bbox"))
+		else if (!std::strcmp(token, "$bbox"))
 		{
 			Cmd_BBox();
 		}
-		else if (!strcmp(token, "$cbox"))
+		else if (!std::strcmp(token, "$cbox"))
 		{
 			Cmd_CBox();
 		}
-		else if (!strcmp(token, "$mirrorbone"))
+		else if (!std::strcmp(token, "$mirrorbone"))
 		{
 			Cmd_Mirror();
 		}
-		else if (!strcmp(token, "$gamma"))
+		else if (!std::strcmp(token, "$gamma"))
 		{
 			Cmd_Gamma();
 		}
-		else if (!strcmp(token, "$flags"))
+		else if (!std::strcmp(token, "$flags"))
 		{
 			Cmd_Flags();
 		}
-		else if (!strcmp(token, "$texturegroup"))
+		else if (!std::strcmp(token, "$texturegroup"))
 		{
 			Cmd_TextureGroup();
 		}
-		else if (!strcmp(token, "$hgroup"))
+		else if (!std::strcmp(token, "$hgroup"))
 		{
 			Cmd_Hitgroup();
 		}
-		else if (!strcmp(token, "$hbox"))
+		else if (!std::strcmp(token, "$hbox"))
 		{
 			Cmd_Hitbox();
 		}
-		else if (!strcmp(token, "$attachment"))
+		else if (!std::strcmp(token, "$attachment"))
 		{
 			Cmd_Attachment();
 		}
-		else if (!strcmp(token, "$renamebone"))
+		else if (!std::strcmp(token, "$renamebone"))
 		{
 			Cmd_Renamebone();
 		}
-		else if (!strcmp(token, "$texrendermode"))
+		else if (!std::strcmp(token, "$texrendermode"))
 		{
 			Cmd_TexRenderMode();
 		}

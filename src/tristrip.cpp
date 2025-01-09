@@ -200,7 +200,7 @@ int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata)
 	//
 	numcommandnodes = 0;
 	numcommands = 0;
-	memset(used, 0, sizeof(used));
+	std::memset(used, 0, sizeof(used));
 
 	for (i = 0; i < pmesh->numtris;)
 	{

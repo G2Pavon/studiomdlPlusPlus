@@ -528,7 +528,7 @@ void WriteFile(void)
 		SafeWrite(modelouthandle, pStart, pseqhdr->length);
 
 		fclose(modelouthandle);
-		memset(pStart, 0, pseqhdr->length);
+		std::memset(pStart, 0, pseqhdr->length);
 	}
 	//
 	// write the model output file

@@ -196,7 +196,7 @@ int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *wi
 	pb += (bmih.biHeight - 1) * biTrueWidth;
 	for (i = 0; i < bmih.biHeight; i++)
 	{
-		memmove(&pbBmpBits[biTrueWidth * i], pb, biTrueWidth);
+		std::memcpy(&pbBmpBits[biTrueWidth * i], pb, biTrueWidth);
 		pb -= biTrueWidth;
 	}
 
