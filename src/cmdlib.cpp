@@ -13,7 +13,7 @@
 #define PATHSEPARATOR(c) ((c) == '/')
 #endif // WIN32
 
-qboolean archive;
+bool archive;
 char archivedir[1024];
 
 // For abnormal program terminations
@@ -60,7 +60,7 @@ char *ExpandPathAndArchive(char *path)
 
 	expanded = ExpandPath(path);
 
-	if (archive == qtrue)
+	if (archive == true)
 	{
 		char archivename[1024];
 		sprintf(archivename, "%s/%s", archivedir, path);

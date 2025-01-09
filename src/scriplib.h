@@ -5,9 +5,9 @@
 extern char token[MAXTOKEN];
 extern char *script_p;
 extern int scriptline;
-extern qboolean endofscript;
+extern bool endofscript;
 
 void LoadScriptFile(char *filename);
 
-qboolean GetToken(qboolean crossline);
-qboolean TokenAvailable(void);
+bool GetToken(bool crossline);
+bool TokenAvailable(void);

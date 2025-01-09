@@ -15,8 +15,8 @@ script_t *script;
 int scriptline;
 
 char token[MAXTOKEN];
-qboolean endofscript;
-qboolean tokenready;
+bool endofscript;
+bool tokenready;
 
 void AddScriptToStack(char *filename)
 {
@@ -42,26 +42,26 @@ void LoadScriptFile(char *filename)
 	script = scriptstack;
 	AddScriptToStack(filename);
 
-	endofscript = qfalse;
-	tokenready = qfalse;
+	endofscript = false;
+	tokenready = false;
 }
 
-qboolean EndOfScript(qboolean crossline)
+bool EndOfScript(bool crossline)
 {
 	if (!crossline)
 		Error("Line %i is incomplete\n", scriptline);
 
 	if (!strcmp(script->filename, "memory buffer"))
 	{
-		endofscript = qtrue;
-		return qfalse;
+		endofscript = true;
+		return false;
 	}
 
 	free(script->buffer);
 	if (script == scriptstack + 1)
 	{
-		endofscript = qtrue;
-		return qfalse;
+		endofscript = true;
+		return false;
 	}
 	script--;
 	scriptline = script->line;
@@ -69,14 +69,14 @@ qboolean EndOfScript(qboolean crossline)
 	return GetToken(crossline);
 }
 
-qboolean GetToken(qboolean crossline)
+bool GetToken(bool crossline)
 {
 	char *token_p;
 
 	if (tokenready) // is a token already waiting?
 	{
-		tokenready = qfalse;
-		return qtrue;
+		tokenready = false;
+		return true;
 	}
 
 	if (script->script_p >= script->end_p)
@@ -152,35 +152,35 @@ qboolean GetToken(qboolean crossline)
 
 	if (!strcmp(token, "$include"))
 	{
-		GetToken(qfalse);
+		GetToken(false);
 		AddScriptToStack(token);
 		return GetToken(crossline);
 	}
 
-	return qtrue;
+	return true;
 }
 
 // turns true if there is another token on the line
-qboolean TokenAvailable(void)
+bool TokenAvailable(void)
 {
 	char *search_p;
 
 	search_p = script->script_p;
 
 	if (search_p >= script->end_p)
-		return qfalse;
+		return false;
 
 	while (*search_p <= 32)
 	{
 		if (*search_p == '\n')
-			return qfalse;
+			return false;
 		search_p++;
 		if (search_p == script->end_p)
-			return qfalse;
+			return false;
 	}
 
 	if (*search_p == ';')
-		return qfalse;
+		return false;
 
-	return qtrue;
+	return true;
 }

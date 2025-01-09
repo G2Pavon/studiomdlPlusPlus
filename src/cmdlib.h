@@ -9,12 +9,7 @@
 #include <time.h>
 #include <stdarg.h>
 
-enum qboolean
-{
-	qfalse,
-	qtrue
-};
-extern qboolean archive;
+extern bool archive;
 
 typedef unsigned char byte;
 
@@ -45,7 +40,7 @@ void ExtractFileBase(char *path, char *dest);
 void CreatePath(char *path);
 void QCopyFile(char *from, char *to);
 
-extern qboolean archive;
+extern bool archive;
 extern char archivedir[1024];
 
 #endif

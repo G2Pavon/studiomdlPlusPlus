@@ -5,7 +5,7 @@
 // little-endian "IDSQ"
 
 extern char outname[1024];
-extern qboolean cdset;
+extern bool cdset;
 extern char cdpartial[256];
 extern char cddir[256];
 extern int cdtextureset;
@@ -28,7 +28,7 @@ extern int gflags;
 extern vec3_t bbox[2];
 extern vec3_t cbox[2];
 extern int clip_texcoords;
-extern qboolean keep_all_bones;
+extern bool keep_all_bones;
 
 extern void WriteFile(void);
 void *kalloc(int num, int size);
