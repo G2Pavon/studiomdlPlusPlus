@@ -1,5 +1,4 @@
-#ifndef __MATHLIB__
-#define __MATHLIB__
+#pragma once
 
 // mathlib.h
 
@@ -23,5 +22,3 @@ void AngleIMatrix(const vec3_t angles, float matrix[3][4]);
 void R_ConcatTransforms(const float in1[3][4], const float in2[3][4], float out[3][4]);
 
 void VectorTransform(const vec3_t in1, const float in2[3][4], vec3_t out);
-
-#endif

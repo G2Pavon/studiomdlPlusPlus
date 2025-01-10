@@ -1,30 +1,5 @@
-/***
- *
- *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
- *
- *	This product contains software technology licensed from Id
- *	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
- *	All Rights Reserved.
- *
- *   Use, distribution, and modification of this source code and/or resulting
- *   object code is restricted to non-commercial enhancements to products from
- *   Valve LLC.  All other use, distribution, or modification is prohibited
- *   without written permission from Valve LLC.
- *
- ****/
-
-#ifndef _STUDIO_H_
-#define _STUDIO_H_
-
+#pragma once
 #include <cstdint>
-/*
-==============================================================================
-
-STUDIO MODELS
-
-Studio models are position independent, so the cache manager can move them.
-==============================================================================
-*/
 
 // header
 constexpr int STUDIO_VERSION = 10;
@@ -331,5 +306,3 @@ struct mstudiomesh_t
 
 // sequence flags
 #define STUDIO_LOOPING 0x0001
-
-#endif

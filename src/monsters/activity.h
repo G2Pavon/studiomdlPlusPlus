@@ -13,8 +13,7 @@
  *
  ****/
 
-#ifndef ACTIVITY_H
-#define ACTIVITY_H
+#pragma once
 
 enum Activity
 {
@@ -102,5 +101,3 @@ struct activity_map_t
 	int type;
 	char *name;
 };
-
-#endif // ACTIVITY_H

@@ -1,5 +1,5 @@
+#pragma once
 #include <cstdint>
-
 #include "cmdlib.h"
 
 #define ALIGN(a) (((uintptr_t)(a) + 3) & ~(uintptr_t)3)

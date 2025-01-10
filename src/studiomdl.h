@@ -1,4 +1,4 @@
-
+#pragma once
 
 extern char outname[1024];
 extern vec3_t eyeposition;

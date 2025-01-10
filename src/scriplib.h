@@ -1,3 +1,5 @@
+#pragma once
+
 #include "cmdlib.h"
 
 constexpr int MAXTOKEN = 512;

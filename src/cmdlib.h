@@ -1,5 +1,4 @@
-#ifndef __CMDLIB__
-#define __CMDLIB__
+#pragma once
 
 #include <cstdio>
 
@@ -35,5 +34,3 @@ void QCopyFile(char *from, char *to);
 
 extern bool archive;
 extern char archivedir[1024];
-
-#endif
