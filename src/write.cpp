@@ -2,8 +2,6 @@
 #include <cstdlib>
 
 #include "write.h"
-#include "cmdlib.h"
-#include "scriplib.h"
 #include "mathlib.h"
 #include "studio.h"
 #include "studiomdl.h"
@@ -17,8 +15,6 @@ byte *pData;
 byte *pStart;
 studiohdr_t *phdr;
 studioseqhdr_t *pseqhdr;
-
-#define ALIGN(a) (((uintptr_t)(a) + 3) & ~(uintptr_t)3)
 
 void WriteBoneInfo()
 {
