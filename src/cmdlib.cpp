@@ -162,23 +162,6 @@ void SaveFile(char *filename, void *buffer, int count)
 	fclose(f);
 }
 
-void DefaultExtension(char *path, char *extension)
-{
-	char *src;
-	// if path doesn't have a .EXT, append extension
-	// (extension should include the .)
-	src = path + strlen(path) - 1;
-
-	while (!PATHSEPARATOR(*src) && src != path)
-	{
-		if (*src == '.')
-			return; // it has an extension
-		src--;
-	}
-
-	strcat(path, extension);
-}
-
 void StripExtension(char *path)
 {
 	int length;

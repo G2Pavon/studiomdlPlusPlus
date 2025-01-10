@@ -2883,7 +2883,6 @@ int main(int argc, char **argv)
 	numseqgroups = 1;
 	// load the script
 	strcpy(path, argv[i]);
-	DefaultExtension(path, ".qc");
 	LoadScriptFile(path);
 	// parse it
 	strcpy(outname, argv[i]);
