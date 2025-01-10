@@ -4,7 +4,6 @@
 // mathlib.h
 
 typedef float vec3_t[3]; // x,y,z
-typedef float vec4_t[4]; // x,y,z,w
 
 constexpr double Q_PI = 3.14159265358979323846;
 constexpr float EPSILON = 0.001;
