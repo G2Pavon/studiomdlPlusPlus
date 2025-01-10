@@ -1,29 +1,10 @@
 
 
 extern char outname[1024];
-extern bool cdset;
-extern char cdpartial[256];
-extern char cddir[256];
-extern int cdtextureset;
-extern char cdtexture[16][256];
-extern float default_scale;
-extern float scale_up;
-extern float defaultzrotation;
-extern float zrotation;
-extern char defaulttexture[16][256];
-extern char sourcetexture[16][256];
-extern int numrep;
-extern int tag_reversed;
-extern int tag_normals;
-extern int flip_triangles;
-extern float normal_blend;
-extern int dump_hboxes;
-extern int ignore_warnings;
 extern vec3_t eyeposition;
 extern int gflags;
 extern vec3_t bbox[2];
 extern vec3_t cbox[2];
-extern bool keep_all_bones;
 
 extern void WriteFile(void);
 

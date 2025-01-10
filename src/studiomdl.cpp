@@ -19,6 +19,30 @@
 #define strnicmp strncasecmp
 #define stricmp strcasecmp
 
+char filename[1024];
+FILE *input;
+char line[1024];
+int linecount;
+bool cdset;
+char cdpartial[256];
+char cddir[256];
+int cdtextureset;
+char cdtexture[16][256];
+float default_scale;
+float scale_up;
+float defaultzrotation;
+float zrotation;
+char defaulttexture[16][256];
+char sourcetexture[16][256];
+int numrep;
+int tag_reversed;
+int tag_normals;
+int flip_triangles;
+float normal_blend;
+int dump_hboxes;
+int ignore_warnings;
+bool keep_all_bones;
+
 void clip_rotations(vec3_t rot);
 
 #define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
@@ -1393,11 +1417,6 @@ void SetSkinValues()
 		numskinref = numtextures;
 	}
 }
-
-char filename[1024];
-FILE *input;
-char line[1024];
-int linecount;
 
 void Build_Reference(s_model_t *pmodel)
 {
