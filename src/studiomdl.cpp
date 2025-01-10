@@ -15,6 +15,7 @@
 #include "studiomdl.h"
 #include "monsters/activity.h"
 #include "monsters/activitymap.h"
+#include "write.h"
 
 #define strnicmp strncasecmp
 #define stricmp strcasecmp

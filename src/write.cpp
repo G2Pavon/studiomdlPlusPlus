@@ -1,6 +1,7 @@
 #include <cstring>
 #include <cstdlib>
 
+#include "write.h"
 #include "cmdlib.h"
 #include "scriplib.h"
 #include "mathlib.h"
@@ -9,6 +10,7 @@
 
 int totalframes = 0;
 float totalseconds = 0;
+constexpr int FILEBUFFER = 16 * 1024 * 1024;
 extern int numcommandnodes;
 
 byte *pData;
@@ -487,8 +489,6 @@ void WriteModel()
 		}
 	}
 }
-
-constexpr int FILEBUFFER = 16 * 1024 * 1024;
 
 void WriteFile(void)
 {

@@ -6,8 +6,6 @@ extern int gflags;
 extern vec3_t bbox[2];
 extern vec3_t cbox[2];
 
-extern void WriteFile(void);
-
 struct s_trianglevert_t
 {
 	int vertindex;
