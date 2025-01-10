@@ -26,7 +26,6 @@ extern vec3_t cbox[2];
 extern bool keep_all_bones;
 
 extern void WriteFile(void);
-void *kalloc(int num, int size);
 
 struct s_trianglevert_t
 {

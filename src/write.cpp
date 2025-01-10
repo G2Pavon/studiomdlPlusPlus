@@ -496,7 +496,7 @@ void WriteFile(void)
 	int total = 0;
 	int i;
 
-	pStart = (byte *)kalloc(1, FILEBUFFER);
+	pStart = (byte *)std::calloc(1, FILEBUFFER);
 
 	StripExtension(outname);
 

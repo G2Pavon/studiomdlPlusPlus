@@ -23,19 +23,6 @@ void clip_rotations(vec3_t rot);
 
 #define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
 
-int k_memtotal;
-void *kalloc(int num, int size)
-{
-	k_memtotal += num * size;
-	return std::calloc(num, size);
-}
-
-void kmemset(void *ptr, int value, int size)
-{
-	std::memset(ptr, value, size);
-	return;
-}
-
 void ExtractMotion()
 {
 	int i, j, k;
@@ -390,8 +377,8 @@ void SimplifyModel(void)
 					bonetable[k].bonecontroller = 0;
 					bonetable[k].flags = 0;
 					// set defaults
-					defaultpos[k] = (vec3_t *)kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
-					defaultrot[k] = (vec3_t *)kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
+					defaultpos[k] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
+					defaultrot[k] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
 					for (n = 0; n < MAXSTUDIOANIMATIONS; n++)
 					{
 						VectorCopy(model[i]->skeleton[j].pos, defaultpos[k][n]);
@@ -947,7 +934,7 @@ void SimplifyModel(void)
 						}
 						else
 						{
-							sequence[i].panim[q]->anim[j][k] = (mstudioanimvalue_t *)kalloc(pvalue - data, sizeof(mstudioanimvalue_t));
+							sequence[i].panim[q]->anim[j][k] = (mstudioanimvalue_t *)std::calloc(pvalue - data, sizeof(mstudioanimvalue_t));
 							std::memcpy(sequence[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(mstudioanimvalue_t));
 						}
 					}
@@ -1065,7 +1052,7 @@ s_mesh_t *lookup_mesh(s_model_t *pmodel, char *texturename)
 	}
 
 	pmodel->nummesh = i + 1;
-	pmodel->pmesh[i] = (s_mesh_t *)kalloc(1, sizeof(s_mesh_t));
+	pmodel->pmesh[i] = (s_mesh_t *)std::calloc(1, sizeof(s_mesh_t));
 	pmodel->pmesh[i]->skinref = j;
 
 	return pmodel->pmesh[i];
@@ -1080,11 +1067,11 @@ s_trianglevert_t *lookup_triangle(s_mesh_t *pmesh, int index)
 		if (pmesh->triangle)
 		{
 			pmesh->triangle = static_cast<s_trianglevert_t(*)[3]>(realloc(pmesh->triangle, pmesh->alloctris * sizeof(*pmesh->triangle)));
-			kmemset(&pmesh->triangle[start], 0, (pmesh->alloctris - start) * sizeof(*pmesh->triangle));
+			std::memset(&pmesh->triangle[start], 0, (pmesh->alloctris - start) * sizeof(*pmesh->triangle));
 		}
 		else
 		{
-			pmesh->triangle = static_cast<s_trianglevert_t(*)[3]>(kalloc(pmesh->alloctris, sizeof(*pmesh->triangle)));
+			pmesh->triangle = static_cast<s_trianglevert_t(*)[3]>(std::calloc(pmesh->alloctris, sizeof(*pmesh->triangle)));
 		}
 	}
 
@@ -1686,7 +1673,7 @@ void Grab_Skeleton(s_node_t *pnodes, s_bone_t *pbones)
 		{
 			if (std::strcmp(cmd, "time") == 0)
 			{
-				// pbones = pnode->bones[index] = kalloc(1, sizeof( s_bones_t ));
+				// pbones = pnode->bones[index] = std::calloc(1, sizeof( s_bones_t ));
 			}
 			else if (std::strcmp(cmd, "end") == 0)
 			{
@@ -1828,7 +1815,7 @@ void Option_Studio()
 	if (!GetToken(false))
 		return;
 
-	model[nummodels] = (s_model_t *)kalloc(1, sizeof(s_model_t));
+	model[nummodels] = (s_model_t *)std::calloc(1, sizeof(s_model_t));
 	bodypart[numbodyparts].pmodel[bodypart[numbodyparts].nummodels] = model[nummodels];
 
 	strcpyn(model[nummodels]->name, token);
@@ -1948,8 +1935,8 @@ void Grab_Animation(s_animation_t *panim)
 
 	for (index = 0; index < panim->numbones; index++)
 	{
-		panim->pos[index] = (vec3_t *)kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
-		panim->rot[index] = (vec3_t *)kalloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
+		panim->pos[index] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
+		panim->rot[index] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
 	}
 
 	cz = cos(zrotation);
@@ -2028,11 +2015,8 @@ void Shift_Animation(s_animation_t *panim)
 		vec3_t *ppos;
 		vec3_t *prot;
 
-		k_memtotal -= MAXSTUDIOANIMATIONS * sizeof(vec3_t) * 2;
-		k_memtotal += size * 2;
-
-		ppos = (vec3_t *)kalloc(1, size);
-		prot = (vec3_t *)kalloc(1, size);
+		ppos = (vec3_t *)std::calloc(1, size);
+		prot = (vec3_t *)std::calloc(1, size);
 
 		std::memcpy(ppos, &panim->pos[j][panim->startframe], size);
 		std::memcpy(prot, &panim->rot[j][panim->startframe], size);
