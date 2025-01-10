@@ -17,8 +17,6 @@
 #define _STUDIO_H_
 
 #include <cstdint>
-
-#include "studio_event.h"
 /*
 ==============================================================================
 
@@ -201,6 +199,15 @@ struct mstudioseqdesc_t
 	int nodeflags; // transition rules
 
 	int nextseq; // auto advancing sequences
+};
+
+// events
+struct mstudioevent_t
+{
+	int frame;
+	int event;
+	int type;
+	char options[64];
 };
 
 // pivots
