@@ -44,7 +44,7 @@ char *ExpandPath(char *path)
 		return path;
 	psz = strstr(path, qdir);
 	if (psz)
-		strcpy(full, path);
+		std::strcpy(full, path);
 	else
 		sprintf(full, "%s%s", qdir, path);
 

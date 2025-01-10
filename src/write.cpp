@@ -33,7 +33,7 @@ void WriteBoneInfo()
 
 	for (i = 0; i < numbones; i++)
 	{
-		strcpy(pbone[i].name, bonetable[i].name);
+		std::strcpy(pbone[i].name, bonetable[i].name);
 		pbone[i].parent = bonetable[i].parent;
 		pbone[i].flags = bonetable[i].flags;
 		pbone[i].value[0] = bonetable[i].pos[0];
@@ -150,7 +150,7 @@ void WriteSequenceInfo()
 
 	for (i = 0; i < numseq; i++, pseqdesc++)
 	{
-		strcpy(pseqdesc->label, sequence[i].name);
+		std::strcpy(pseqdesc->label, sequence[i].name);
 		pseqdesc->numframes = sequence[i].numframes;
 		pseqdesc->fps = sequence[i].fps;
 		pseqdesc->flags = sequence[i].flags;
@@ -225,8 +225,8 @@ void WriteSequenceInfo()
 
 	for (i = 0; i < numseqgroups; i++)
 	{
-		strcpy(pseqgroup[i].label, sequencegroup[i].label);
-		strcpy(pseqgroup[i].name, sequencegroup[i].name);
+		std::strcpy(pseqgroup[i].label, sequencegroup[i].label);
+		std::strcpy(pseqgroup[i].name, sequencegroup[i].name);
 	}
 
 	// save transition graph
@@ -334,7 +334,7 @@ void WriteTextures()
 
 	for (i = 0; i < numtextures; i++)
 	{
-		strcpy(ptexture[i].name, texture[i].name);
+		std::strcpy(ptexture[i].name, texture[i].name);
 		ptexture[i].flags = texture[i].flags;
 		ptexture[i].width = texture[i].skinwidth;
 		ptexture[i].height = texture[i].skinheight;
@@ -366,7 +366,7 @@ void WriteModel()
 
 	for (i = 0, j = 0; i < numbodyparts; i++)
 	{
-		strcpy(pbodypart[i].name, bodypart[i].name);
+		std::strcpy(pbodypart[i].name, bodypart[i].name);
 		pbodypart[i].nummodels = bodypart[i].nummodels;
 		pbodypart[i].base = bodypart[i].base;
 		pbodypart[i].modelindex = ((byte *)&pmodel[j]) - pStart;
@@ -381,7 +381,7 @@ void WriteModel()
 		int normimap[MAXSTUDIOVERTS];
 		int n = 0;
 
-		strcpy(pmodel[i].name, model[i]->name);
+		std::strcpy(pmodel[i].name, model[i]->name);
 
 		// save bbox info
 
@@ -520,7 +520,7 @@ void WriteFile(void)
 
 		ExtractFileBase(groupname, localname);
 		sprintf(sequencegroup[i].name, "models\\%s.mdl", localname);
-		strcpy(pseqhdr->name, sequencegroup[i].name);
+		std::strcpy(pseqhdr->name, sequencegroup[i].name);
 		pseqhdr->length = pData - pStart;
 
 		printf("total     %6d\n", pseqhdr->length);
@@ -543,7 +543,7 @@ void WriteFile(void)
 
 	phdr->ident = IDSTUDIOHEADER;
 	phdr->version = STUDIO_VERSION;
-	strcpy(phdr->name, outname);
+	std::strcpy(phdr->name, outname);
 	VectorCopy(eyeposition, phdr->eyeposition);
 	VectorCopy(bbox[0], phdr->min);
 	VectorCopy(bbox[1], phdr->max);

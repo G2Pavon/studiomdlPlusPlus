@@ -29,7 +29,7 @@ void AddScriptToStack(char *filename)
 	script++;
 	if (script == &scriptstack[MAX_INCLUDES])
 		Error("script file exceeded MAX_INCLUDES");
-	strcpy(script->filename, ExpandPath(filename));
+	std::strcpy(script->filename, ExpandPath(filename));
 
 	size = LoadFile(script->filename, (void **)&script->buffer);
 

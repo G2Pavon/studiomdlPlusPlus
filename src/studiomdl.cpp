@@ -21,7 +21,7 @@
 
 void clip_rotations(vec3_t rot);
 
-#define strcpyn(a, b) strncpy(a, b, sizeof(a))
+#define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
 
 int k_memtotal;
 void *kalloc(int num, int size)
@@ -358,7 +358,7 @@ void SimplifyModel(void)
 			{
 				if (!std::strcmp(model[i]->node[j].name, renamedbone[k].from))
 				{
-					strcpy(model[i]->node[j].name, renamedbone[k].to);
+					std::strcpy(model[i]->node[j].name, renamedbone[k].to);
 					break;
 				}
 			}
@@ -444,7 +444,7 @@ void SimplifyModel(void)
 			{
 				if (!std::strcmp(sequence[i].panim[0]->node[j].name, renamedbone[k].from))
 				{
-					strcpy(sequence[i].panim[0]->node[j].name, renamedbone[k].to);
+					std::strcpy(sequence[i].panim[0]->node[j].name, renamedbone[k].to);
 					break;
 				}
 			}
@@ -1485,7 +1485,7 @@ void Grab_Triangles(s_model_t *pmodel)
 				return;
 
 			// strip off trailing smag
-			strcpy(texturename, line);
+			std::strcpy(texturename, line);
 			for (i = strlen(texturename) - 1; i >= 0 && !isgraph(texturename[i]); i--)
 				;
 			texturename[i + 1] = '\0';
@@ -1495,12 +1495,12 @@ void Grab_Triangles(s_model_t *pmodel)
 			{
 				if (sourcetexture[i][0] == '\0')
 				{
-					strcpy(texturename, defaulttexture[i]);
+					std::strcpy(texturename, defaulttexture[i]);
 					break;
 				}
 				if (stricmp(texturename, sourcetexture[i]) == 0)
 				{
-					strcpy(texturename, defaulttexture[i]);
+					std::strcpy(texturename, defaulttexture[i]);
 					break;
 				}
 			}
@@ -2132,7 +2132,7 @@ int Option_Event(s_sequence_t *psequence)
 		if (token[0] == '}') // opps, hit the end
 			return 1;
 		// found an option
-		strcpy(psequence->event[psequence->numevents - 1].options, token);
+		std::strcpy(psequence->event[psequence->numevents - 1].options, token);
 	}
 
 	return 0;
@@ -2650,11 +2650,11 @@ void Cmd_Renamebone()
 {
 	// from
 	GetToken(false);
-	strcpy(renamedbone[numrenamedbones].from, token);
+	std::strcpy(renamedbone[numrenamedbones].from, token);
 
 	// to
 	GetToken(false);
-	strcpy(renamedbone[numrenamedbones].to, token);
+	std::strcpy(renamedbone[numrenamedbones].to, token);
 
 	numrenamedbones++;
 }
@@ -2663,7 +2663,7 @@ void Cmd_TexRenderMode(void)
 {
 	char tex_name[256];
 	GetToken(false);
-	strcpy(tex_name, token);
+	std::strcpy(tex_name, token);
 
 	GetToken(false);
 	if (!std::strcmp(token, "additive"))
@@ -2715,15 +2715,15 @@ void ParseScript(void)
 				Error("Two $cd in one model");
 			cdset = true;
 			GetToken(false);
-			strcpy(cdpartial, token);
-			strcpy(cddir, ExpandPath(token));
+			std::strcpy(cdpartial, token);
+			std::strcpy(cddir, ExpandPath(token));
 		}
 		else if (!std::strcmp(token, "$cdtexture"))
 		{
 			while (TokenAvailable())
 			{
 				GetToken(false);
-				strcpy(cdtexture[cdtextureset], ExpandPath(token));
+				std::strcpy(cdtexture[cdtextureset], ExpandPath(token));
 				cdtextureset++;
 			}
 		}
@@ -2843,11 +2843,11 @@ int main(int argc, char **argv)
 			{
 			case 't':
 				i++;
-				strcpy(defaulttexture[numrep], argv[i]);
+				std::strcpy(defaulttexture[numrep], argv[i]);
 				if (i < argc - 2 && argv[i + 1][0] != '-')
 				{
 					i++;
-					strcpy(sourcetexture[numrep], argv[i]);
+					std::strcpy(sourcetexture[numrep], argv[i]);
 					printf("Replaceing %s with %s\n", sourcetexture[numrep], defaulttexture[numrep]);
 				}
 				printf("Using default texture: %s\n", defaulttexture);
@@ -2879,13 +2879,13 @@ int main(int argc, char **argv)
 		}
 	}
 
-	strcpy(sequencegroup[numseqgroups].label, "default");
+	std::strcpy(sequencegroup[numseqgroups].label, "default");
 	numseqgroups = 1;
 	// load the script
-	strcpy(path, argv[i]);
+	std::strcpy(path, argv[i]);
 	LoadScriptFile(path);
 	// parse it
-	strcpy(outname, argv[i]);
+	std::strcpy(outname, argv[i]);
 	ParseScript();
 	SetSkinValues();
 	SimplifyModel();
