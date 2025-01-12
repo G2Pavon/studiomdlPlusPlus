@@ -26,10 +26,10 @@ void WriteBoneInfo()
 
 	// save bone info
 	pbone = (mstudiobone_t *)pData;
-	phdr->numbones = numbones;
+	phdr->numbones = bonesCount;
 	phdr->boneindex = (pData - pStart);
 
-	for (i = 0; i < numbones; i++)
+	for (i = 0; i < bonesCount; i++)
 	{
 		std::strcpy(pbone[i].name, bonetable[i].name);
 		pbone[i].parent = bonetable[i].parent;
@@ -47,11 +47,11 @@ void WriteBoneInfo()
 		pbone[i].scale[4] = bonetable[i].rotscale[1];
 		pbone[i].scale[5] = bonetable[i].rotscale[2];
 	}
-	pData += numbones * sizeof(mstudiobone_t);
+	pData += bonesCount * sizeof(mstudiobone_t);
 	pData = (byte *)ALIGN(pData);
 
 	// map bonecontroller to bones
-	for (i = 0; i < numbones; i++)
+	for (i = 0; i < bonesCount; i++)
 	{
 		for (j = 0; j < 6; j++)
 		{
@@ -59,7 +59,7 @@ void WriteBoneInfo()
 		}
 	}
 
-	for (i = 0; i < numbonecontrollers; i++)
+	for (i = 0; i < bonecontrollersCount; i++)
 	{
 		j = bonecontroller[i].bone;
 		switch (bonecontroller[i].type & STUDIO_TYPES)
@@ -90,10 +90,10 @@ void WriteBoneInfo()
 
 	// save bonecontroller info
 	pbonecontroller = (mstudiobonecontroller_t *)pData;
-	phdr->numbonecontrollers = numbonecontrollers;
+	phdr->numbonecontrollers = bonecontrollersCount;
 	phdr->bonecontrollerindex = (pData - pStart);
 
-	for (i = 0; i < numbonecontrollers; i++)
+	for (i = 0; i < bonecontrollersCount; i++)
 	{
 		pbonecontroller[i].bone = bonecontroller[i].bone;
 		pbonecontroller[i].index = bonecontroller[i].index;
@@ -101,35 +101,35 @@ void WriteBoneInfo()
 		pbonecontroller[i].start = bonecontroller[i].start;
 		pbonecontroller[i].end = bonecontroller[i].end;
 	}
-	pData += numbonecontrollers * sizeof(mstudiobonecontroller_t);
+	pData += bonecontrollersCount * sizeof(mstudiobonecontroller_t);
 	pData = (byte *)ALIGN(pData);
 
 	// save attachment info
 	pattachment = (mstudioattachment_t *)pData;
-	phdr->numattachments = numattachments;
+	phdr->numattachments = attachmentsCount;
 	phdr->attachmentindex = (pData - pStart);
 
-	for (i = 0; i < numattachments; i++)
+	for (i = 0; i < attachmentsCount; i++)
 	{
 		pattachment[i].bone = attachment[i].bone;
 		VectorCopy(attachment[i].org, pattachment[i].org);
 	}
-	pData += numattachments * sizeof(mstudioattachment_t);
+	pData += attachmentsCount * sizeof(mstudioattachment_t);
 	pData = (byte *)ALIGN(pData);
 
 	// save bbox info
 	pbbox = (mstudiobbox_t *)pData;
-	phdr->numhitboxes = numhitboxes;
+	phdr->numhitboxes = hitboxesCount;
 	phdr->hitboxindex = (pData - pStart);
 
-	for (i = 0; i < numhitboxes; i++)
+	for (i = 0; i < hitboxesCount; i++)
 	{
 		pbbox[i].bone = hitbox[i].bone;
 		pbbox[i].group = hitbox[i].group;
 		VectorCopy(hitbox[i].bmin, pbbox[i].bbmin);
 		VectorCopy(hitbox[i].bmax, pbbox[i].bbmax);
 	}
-	pData += numhitboxes * sizeof(mstudiobbox_t);
+	pData += hitboxesCount * sizeof(mstudiobbox_t);
 	pData = (byte *)ALIGN(pData);
 }
 void WriteSequenceInfo()
@@ -142,11 +142,11 @@ void WriteSequenceInfo()
 
 	// save sequence info
 	pseqdesc = (mstudioseqdesc_t *)pData;
-	phdr->numseq = numseq;
+	phdr->numseq = sequenceCount;
 	phdr->seqindex = (pData - pStart);
-	pData += numseq * sizeof(mstudioseqdesc_t);
+	pData += sequenceCount * sizeof(mstudioseqdesc_t);
 
-	for (i = 0; i < numseq; i++, pseqdesc++)
+	for (i = 0; i < sequenceCount; i++, pseqdesc++)
 	{
 		std::strcpy(pseqdesc->label, sequence[i].name);
 		pseqdesc->numframes = sequence[i].numframes;
@@ -216,12 +216,12 @@ void WriteSequenceInfo()
 
 	// save sequence group info
 	pseqgroup = (mstudioseqgroup_t *)pData;
-	phdr->numseqgroups = numseqgroups;
+	phdr->numseqgroups = sequencegroupCount;
 	phdr->seqgroupindex = (pData - pStart);
 	pData += phdr->numseqgroups * sizeof(mstudioseqgroup_t);
 	pData = (byte *)ALIGN(pData);
 
-	for (i = 0; i < numseqgroups; i++)
+	for (i = 0; i < sequencegroupCount; i++)
 	{
 		std::strcpy(pseqgroup[i].label, sequencegroup[i].label);
 		std::strcpy(pseqgroup[i].name, sequencegroup[i].name);
@@ -253,21 +253,21 @@ byte *WriteAnimations(byte *pData, const byte *pStart, int group)
 	// hack for seqgroup 0
 	// pseqgroup->data = (pData - pStart);
 
-	for (i = 0; i < numseq; i++)
+	for (i = 0; i < sequenceCount; i++)
 	{
 		if (sequence[i].seqgroup == group)
 		{
 			// save animations
 			panim = (mstudioanim_t *)pData;
 			sequence[i].animindex = (pData - pStart);
-			pData += sequence[i].numblends * numbones * sizeof(mstudioanim_t);
+			pData += sequence[i].numblends * bonesCount * sizeof(mstudioanim_t);
 			pData = (byte *)ALIGN(pData);
 
 			panimvalue = (mstudioanimvalue_t *)pData;
 			for (q = 0; q < sequence[i].numblends; q++)
 			{
 				// save animation value info
-				for (j = 0; j < numbones; j++)
+				for (j = 0; j < bonesCount; j++)
 				{
 					for (k = 0; k < 6; k++)
 					{
@@ -307,14 +307,14 @@ void WriteTextures()
 
 	// save bone info
 	ptexture = (mstudiotexture_t *)pData;
-	phdr->numtextures = numtextures;
+	phdr->numtextures = texturesCount;
 	phdr->textureindex = (pData - pStart);
-	pData += numtextures * sizeof(mstudiotexture_t);
+	pData += texturesCount * sizeof(mstudiotexture_t);
 	pData = (byte *)ALIGN(pData);
 
 	phdr->skinindex = (pData - pStart);
-	phdr->numskinref = numskinref;
-	phdr->numskinfamilies = numskinfamilies;
+	phdr->numskinref = skinrefCount;
+	phdr->numskinfamilies = skinfamiliesCount;
 	pref = (short *)pData;
 
 	for (i = 0; i < phdr->numskinfamilies; i++)
@@ -330,7 +330,7 @@ void WriteTextures()
 
 	phdr->texturedataindex = (pData - pStart); // must be the end of the file!
 
-	for (i = 0; i < numtextures; i++)
+	for (i = 0; i < texturesCount; i++)
 	{
 		std::strcpy(ptexture[i].name, texture[i].name);
 		ptexture[i].flags = texture[i].flags;
@@ -355,14 +355,14 @@ void WriteModel()
 	int cur;
 
 	pbodypart = (mstudiobodyparts_t *)pData;
-	phdr->numbodyparts = numbodyparts;
+	phdr->numbodyparts = bodygroupCount;
 	phdr->bodypartindex = (pData - pStart);
-	pData += numbodyparts * sizeof(mstudiobodyparts_t);
+	pData += bodygroupCount * sizeof(mstudiobodyparts_t);
 
 	pmodel = (mstudiomodel_t *)pData;
-	pData += nummodels * sizeof(mstudiomodel_t);
+	pData += modelsCount * sizeof(mstudiomodel_t);
 
-	for (i = 0, j = 0; i < numbodyparts; i++)
+	for (i = 0, j = 0; i < bodygroupCount; i++)
 	{
 		std::strcpy(pbodypart[i].name, bodypart[i].name);
 		pbodypart[i].nummodels = bodypart[i].nummodels;
@@ -373,7 +373,7 @@ void WriteModel()
 	pData = (byte *)ALIGN(pData);
 
 	cur = reinterpret_cast<intptr_t>(pData);
-	for (i = 0; i < nummodels; i++)
+	for (i = 0; i < modelsCount; i++)
 	{
 		int normmap[MAXSTUDIOVERTS];
 		int normimap[MAXSTUDIOVERTS];
@@ -496,7 +496,7 @@ void WriteFile(void)
 
 	StripExtension(outname);
 
-	for (i = 1; i < numseqgroups; i++)
+	for (i = 1; i < sequencegroupCount; i++)
 	{
 		// write the non-default sequence group data to separate files
 		char groupname[128], localname[128];
@@ -551,7 +551,7 @@ void WriteFile(void)
 	pData = (byte *)phdr + sizeof(studiohdr_t);
 
 	WriteBoneInfo();
-	printf("bones     %6d bytes (%d)\n", pData - pStart - total, numbones);
+	printf("bones     %6d bytes (%d)\n", pData - pStart - total, bonesCount);
 	total = pData - pStart;
 
 	pData = WriteAnimations(pData, pStart, 0);

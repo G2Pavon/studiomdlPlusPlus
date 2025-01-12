@@ -19,23 +19,19 @@
 
 #define strnicmp strncasecmp
 #define stricmp strcasecmp
+#define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
 
 char filename[1024];
 FILE *input;
 char line[1024];
 int linecount;
 bool cdset;
-char cdpartial[256];
-char cddir[256];
-int cdtextureset;
-char cdtexture[16][256];
-float default_scale;
-float scale_up;
-float defaultzrotation;
-float zrotation;
 char defaulttexture[16][256];
 char sourcetexture[16][256];
 int numrep;
+s_bonefixup_t bonefixup[MAXSTUDIOSRCBONES];
+
+// studiomdl.exe args -----------
 int tag_reversed;
 int tag_normals;
 int flip_triangles;
@@ -44,9 +40,31 @@ int dump_hboxes;
 int ignore_warnings;
 bool keep_all_bones;
 
-void clip_rotations(vec3_t rot);
-
-#define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
+// QC Command variables -----------------
+char cdpartial[256];						   // $cd
+char cddir[256];							   // $cd
+int cdtextureset;							   // $cdtexture
+char cdtexture[16][256];					   // $cdtexture
+float default_scale;						   // $scale
+float scale_up;								   // $body studio <scale_up>
+vec3_t origin;								   // $origin
+float defaultzrotation;						   // $origin <X> <Y> <Z> <defultzrotation>
+float zrotation;							   // $sequence <sequence name> <SMD path> {[rotate <zrotation>]}
+vec3_t sequenceOrigin;						   // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
+float texgamma;								   // $$gamma
+s_renamebone_t renamedbone[MAXSTUDIOSRCBONES]; // $renamebone
+int renameboneCount;
+s_hitgroup_t hitgroup[MAXSTUDIOSRCBONES]; // $hgroup
+int hitgroupsCount;
+char mirrored[MAXSTUDIOSRCBONES][64]; // $mirrorbone
+int mirroredCount;
+s_animation_t *panimation[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // $sequence, each sequence can have 16 blends
+int animationCount;
+int texturegroup[32][32][32]; // $texturegroup
+int texturegroupCount;		  // unnecessary? since engine doesn't support multiple texturegroups
+int texturegrouplayers[32];
+int texturegroupreps[32];
+// ---------------------------------------
 
 void ExtractMotion()
 {
@@ -54,7 +72,7 @@ void ExtractMotion()
 	int q;
 
 	// extract linear motion
-	for (i = 0; i < numseq; i++)
+	for (i = 0; i < sequenceCount; i++)
 	{
 		if (sequence[i].numframes > 1)
 		{
@@ -101,7 +119,7 @@ void ExtractMotion()
 	}
 
 	// extract unused motion
-	for (i = 0; i < numseq; i++)
+	for (i = 0; i < sequenceCount; i++)
 	{
 		int type;
 		type = sequence[i].motiontype;
@@ -142,7 +160,7 @@ void ExtractMotion()
 	}
 
 	// extract auto motion
-	for (i = 0; i < numseq; i++)
+	for (i = 0; i < sequenceCount; i++)
 	{
 		// assume 0 for now.
 		int type;
@@ -185,7 +203,7 @@ void OptimizeAnimations(void)
 	int iError = 0;
 
 	// optimize animations
-	for (i = 0; i < numseq; i++)
+	for (i = 0; i < sequenceCount; i++)
 	{
 		sequence[i].numframes = sequence[i].panim[0]->endframe - sequence[i].panim[0]->startframe + 1;
 
@@ -241,7 +259,7 @@ int findNode(char *name)
 {
 	int k;
 
-	for (k = 0; k < numbones; k++)
+	for (k = 0; k < bonesCount; k++)
 	{
 		if (std::strcmp(bonetable[k].name, name) == 0)
 		{
@@ -269,7 +287,7 @@ void MakeTransitions()
 	int iHit;
 
 	// Add in direct node transitions
-	for (i = 0; i < numseq; i++)
+	for (i = 0; i < sequenceCount; i++)
 	{
 		if (sequence[i].entrynode != sequence[i].exitnode)
 		{
@@ -336,7 +354,7 @@ void SimplifyModel(void)
 	MakeTransitions();
 
 	// find used bones
-	for (i = 0; i < nummodels; i++)
+	for (i = 0; i < modelsCount; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -362,11 +380,11 @@ void SimplifyModel(void)
 	}
 
 	// rename model bones if needed
-	for (i = 0; i < nummodels; i++)
+	for (i = 0; i < modelsCount; i++)
 	{
 		for (j = 0; j < model[i]->numbones; j++)
 		{
-			for (k = 0; k < numrenamedbones; k++)
+			for (k = 0; k < renameboneCount; k++)
 			{
 				if (!std::strcmp(model[i]->node[j].name, renamedbone[k].from))
 				{
@@ -378,8 +396,8 @@ void SimplifyModel(void)
 	}
 
 	// union of all used bones
-	numbones = 0;
-	for (i = 0; i < nummodels; i++)
+	bonesCount = 0;
+	for (i = 0; i < modelsCount; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -393,7 +411,7 @@ void SimplifyModel(void)
 				if (k == -1)
 				{
 					// create new bone
-					k = numbones;
+					k = bonesCount;
 					strcpyn(bonetable[k].name, model[i]->node[j].name);
 					if ((n = model[i]->node[j].parent) != -1)
 						bonetable[k].parent = findNode(model[i]->node[n].name);
@@ -411,7 +429,7 @@ void SimplifyModel(void)
 					}
 					VectorCopy(model[i]->skeleton[j].pos, bonetable[k].pos);
 					VectorCopy(model[i]->skeleton[j].rot, bonetable[k].rot);
-					numbones++;
+					bonesCount++;
 				}
 				else
 				{
@@ -442,17 +460,17 @@ void SimplifyModel(void)
 		exit(1);
 	}
 
-	if (numbones >= MAXSTUDIOBONES)
+	if (bonesCount >= MAXSTUDIOBONES)
 	{
-		Error("Too many bones used in model, used %d, max %d\n", numbones, MAXSTUDIOBONES);
+		Error("Too many bones used in model, used %d, max %d\n", bonesCount, MAXSTUDIOBONES);
 	}
 
 	// rename sequence bones if needed
-	for (i = 0; i < numseq; i++)
+	for (i = 0; i < sequenceCount; i++)
 	{
 		for (j = 0; j < sequence[i].panim[0]->numbones; j++)
 		{
-			for (k = 0; k < numrenamedbones; k++)
+			for (k = 0; k < renameboneCount; k++)
 			{
 				if (!std::strcmp(sequence[i].panim[0]->node[j].name, renamedbone[k].from))
 				{
@@ -464,7 +482,7 @@ void SimplifyModel(void)
 	}
 
 	// map each sequences bone list to master list
-	for (i = 0; i < numseq; i++)
+	for (i = 0; i < sequenceCount; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -510,14 +528,14 @@ void SimplifyModel(void)
 	}
 
 	// link bonecontrollers
-	for (i = 0; i < numbonecontrollers; i++)
+	for (i = 0; i < bonecontrollersCount; i++)
 	{
-		for (j = 0; j < numbones; j++)
+		for (j = 0; j < bonesCount; j++)
 		{
 			if (stricmp(bonecontroller[i].name, bonetable[j].name) == 0)
 				break;
 		}
-		if (j >= numbones)
+		if (j >= bonesCount)
 		{
 			Error("unknown bonecontroller link '%s'\n", bonecontroller[i].name);
 		}
@@ -525,14 +543,14 @@ void SimplifyModel(void)
 	}
 
 	// link attachments
-	for (i = 0; i < numattachments; i++)
+	for (i = 0; i < attachmentsCount; i++)
 	{
-		for (j = 0; j < numbones; j++)
+		for (j = 0; j < bonesCount; j++)
 		{
 			if (stricmp(attachment[i].bonename, bonetable[j].name) == 0)
 				break;
 		}
-		if (j >= numbones)
+		if (j >= bonesCount)
 		{
 			Error("unknown attachment link '%s'\n", attachment[i].bonename);
 		}
@@ -540,7 +558,7 @@ void SimplifyModel(void)
 	}
 
 	// relink model
-	for (i = 0; i < nummodels; i++)
+	for (i = 0; i < modelsCount; i++)
 	{
 		for (j = 0; j < model[i]->numverts; j++)
 		{
@@ -553,13 +571,13 @@ void SimplifyModel(void)
 	}
 
 	// set hitgroups
-	for (k = 0; k < numbones; k++)
+	for (k = 0; k < bonesCount; k++)
 	{
 		bonetable[k].group = -9999;
 	}
-	for (j = 0; j < numhitgroups; j++)
+	for (j = 0; j < hitgroupsCount; j++)
 	{
-		for (k = 0; k < numbones; k++)
+		for (k = 0; k < bonesCount; k++)
 		{
 			if (std::strcmp(bonetable[k].name, hitgroup[j].name) == 0)
 			{
@@ -567,10 +585,10 @@ void SimplifyModel(void)
 				break;
 			}
 		}
-		if (k >= numbones)
+		if (k >= bonesCount)
 			Error("cannot find bone %s for hitgroup %d\n", hitgroup[j].name, hitgroup[j].group);
 	}
-	for (k = 0; k < numbones; k++)
+	for (k = 0; k < bonesCount; k++)
 	{
 		if (bonetable[k].group == -9999)
 		{
@@ -581,10 +599,10 @@ void SimplifyModel(void)
 		}
 	}
 
-	if (numhitboxes == 0)
+	if (hitboxesCount == 0)
 	{
 		// find intersection box volume for each bone
-		for (k = 0; k < numbones; k++)
+		for (k = 0; k < bonesCount; k++)
 		{
 			for (j = 0; j < 3; j++)
 			{
@@ -593,7 +611,7 @@ void SimplifyModel(void)
 			}
 		}
 		// try all the connect vertices
-		for (i = 0; i < nummodels; i++)
+		for (i = 0; i < modelsCount; i++)
 		{
 			vec3_t p;
 			for (j = 0; j < model[i]->numverts; j++)
@@ -616,7 +634,7 @@ void SimplifyModel(void)
 			}
 		}
 		// add in all your children as well
-		for (k = 0; k < numbones; k++)
+		for (k = 0; k < bonesCount; k++)
 		{
 			if ((j = bonetable[k].parent) != -1)
 			{
@@ -635,32 +653,32 @@ void SimplifyModel(void)
 			}
 		}
 
-		for (k = 0; k < numbones; k++)
+		for (k = 0; k < bonesCount; k++)
 		{
 			if (bonetable[k].bmin[0] < bonetable[k].bmax[0] - 1 && bonetable[k].bmin[1] < bonetable[k].bmax[1] - 1 && bonetable[k].bmin[2] < bonetable[k].bmax[2] - 1)
 			{
-				hitbox[numhitboxes].bone = k;
-				hitbox[numhitboxes].group = bonetable[k].group;
-				VectorCopy(bonetable[k].bmin, hitbox[numhitboxes].bmin);
-				VectorCopy(bonetable[k].bmax, hitbox[numhitboxes].bmax);
+				hitbox[hitboxesCount].bone = k;
+				hitbox[hitboxesCount].group = bonetable[k].group;
+				VectorCopy(bonetable[k].bmin, hitbox[hitboxesCount].bmin);
+				VectorCopy(bonetable[k].bmax, hitbox[hitboxesCount].bmax);
 
 				if (dump_hboxes)
 				{
 					printf("$hbox %d \"%s\" %.2f %.2f %.2f  %.2f %.2f %.2f\n",
-						   hitbox[numhitboxes].group,
-						   bonetable[hitbox[numhitboxes].bone].name,
-						   hitbox[numhitboxes].bmin[0], hitbox[numhitboxes].bmin[1], hitbox[numhitboxes].bmin[2],
-						   hitbox[numhitboxes].bmax[0], hitbox[numhitboxes].bmax[1], hitbox[numhitboxes].bmax[2]);
+						   hitbox[hitboxesCount].group,
+						   bonetable[hitbox[hitboxesCount].bone].name,
+						   hitbox[hitboxesCount].bmin[0], hitbox[hitboxesCount].bmin[1], hitbox[hitboxesCount].bmin[2],
+						   hitbox[hitboxesCount].bmax[0], hitbox[hitboxesCount].bmax[1], hitbox[hitboxesCount].bmax[2]);
 				}
-				numhitboxes++;
+				hitboxesCount++;
 			}
 		}
 	}
 	else
 	{
-		for (j = 0; j < numhitboxes; j++)
+		for (j = 0; j < hitboxesCount; j++)
 		{
-			for (k = 0; k < numbones; k++)
+			for (k = 0; k < bonesCount; k++)
 			{
 				if (std::strcmp(bonetable[k].name, hitbox[j].name) == 0)
 				{
@@ -668,13 +686,13 @@ void SimplifyModel(void)
 					break;
 				}
 			}
-			if (k >= numbones)
+			if (k >= bonesCount)
 				Error("cannot find bone %s for bbox\n", hitbox[j].name);
 		}
 	}
 
 	// relink animations
-	for (i = 0; i < numseq; i++)
+	for (i = 0; i < sequenceCount; i++)
 	{
 		vec3_t *origpos[MAXSTUDIOSRCBONES] = {0};
 		vec3_t *origrot[MAXSTUDIOSRCBONES] = {0};
@@ -688,7 +706,7 @@ void SimplifyModel(void)
 				origrot[j] = sequence[i].panim[q]->rot[j];
 			}
 
-			for (j = 0; j < numbones; j++)
+			for (j = 0; j < bonesCount; j++)
 			{
 				if ((k = sequence[i].panim[0]->boneimap[j]) >= 0)
 				{
@@ -707,7 +725,7 @@ void SimplifyModel(void)
 	}
 
 	// find scales for all bones
-	for (j = 0; j < numbones; j++)
+	for (j = 0; j < bonesCount; j++)
 	{
 		for (k = 0; k < 6; k++)
 		{
@@ -724,7 +742,7 @@ void SimplifyModel(void)
 				maxv = Q_PI / 8.0;
 			}
 
-			for (i = 0; i < numseq; i++)
+			for (i = 0; i < sequenceCount; i++)
 			{
 				for (q = 0; q < sequence[i].numblends; q++)
 				{
@@ -787,7 +805,7 @@ void SimplifyModel(void)
 	}
 
 	// find bounding box for each sequence
-	for (i = 0; i < numseq; i++)
+	for (i = 0; i < sequenceCount; i++)
 	{
 		vec3_t bmin, bmax;
 
@@ -806,7 +824,7 @@ void SimplifyModel(void)
 				float bonematrix[3][4];					   // local transformation matrix
 				vec3_t pos;
 
-				for (j = 0; j < numbones; j++)
+				for (j = 0; j < bonesCount; j++)
 				{
 					vec3_t angle;
 
@@ -831,7 +849,7 @@ void SimplifyModel(void)
 					}
 				}
 
-				for (k = 0; k < nummodels; k++)
+				for (k = 0; k < modelsCount; k++)
 				{
 					for (j = 0; j < model[k]->numverts; j++)
 					{
@@ -864,11 +882,11 @@ void SimplifyModel(void)
 		int changes = 0;
 		int p;
 
-		for (i = 0; i < numseq; i++)
+		for (i = 0; i < sequenceCount; i++)
 		{
 			for (q = 0; q < sequence[i].numblends; q++)
 			{
-				for (j = 0; j < numbones; j++)
+				for (j = 0; j < bonesCount; j++)
 				{
 					for (k = 0; k < 6; k++)
 					{
@@ -1035,7 +1053,7 @@ int lookup_texture(char *texturename)
 {
 	int i;
 
-	for (i = 0; i < numtextures; i++)
+	for (i = 0; i < texturesCount; i++)
 	{
 		if (stricmp(texture[i].name, texturename) == 0)
 		{
@@ -1053,7 +1071,7 @@ int lookup_texture(char *texturename)
 	else
 		texture[i].flags = 0;
 
-	numtextures++;
+	texturesCount++;
 	return i;
 }
 
@@ -1152,9 +1170,9 @@ int lookup_vertex(s_model_t *pmodel, s_vertex_t *pv)
 
 void adjust_vertex(float *org)
 {
-	org[0] = (org[0] - adjust[0]);
-	org[1] = (org[1] - adjust[1]);
-	org[2] = (org[2] - adjust[2]);
+	org[0] = (org[0] - sequenceOrigin[0]);
+	org[1] = (org[1] - sequenceOrigin[1]);
+	org[2] = (org[2] - sequenceOrigin[2]);
 }
 
 void scale_vertex(float *org)
@@ -1343,7 +1361,7 @@ void SetSkinValues()
 {
 	int i, j;
 
-	for (i = 0; i < numtextures; i++)
+	for (i = 0; i < texturesCount; i++)
 	{
 		Grab_Skin(&texture[i]);
 
@@ -1353,7 +1371,7 @@ void SetSkinValues()
 		texture[i].min_t = 9999999;
 	}
 
-	for (i = 0; i < nummodels; i++)
+	for (i = 0; i < modelsCount; i++)
 	{
 		for (j = 0; j < model[i]->nummesh; j++)
 		{
@@ -1361,7 +1379,7 @@ void SetSkinValues()
 		}
 	}
 
-	for (i = 0; i < numtextures; i++)
+	for (i = 0; i < texturesCount; i++)
 	{
 		if (texture[i].max_s < texture[i].min_s)
 		{
@@ -1385,7 +1403,7 @@ void SetSkinValues()
 		ResizeTexture(&texture[i]);
 	}
 
-	for (i = 0; i < nummodels; i++)
+	for (i = 0; i < modelsCount; i++)
 	{
 		for (j = 0; j < model[i]->nummesh; j++)
 		{
@@ -1401,21 +1419,21 @@ void SetSkinValues()
 			skinref[i][j] = j;
 		}
 	}
-	for (i = 0; i < numtexturelayers[0]; i++)
+	for (i = 0; i < texturegrouplayers[0]; i++)
 	{
-		for (j = 0; j < numtexturereps[0]; j++)
+		for (j = 0; j < texturegroupreps[0]; j++)
 		{
 			skinref[i][texturegroup[0][0][j]] = texturegroup[0][i][j];
 		}
 	}
 	if (i != 0)
 	{
-		numskinfamilies = i;
+		skinfamiliesCount = i;
 	}
 	else
 	{
-		numskinfamilies = 1;
-		numskinref = numtextures;
+		skinfamiliesCount = 1;
+		skinrefCount = texturesCount;
 	}
 }
 
@@ -1721,7 +1739,7 @@ int Grab_Nodes(s_node_t *pnodes)
 			pnodes[index].parent = parent;
 			numbones = index;
 			// check for mirrored bones;
-			for (i = 0; i < nummirrored; i++)
+			for (i = 0; i < mirroredCount; i++)
 			{
 				if (std::strcmp(name, mirrored[i]) == 0)
 					pnodes[index].mirrored = 1;
@@ -1835,10 +1853,10 @@ void Option_Studio()
 	if (!GetToken(false))
 		return;
 
-	model[nummodels] = (s_model_t *)std::calloc(1, sizeof(s_model_t));
-	bodypart[numbodyparts].pmodel[bodypart[numbodyparts].nummodels] = model[nummodels];
+	model[modelsCount] = (s_model_t *)std::calloc(1, sizeof(s_model_t));
+	bodypart[bodygroupCount].pmodel[bodypart[bodygroupCount].nummodels] = model[modelsCount];
 
-	strcpyn(model[nummodels]->name, token);
+	strcpyn(model[modelsCount]->name, token);
 
 	flip_triangles = 1;
 
@@ -1858,23 +1876,23 @@ void Option_Studio()
 		}
 	}
 
-	Grab_Studio(model[nummodels]);
+	Grab_Studio(model[modelsCount]);
 
-	bodypart[numbodyparts].nummodels++;
-	nummodels++;
+	bodypart[bodygroupCount].nummodels++;
+	modelsCount++;
 
 	scale_up = default_scale;
 }
 
 int Option_Blank()
 {
-	model[nummodels] = (s_model_t *)(1, sizeof(s_model_t));
-	bodypart[numbodyparts].pmodel[bodypart[numbodyparts].nummodels] = model[nummodels];
+	model[modelsCount] = (s_model_t *)(1, sizeof(s_model_t));
+	bodypart[bodygroupCount].pmodel[bodypart[bodygroupCount].nummodels] = model[modelsCount];
 
-	strcpyn(model[nummodels]->name, "blank");
+	strcpyn(model[modelsCount]->name, "blank");
 
-	bodypart[numbodyparts].nummodels++;
-	nummodels++;
+	bodypart[bodygroupCount].nummodels++;
+	modelsCount++;
 	return 0;
 }
 
@@ -1883,15 +1901,15 @@ void Cmd_Bodygroup()
 	if (!GetToken(false))
 		return;
 
-	if (numbodyparts == 0)
+	if (bodygroupCount == 0)
 	{
-		bodypart[numbodyparts].base = 1;
+		bodypart[bodygroupCount].base = 1;
 	}
 	else
 	{
-		bodypart[numbodyparts].base = bodypart[numbodyparts - 1].base * bodypart[numbodyparts - 1].nummodels;
+		bodypart[bodygroupCount].base = bodypart[bodygroupCount - 1].base * bodypart[bodygroupCount - 1].nummodels;
 	}
-	strcpyn(bodypart[numbodyparts].name, token);
+	strcpyn(bodypart[bodygroupCount].name, token);
 
 	while (true)
 	{
@@ -1918,7 +1936,7 @@ void Cmd_Bodygroup()
 		}
 	}
 
-	numbodyparts++;
+	bodygroupCount++;
 	return;
 }
 
@@ -1927,19 +1945,19 @@ void Cmd_Body()
 	if (!GetToken(false))
 		return;
 
-	if (numbodyparts == 0)
+	if (bodygroupCount == 0)
 	{
-		bodypart[numbodyparts].base = 1;
+		bodypart[bodygroupCount].base = 1;
 	}
 	else
 	{
-		bodypart[numbodyparts].base = bodypart[numbodyparts - 1].base * bodypart[numbodyparts - 1].nummodels;
+		bodypart[bodygroupCount].base = bodypart[bodygroupCount - 1].base * bodypart[bodygroupCount - 1].nummodels;
 	}
-	strcpyn(bodypart[numbodyparts].name, token);
+	strcpyn(bodypart[bodygroupCount].name, token);
 
 	Option_Studio();
 
-	numbodyparts++;
+	bodygroupCount++;
 }
 
 void Grab_Animation(s_animation_t *panim)
@@ -2176,13 +2194,13 @@ int Option_AddPivot(s_sequence_t *psequence)
 void Cmd_Origin(void)
 {
 	GetToken(false);
-	defaultadjust[0] = atof(token);
+	origin[0] = atof(token);
 
 	GetToken(false);
-	defaultadjust[1] = atof(token);
+	origin[1] = atof(token);
 
 	GetToken(false);
-	defaultadjust[2] = atof(token);
+	origin[2] = atof(token);
 
 	if (TokenAvailable())
 	{
@@ -2194,13 +2212,13 @@ void Cmd_Origin(void)
 void Option_Origin(void)
 {
 	GetToken(false);
-	adjust[0] = atof(token);
+	sequenceOrigin[0] = atof(token);
 
 	GetToken(false);
-	adjust[1] = atof(token);
+	sequenceOrigin[1] = atof(token);
 
 	GetToken(false);
-	adjust[2] = atof(token);
+	sequenceOrigin[2] = atof(token);
 }
 
 void Option_Rotate(void)
@@ -2233,8 +2251,8 @@ void Option_ScaleUp(void)
 int Cmd_SequenceGroup()
 {
 	GetToken(false);
-	strcpyn(sequencegroup[numseqgroups].label, token);
-	numseqgroups++;
+	strcpyn(sequencegroup[sequencegroupCount].label, token);
+	sequencegroupCount++;
 
 	return 0;
 }
@@ -2268,16 +2286,16 @@ int Cmd_Sequence()
 	if (!GetToken(false))
 		return 0;
 
-	strcpyn(sequence[numseq].name, token);
+	strcpyn(sequence[sequenceCount].name, token);
 
-	VectorCopy(defaultadjust, adjust);
+	VectorCopy(origin, sequenceOrigin);
 	scale_up = default_scale;
 
 	zrotation = defaultzrotation;
-	sequence[numseq].fps = 30.0;
-	sequence[numseq].seqgroup = numseqgroups - 1;
-	sequence[numseq].blendstart[0] = 0.0;
-	sequence[numseq].blendend[0] = 1.0;
+	sequence[sequenceCount].fps = 30.0;
+	sequence[sequenceCount].seqgroup = sequencegroupCount - 1;
+	sequence[sequenceCount].blendstart[0] = 0.0;
+	sequence[sequenceCount].blendend[0] = 1.0;
 
 	while (true)
 	{
@@ -2319,19 +2337,19 @@ int Cmd_Sequence()
 		}
 		else if (stricmp("deform", token) == 0)
 		{
-			Option_Deform(&sequence[numseq]);
+			Option_Deform(&sequence[sequenceCount]);
 		}
 		else if (stricmp("event", token) == 0)
 		{
-			depth -= Option_Event(&sequence[numseq]);
+			depth -= Option_Event(&sequence[sequenceCount]);
 		}
 		else if (stricmp("pivot", token) == 0)
 		{
-			Option_AddPivot(&sequence[numseq]);
+			Option_AddPivot(&sequence[sequenceCount]);
 		}
 		else if (stricmp("fps", token) == 0)
 		{
-			Option_Fps(&sequence[numseq]);
+			Option_Fps(&sequence[sequenceCount]);
 		}
 		else if (stricmp("origin", token) == 0)
 		{
@@ -2347,7 +2365,7 @@ int Cmd_Sequence()
 		}
 		else if (strnicmp("loop", token, 4) == 0)
 		{
-			sequence[numseq].flags |= STUDIO_LOOPING;
+			sequence[sequenceCount].flags |= STUDIO_LOOPING;
 		}
 		else if (strnicmp("frame", token, 5) == 0)
 		{
@@ -2359,35 +2377,35 @@ int Cmd_Sequence()
 		else if (strnicmp("blend", token, 5) == 0)
 		{
 			GetToken(false);
-			sequence[numseq].blendtype[0] = lookupControl(token);
+			sequence[sequenceCount].blendtype[0] = lookupControl(token);
 			GetToken(false);
-			sequence[numseq].blendstart[0] = atof(token);
+			sequence[sequenceCount].blendstart[0] = atof(token);
 			GetToken(false);
-			sequence[numseq].blendend[0] = atof(token);
+			sequence[sequenceCount].blendend[0] = atof(token);
 		}
 		else if (strnicmp("node", token, 4) == 0)
 		{
 			GetToken(false);
-			sequence[numseq].entrynode = sequence[numseq].exitnode = atoi(token);
+			sequence[sequenceCount].entrynode = sequence[sequenceCount].exitnode = atoi(token);
 		}
 		else if (strnicmp("transition", token, 4) == 0)
 		{
 			GetToken(false);
-			sequence[numseq].entrynode = atoi(token);
+			sequence[sequenceCount].entrynode = atoi(token);
 			GetToken(false);
-			sequence[numseq].exitnode = atoi(token);
+			sequence[sequenceCount].exitnode = atoi(token);
 		}
 		else if (strnicmp("rtransition", token, 4) == 0)
 		{
 			GetToken(false);
-			sequence[numseq].entrynode = atoi(token);
+			sequence[sequenceCount].entrynode = atoi(token);
 			GetToken(false);
-			sequence[numseq].exitnode = atoi(token);
-			sequence[numseq].nodeflags |= 1;
+			sequence[sequenceCount].exitnode = atoi(token);
+			sequence[sequenceCount].nodeflags |= 1;
 		}
 		else if (lookupControl(token) != -1)
 		{
-			sequence[numseq].motiontype |= lookupControl(token);
+			sequence[sequenceCount].motiontype |= lookupControl(token);
 		}
 		else if (stricmp("animation", token) == 0)
 		{
@@ -2396,9 +2414,9 @@ int Cmd_Sequence()
 		}
 		else if ((i = lookupActivity(token)) != 0)
 		{
-			sequence[numseq].activity = i;
+			sequence[sequenceCount].activity = i;
 			GetToken(false);
-			sequence[numseq].actweight = atoi(token);
+			sequence[sequenceCount].actweight = atoi(token);
 		}
 		else
 		{
@@ -2419,17 +2437,17 @@ int Cmd_Sequence()
 	}
 	for (i = 0; i < numblends; i++)
 	{
-		panimation[numani] = (s_animation_t *)malloc(sizeof(s_animation_t));
-		sequence[numseq].panim[i] = panimation[numani];
-		sequence[numseq].panim[i]->startframe = start;
-		sequence[numseq].panim[i]->endframe = end;
-		sequence[numseq].panim[i]->flags = 0;
-		Option_Animation(smdfilename[i], panimation[numani]);
-		numani++;
+		panimation[animationCount] = (s_animation_t *)malloc(sizeof(s_animation_t));
+		sequence[sequenceCount].panim[i] = panimation[animationCount];
+		sequence[sequenceCount].panim[i]->startframe = start;
+		sequence[sequenceCount].panim[i]->endframe = end;
+		sequence[sequenceCount].panim[i]->flags = 0;
+		Option_Animation(smdfilename[i], panimation[animationCount]);
+		animationCount++;
 	}
-	sequence[numseq].numblends = numblends;
+	sequence[sequenceCount].numblends = numblends;
 
-	numseq++;
+	sequenceCount++;
 
 	return 0;
 }
@@ -2440,34 +2458,34 @@ int Cmd_Controller(void)
 	{
 		if (!std::strcmp("mouth", token))
 		{
-			bonecontroller[numbonecontrollers].index = 4;
+			bonecontroller[bonecontrollersCount].index = 4;
 		}
 		else
 		{
-			bonecontroller[numbonecontrollers].index = atoi(token);
+			bonecontroller[bonecontrollersCount].index = atoi(token);
 		}
 		if (GetToken(false))
 		{
-			strcpyn(bonecontroller[numbonecontrollers].name, token);
+			strcpyn(bonecontroller[bonecontrollersCount].name, token);
 			GetToken(false);
-			if ((bonecontroller[numbonecontrollers].type = lookupControl(token)) == -1)
+			if ((bonecontroller[bonecontrollersCount].type = lookupControl(token)) == -1)
 			{
 				printf("unknown bonecontroller type '%s'\n", token);
 				return 0;
 			}
 			GetToken(false);
-			bonecontroller[numbonecontrollers].start = atof(token);
+			bonecontroller[bonecontrollersCount].start = atof(token);
 			GetToken(false);
-			bonecontroller[numbonecontrollers].end = atof(token);
+			bonecontroller[bonecontrollersCount].end = atof(token);
 
-			if (bonecontroller[numbonecontrollers].type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
+			if (bonecontroller[bonecontrollersCount].type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
 			{
-				if ((static_cast<int>(bonecontroller[numbonecontrollers].start + 360) % 360) == (static_cast<int>(bonecontroller[numbonecontrollers].end + 360) % 360))
+				if ((static_cast<int>(bonecontroller[bonecontrollersCount].start + 360) % 360) == (static_cast<int>(bonecontroller[bonecontrollersCount].end + 360) % 360))
 				{
-					bonecontroller[numbonecontrollers].type |= STUDIO_RLOOP;
+					bonecontroller[bonecontrollersCount].type |= STUDIO_RLOOP;
 				}
 			}
-			numbonecontrollers++;
+			bonecontrollersCount++;
 		}
 	}
 	return 1;
@@ -2518,7 +2536,7 @@ void Cmd_CBox(void)
 void Cmd_Mirror(void)
 {
 	GetToken(false);
-	strcpyn(mirrored[nummirrored++], token);
+	strcpyn(mirrored[mirroredCount++], token);
 }
 
 void Cmd_Gamma(void)
@@ -2534,14 +2552,14 @@ int Cmd_TextureGroup()
 	int index = 0;
 	int group = 0;
 
-	if (numtextures == 0)
+	if (texturesCount == 0)
 		Error("texturegroups must follow model loading\n");
 
 	if (!GetToken(false))
 		return 0;
 
-	if (numskinref == 0)
-		numskinref = numtextures;
+	if (skinrefCount == 0)
+		skinrefCount = texturesCount;
 
 	while (true)
 	{
@@ -2573,16 +2591,16 @@ int Cmd_TextureGroup()
 		else if (depth == 2)
 		{
 			i = lookup_texture(token);
-			texturegroup[numtexturegroups][group][index] = i;
+			texturegroup[texturegroupCount][group][index] = i;
 			if (group != 0)
-				texture[i].parent = texturegroup[numtexturegroups][0][index];
+				texture[i].parent = texturegroup[texturegroupCount][0][index];
 			index++;
-			numtexturereps[numtexturegroups] = index;
-			numtexturelayers[numtexturegroups] = group + 1;
+			texturegroupreps[texturegroupCount] = index;
+			texturegrouplayers[texturegroupCount] = group + 1;
 		}
 	}
 
-	numtexturegroups++;
+	texturegroupCount++;
 
 	return 0;
 }
@@ -2590,10 +2608,10 @@ int Cmd_TextureGroup()
 int Cmd_Hitgroup()
 {
 	GetToken(false);
-	hitgroup[numhitgroups].group = atoi(token);
+	hitgroup[hitgroupsCount].group = atoi(token);
 	GetToken(false);
-	strcpyn(hitgroup[numhitgroups].name, token);
-	numhitgroups++;
+	strcpyn(hitgroup[hitgroupsCount].name, token);
+	hitgroupsCount++;
 
 	return 0;
 }
@@ -2601,23 +2619,23 @@ int Cmd_Hitgroup()
 int Cmd_Hitbox()
 {
 	GetToken(false);
-	hitbox[numhitboxes].group = atoi(token);
+	hitbox[hitboxesCount].group = atoi(token);
 	GetToken(false);
-	strcpyn(hitbox[numhitboxes].name, token);
+	strcpyn(hitbox[hitboxesCount].name, token);
 	GetToken(false);
-	hitbox[numhitboxes].bmin[0] = atof(token);
+	hitbox[hitboxesCount].bmin[0] = atof(token);
 	GetToken(false);
-	hitbox[numhitboxes].bmin[1] = atof(token);
+	hitbox[hitboxesCount].bmin[1] = atof(token);
 	GetToken(false);
-	hitbox[numhitboxes].bmin[2] = atof(token);
+	hitbox[hitboxesCount].bmin[2] = atof(token);
 	GetToken(false);
-	hitbox[numhitboxes].bmax[0] = atof(token);
+	hitbox[hitboxesCount].bmax[0] = atof(token);
 	GetToken(false);
-	hitbox[numhitboxes].bmax[1] = atof(token);
+	hitbox[hitboxesCount].bmax[1] = atof(token);
 	GetToken(false);
-	hitbox[numhitboxes].bmax[2] = atof(token);
+	hitbox[hitboxesCount].bmax[2] = atof(token);
 
-	numhitboxes++;
+	hitboxesCount++;
 
 	return 0;
 }
@@ -2626,19 +2644,19 @@ int Cmd_Attachment()
 {
 	// index
 	GetToken(false);
-	attachment[numattachments].index = atoi(token);
+	attachment[attachmentsCount].index = atoi(token);
 
 	// bone name
 	GetToken(false);
-	strcpyn(attachment[numattachments].bonename, token);
+	strcpyn(attachment[attachmentsCount].bonename, token);
 
 	// position
 	GetToken(false);
-	attachment[numattachments].org[0] = atof(token);
+	attachment[attachmentsCount].org[0] = atof(token);
 	GetToken(false);
-	attachment[numattachments].org[1] = atof(token);
+	attachment[attachmentsCount].org[1] = atof(token);
 	GetToken(false);
-	attachment[numattachments].org[2] = atof(token);
+	attachment[attachmentsCount].org[2] = atof(token);
 
 	if (TokenAvailable())
 		GetToken(false);
@@ -2646,7 +2664,7 @@ int Cmd_Attachment()
 	if (TokenAvailable())
 		GetToken(false);
 
-	numattachments++;
+	attachmentsCount++;
 	return 0;
 }
 
@@ -2654,13 +2672,13 @@ void Cmd_Renamebone()
 {
 	// from
 	GetToken(false);
-	std::strcpy(renamedbone[numrenamedbones].from, token);
+	std::strcpy(renamedbone[renameboneCount].from, token);
 
 	// to
 	GetToken(false);
-	std::strcpy(renamedbone[numrenamedbones].to, token);
+	std::strcpy(renamedbone[renameboneCount].to, token);
 
-	numrenamedbones++;
+	renameboneCount++;
 }
 
 void Cmd_TexRenderMode(void)
@@ -2883,8 +2901,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	std::strcpy(sequencegroup[numseqgroups].label, "default");
-	numseqgroups = 1;
+	std::strcpy(sequencegroup[sequencegroupCount].label, "default");
+	sequencegroupCount = 1;
 	// load the script
 	std::strcpy(path, argv[i]);
 	LoadScriptFile(path);

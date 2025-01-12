@@ -1,10 +1,6 @@
 #pragma once
 
-extern char outname[1024];
-extern vec3_t eyeposition;
-extern int gflags;
-extern vec3_t bbox[2];
-extern vec3_t cbox[2];
+#include "studio.h"
 
 struct s_trianglevert_t
 {
@@ -27,7 +23,6 @@ struct s_normal_t
 	vec3_t org; // original position
 };
 
-// dstudiobone_t bone[MAXSTUDIOBONES];
 struct s_bonefixup_t
 {
 	vec3_t worldorg;
@@ -35,9 +30,7 @@ struct s_bonefixup_t
 	float im[3][4];
 	float length;
 };
-extern s_bonefixup_t bonefixup[MAXSTUDIOSRCBONES];
 
-extern int numbones;
 struct s_bonetable_t
 {
 	char name[32];		// bone name for symbolic links
@@ -52,17 +45,13 @@ struct s_bonetable_t
 	int group;		   // hitgroup
 	vec3_t bmin, bmax; // bounding box
 };
-extern s_bonetable_t bonetable[MAXSTUDIOSRCBONES];
 
-extern int numrenamedbones;
 struct s_renamebone_t
 {
 	char from[32];
 	char to[32];
 };
-extern s_renamebone_t renamedbone[MAXSTUDIOSRCBONES];
 
-extern int numhitboxes;
 struct s_bbox_t
 {
 	char name[32]; // bone name
@@ -71,16 +60,13 @@ struct s_bbox_t
 	int model;
 	vec3_t bmin, bmax; // bounding box
 };
-extern s_bbox_t hitbox[MAXSTUDIOSRCBONES];
 
-extern int numhitgroups;
 struct s_hitgroup_t
 {
 	int models;
 	int group;
 	char name[32]; // bone name
 };
-extern s_hitgroup_t hitgroup[MAXSTUDIOSRCBONES];
 
 struct s_bonecontroller_t
 {
@@ -92,9 +78,6 @@ struct s_bonecontroller_t
 	float end;
 };
 
-extern s_bonecontroller_t bonecontroller[MAXSTUDIOSRCBONES];
-extern int numbonecontrollers;
-
 struct s_attachment_t
 {
 	char name[32];
@@ -105,9 +88,6 @@ struct s_attachment_t
 	vec3_t org;
 };
 
-extern s_attachment_t attachment[MAXSTUDIOSRCBONES];
-extern int numattachments;
-
 struct s_node_t
 {
 	char name[64];
@@ -115,10 +95,6 @@ struct s_node_t
 	int mirrored;
 };
 
-extern char mirrored[MAXSTUDIOSRCBONES][64];
-extern int nummirrored;
-
-extern int numani;
 struct s_animation_t
 {
 	char name[64];
@@ -134,7 +110,6 @@ struct s_animation_t
 	int numanim[MAXSTUDIOSRCBONES][6];
 	mstudioanimvalue_t *anim[MAXSTUDIOSRCBONES][6];
 };
-extern s_animation_t *panimation[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // each sequence can have 16 blends
 
 struct s_event_t
 {
@@ -151,7 +126,6 @@ struct s_pivot_t
 	int end;
 };
 
-extern int numseq;
 struct s_sequence_t
 {
 	int motiontype;
@@ -192,18 +166,11 @@ struct s_sequence_t
 	int nodeflags;
 };
 
-extern s_sequence_t sequence[MAXSTUDIOSEQUENCES];
-extern int numseqgroups;
-
 struct s_sequencegroup_t
 {
 	char label[32];
 	char name[64];
 };
-
-extern s_sequencegroup_t sequencegroup[MAXSTUDIOSEQUENCES];
-extern int numxnodes;
-extern int xnode[100][100];
 
 struct rgb_t
 {
@@ -215,7 +182,6 @@ struct rgb2_t
 };
 
 // FIXME: what about texture overrides inline with loading models
-
 struct s_texture_t
 {
 	char name[64];
@@ -240,18 +206,6 @@ struct s_texture_t
 	void *pdata;
 	int parent;
 };
-
-extern s_texture_t texture[MAXSTUDIOSKINS];
-extern int numtextures;
-// extern  float gamma; // old; clashes with deprecated gamma
-extern float texgamma;
-extern int numskinref;
-extern int numskinfamilies;
-extern int skinref[256][MAXSTUDIOSKINS]; // [skin][skinref], returns texture index
-extern int numtexturegroups;
-extern int numtexturelayers[32];
-extern int numtexturereps[32];
-extern int texturegroup[32][32][32];
 
 struct s_mesh_t
 {
@@ -301,11 +255,6 @@ struct s_model_t
 	struct s_model_s *next;
 };
 
-extern int nummodels;
-extern s_model_t *model[MAXSTUDIOMODELS];
-extern vec3_t adjust;
-extern vec3_t defaultadjust;
-
 struct s_bodypart_t
 {
 	char name[32];
@@ -314,8 +263,39 @@ struct s_bodypart_t
 	s_model_t *pmodel[MAXSTUDIOMODELS];
 };
 
-extern int numbodyparts;
-extern s_bodypart_t bodypart[MAXSTUDIOBODYPARTS];
+// QC Command variables -----------------
+extern char outname[1024];				   // $modelname
+extern vec3_t eyeposition;				   // $eyeposition
+extern int gflags;						   // $flags
+extern vec3_t bbox[2];					   // $bbox
+extern vec3_t cbox[2];					   // $cbox
+extern s_bbox_t hitbox[MAXSTUDIOSRCBONES]; // $hbox
+extern int hitboxesCount;
+extern s_bonecontroller_t bonecontroller[MAXSTUDIOSRCBONES]; // $$controller
+extern int bonecontrollersCount;
+extern s_attachment_t attachment[MAXSTUDIOSRCBONES]; // $attachment
+extern int attachmentsCount;
+extern s_sequence_t sequence[MAXSTUDIOSEQUENCES]; // $sequence
+extern int sequenceCount;
+extern s_sequencegroup_t sequencegroup[MAXSTUDIOSEQUENCES]; // $sequencegroup
+extern int sequencegroupCount;
+extern s_model_t *model[MAXSTUDIOMODELS]; // $body
+extern int modelsCount;
+extern s_bodypart_t bodypart[MAXSTUDIOBODYPARTS]; // $bodygroup
+extern int bodygroupCount;
+// -----------------------------------------
 
+extern int numxnodes;
+extern int xnode[100][100];
+extern s_bonetable_t bonetable[MAXSTUDIOSRCBONES];
+extern int bonesCount;
+
+extern s_texture_t texture[MAXSTUDIOSKINS];
+extern int texturesCount;
+extern int skinrefCount;
+extern int skinfamiliesCount;
+extern int skinref[256][MAXSTUDIOSKINS]; // [skin][skinref], returns texture index
+
+void clip_rotations(vec3_t rot);
 extern int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata);
-int LoadBMP(const char *szFile, byte **ppbBits, byte **ppbPalette, int *width, int *height);
+extern int LoadBMP(const char *szFile, byte **ppbBits, byte **ppbPalette, int *width, int *height);
