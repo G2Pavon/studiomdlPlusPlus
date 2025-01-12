@@ -21,47 +21,47 @@
 #define stricmp strcasecmp
 #define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
 
-char filename[1024];
-FILE *input;
-char line[1024];
-int linecount;
-bool cdset;
-char defaulttexture[16][256];
-char sourcetexture[16][256];
-int numrep;
-s_bonefixup_t bonefixup[MAXSTUDIOSRCBONES];
+char inputFilename[1024];
+FILE *inputFile;
+char currentLine[1024];
+int lineCount;
+bool isCdSet;
+char defaultTextures[16][256];
+char sourceTexture[16][256];
+int numTextureReplacements;
+s_bonefixup_t boneFixup[MAXSTUDIOSRCBONES];
 
 // studiomdl.exe args -----------
-int tag_reversed;
-int tag_normals;
-int flip_triangles;
-float normal_blend;
-int dump_hboxes;
-int ignore_warnings;
-bool keep_all_bones;
+int flagReversedTriangles;
+int flagBadNormals;
+int flagFlipTriangles;
+float flagNormalBlendAngle;
+int flagDumpHitboxes;
+int flagIgnoreWarnings;
+bool flagKeepAllBones;
 
 // QC Command variables -----------------
-char cdpartial[256];						   // $cd
-char cddir[256];							   // $cd
-int cdtextureset;							   // $cdtexture
-char cdtexture[16][256];					   // $cdtexture
-float default_scale;						   // $scale
-float scale_up;								   // $body studio <scale_up>
-vec3_t origin;								   // $origin
-float defaultzrotation;						   // $origin <X> <Y> <Z> <defultzrotation>
-float zrotation;							   // $sequence <sequence name> <SMD path> {[rotate <zrotation>]}
-vec3_t sequenceOrigin;						   // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
-float texgamma;								   // $$gamma
-s_renamebone_t renamedbone[MAXSTUDIOSRCBONES]; // $renamebone
+char cdPartialPath[256];							 // $cd
+char cdCommand[256];								 // $cd
+int cdtexturePathCount;								 // $cdtexture <paths> (max paths = 18, idk why)
+char cdtextureCommand[16][256];						 // $cdtexture
+float scaleCommand;									 // $scale
+float scaleBodyAndSequenceOption;					 // $body studio <value> // also for $sequence
+vec3_t originCommand;								 // $origin
+float originCommandRotation;						 // $origin <X> <Y> <Z> <rotation>
+float rotateCommand;								 // $rotate and $sequence <sequence name> <SMD path> {[rotate <zrotation>]} only z axis
+vec3_t sequenceOrigin;								 // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
+float gammaCommand;									 // $$gamma
+s_renamebone_t renameboneCommand[MAXSTUDIOSRCBONES]; // $renamebone
 int renameboneCount;
-s_hitgroup_t hitgroup[MAXSTUDIOSRCBONES]; // $hgroup
+s_hitgroup_t hitgroupCommand[MAXSTUDIOSRCBONES]; // $hgroup
 int hitgroupsCount;
-char mirrored[MAXSTUDIOSRCBONES][64]; // $mirrorbone
+char mirrorboneCommand[MAXSTUDIOSRCBONES][64]; // $mirrorbone
 int mirroredCount;
-s_animation_t *panimation[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // $sequence, each sequence can have 16 blends
+s_animation_t *animationSequenceOption[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // $sequence, each sequence can have 16 blends
 int animationCount;
-int texturegroup[32][32][32]; // $texturegroup
-int texturegroupCount;		  // unnecessary? since engine doesn't support multiple texturegroups
+int texturegroupCommand[32][32][32]; // $texturegroup
+int texturegroupCount;				 // unnecessary? since engine doesn't support multiple texturegroups
 int texturegrouplayers[32];
 int texturegroupreps[32];
 // ---------------------------------------
@@ -83,7 +83,7 @@ void clip_rotations(vec3_t rot)
 void ExtractMotion()
 {
 	int i, j, k;
-	int q;
+	int blendIndex;
 
 	// extract linear motion
 	for (i = 0; i < sequenceCount; i++)
@@ -91,34 +91,34 @@ void ExtractMotion()
 		if (sequence[i].numframes > 1)
 		{
 			// assume 0 for now.
-			int type;
-			vec3_t *ppos;
+			int typeMotion;
+			vec3_t *ptrPos;
 			vec3_t motion = {0, 0, 0};
-			type = sequence[i].motiontype;
-			ppos = sequence[i].panim[0]->pos[0];
+			typeMotion = sequence[i].motiontype;
+			ptrPos = sequence[i].panim[0]->pos[0];
 
 			k = sequence[i].numframes - 1;
 
-			if (type & STUDIO_LX)
-				motion[0] = ppos[k][0] - ppos[0][0];
-			if (type & STUDIO_LY)
-				motion[1] = ppos[k][1] - ppos[0][1];
-			if (type & STUDIO_LZ)
-				motion[2] = ppos[k][2] - ppos[0][2];
+			if (typeMotion & STUDIO_LX)
+				motion[0] = ptrPos[k][0] - ptrPos[0][0];
+			if (typeMotion & STUDIO_LY)
+				motion[1] = ptrPos[k][1] - ptrPos[0][1];
+			if (typeMotion & STUDIO_LZ)
+				motion[2] = ptrPos[k][2] - ptrPos[0][2];
 
 			for (j = 0; j < sequence[i].numframes; j++)
 			{
-				vec3_t adj;
+				vec3_t adjustedPosition;
 				for (k = 0; k < sequence[i].panim[0]->numbones; k++)
 				{
 					if (sequence[i].panim[0]->node[k].parent == -1)
 					{
-						ppos = sequence[i].panim[0]->pos[k];
+						ptrPos = sequence[i].panim[0]->pos[k];
 
-						VectorScale(motion, j * 1.0 / (sequence[i].numframes - 1), adj);
-						for (q = 0; q < sequence[i].numblends; q++)
+						VectorScale(motion, j * 1.0 / (sequence[i].numframes - 1), adjustedPosition);
+						for (blendIndex = 0; blendIndex < sequence[i].numblends; blendIndex++)
 						{
-							VectorSubstract(sequence[i].panim[q]->pos[k][j], adj, sequence[i].panim[q]->pos[k][j]);
+							VectorSubstract(sequence[i].panim[blendIndex]->pos[k][j], adjustedPosition, sequence[i].panim[blendIndex]->pos[k][j]);
 						}
 					}
 				}
@@ -135,38 +135,38 @@ void ExtractMotion()
 	// extract unused motion
 	for (i = 0; i < sequenceCount; i++)
 	{
-		int type;
-		type = sequence[i].motiontype;
+		int typeUnusedMotion;
+		typeUnusedMotion = sequence[i].motiontype;
 		for (k = 0; k < sequence[i].panim[0]->numbones; k++)
 		{
 			if (sequence[i].panim[0]->node[k].parent == -1)
 			{
-				for (q = 0; q < sequence[i].numblends; q++)
+				for (blendIndex = 0; blendIndex < sequence[i].numblends; blendIndex++)
 				{
 					float motion[6];
-					motion[0] = sequence[i].panim[q]->pos[k][0][0];
-					motion[1] = sequence[i].panim[q]->pos[k][0][1];
-					motion[2] = sequence[i].panim[q]->pos[k][0][2];
-					motion[3] = sequence[i].panim[q]->rot[k][0][0];
-					motion[4] = sequence[i].panim[q]->rot[k][0][1];
-					motion[5] = sequence[i].panim[q]->rot[k][0][2];
+					motion[0] = sequence[i].panim[blendIndex]->pos[k][0][0];
+					motion[1] = sequence[i].panim[blendIndex]->pos[k][0][1];
+					motion[2] = sequence[i].panim[blendIndex]->pos[k][0][2];
+					motion[3] = sequence[i].panim[blendIndex]->rot[k][0][0];
+					motion[4] = sequence[i].panim[blendIndex]->rot[k][0][1];
+					motion[5] = sequence[i].panim[blendIndex]->rot[k][0][2];
 
 					for (j = 0; j < sequence[i].numframes; j++)
 					{
 						/*
-						if (type & STUDIO_X)
-							sequence[i].panim[q]->pos[k][j][0] = motion[0];
-						if (type & STUDIO_Y)
-							sequence[i].panim[q]->pos[k][j][1] = motion[1];
-						if (type & STUDIO_Z)
-							sequence[i].panim[q]->pos[k][j][2] = motion[2];
+						if (typeUnusedMotion & STUDIO_X)
+							sequence[i].panim[blendIndex]->pos[k][j][0] = motion[0];
+						if (typeUnusedMotion & STUDIO_Y)
+							sequence[i].panim[blendIndex]->pos[k][j][1] = motion[1];
+						if (typeUnusedMotion & STUDIO_Z)
+							sequence[i].panim[blendIndex]->pos[k][j][2] = motion[2];
 						*/
-						if (type & STUDIO_XR)
-							sequence[i].panim[q]->rot[k][j][0] = motion[3];
-						if (type & STUDIO_YR)
-							sequence[i].panim[q]->rot[k][j][1] = motion[4];
-						if (type & STUDIO_ZR)
-							sequence[i].panim[q]->rot[k][j][2] = motion[5];
+						if (typeUnusedMotion & STUDIO_XR)
+							sequence[i].panim[blendIndex]->rot[k][j][0] = motion[3];
+						if (typeUnusedMotion & STUDIO_YR)
+							sequence[i].panim[blendIndex]->rot[k][j][1] = motion[4];
+						if (typeUnusedMotion & STUDIO_ZR)
+							sequence[i].panim[blendIndex]->rot[k][j][2] = motion[5];
 					}
 				}
 			}
@@ -177,30 +177,30 @@ void ExtractMotion()
 	for (i = 0; i < sequenceCount; i++)
 	{
 		// assume 0 for now.
-		int type;
-		vec3_t *ppos;
-		vec3_t *prot;
+		int typeAutoMotion;
+		vec3_t *ptrAutoPos;
+		vec3_t *ptrAutoRot;
 		vec3_t motion = {0, 0, 0};
 		vec3_t angles = {0, 0, 0};
 
-		type = sequence[i].motiontype;
+		typeAutoMotion = sequence[i].motiontype;
 		for (j = 0; j < sequence[i].numframes; j++)
 		{
-			ppos = sequence[i].panim[0]->pos[0];
-			prot = sequence[i].panim[0]->rot[0];
+			ptrAutoPos = sequence[i].panim[0]->pos[0];
+			ptrAutoRot = sequence[i].panim[0]->rot[0];
 
-			if (type & STUDIO_AX)
-				motion[0] = ppos[j][0] - ppos[0][0];
-			if (type & STUDIO_AY)
-				motion[1] = ppos[j][1] - ppos[0][1];
-			if (type & STUDIO_AZ)
-				motion[2] = ppos[j][2] - ppos[0][2];
-			if (type & STUDIO_AXR)
-				angles[0] = prot[j][0] - prot[0][0];
-			if (type & STUDIO_AYR)
-				angles[1] = prot[j][1] - prot[0][1];
-			if (type & STUDIO_AZR)
-				angles[2] = prot[j][2] - prot[0][2];
+			if (typeAutoMotion & STUDIO_AX)
+				motion[0] = ptrAutoPos[j][0] - ptrAutoPos[0][0];
+			if (typeAutoMotion & STUDIO_AY)
+				motion[1] = ptrAutoPos[j][1] - ptrAutoPos[0][1];
+			if (typeAutoMotion & STUDIO_AZ)
+				motion[2] = ptrAutoPos[j][2] - ptrAutoPos[0][2];
+			if (typeAutoMotion & STUDIO_AXR)
+				angles[0] = ptrAutoRot[j][0] - ptrAutoRot[0][0];
+			if (typeAutoMotion & STUDIO_AYR)
+				angles[1] = ptrAutoRot[j][1] - ptrAutoRot[0][1];
+			if (typeAutoMotion & STUDIO_AZR)
+				angles[2] = ptrAutoRot[j][2] - ptrAutoRot[0][2];
 
 			VectorCopy(motion, sequence[i].automovepos[j]);
 			VectorCopy(angles, sequence[i].automoveangle[j]);
@@ -211,8 +211,8 @@ void ExtractMotion()
 void OptimizeAnimations()
 {
 	int i, j;
-	int n, m;
-	int type;
+	int startFrame, endFrame;
+	int typeMotion;
 	int q;
 	int iError = 0;
 
@@ -231,20 +231,20 @@ void OptimizeAnimations()
 					vec3_t *ppos = sequence[i].panim[q]->pos[j];
 					vec3_t *prot = sequence[i].panim[q]->rot[j];
 
-					n = 0;						   // sequence[i].panim[q]->startframe;
-					m = sequence[i].numframes - 1; // sequence[i].panim[q]->endframe;
+					startFrame = 0;						  // sequence[i].panim[q]->startframe;
+					endFrame = sequence[i].numframes - 1; // sequence[i].panim[q]->endframe;
 
-					type = sequence[i].motiontype;
-					if (!(type & STUDIO_LX))
-						ppos[m][0] = ppos[n][0];
-					if (!(type & STUDIO_LY))
-						ppos[m][1] = ppos[n][1];
-					if (!(type & STUDIO_LZ))
-						ppos[m][2] = ppos[n][2];
+					typeMotion = sequence[i].motiontype;
+					if (!(typeMotion & STUDIO_LX))
+						ppos[endFrame][0] = ppos[startFrame][0];
+					if (!(typeMotion & STUDIO_LY))
+						ppos[endFrame][1] = ppos[startFrame][1];
+					if (!(typeMotion & STUDIO_LZ))
+						ppos[endFrame][2] = ppos[startFrame][2];
 
-					prot[m][0] = prot[n][0];
-					prot[m][1] = prot[n][1];
-					prot[m][2] = prot[n][2];
+					prot[endFrame][0] = prot[startFrame][0];
+					prot[endFrame][1] = prot[startFrame][1];
+					prot[endFrame][2] = prot[startFrame][2];
 				}
 			}
 		}
@@ -360,7 +360,7 @@ void SimplifyModel()
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			model[i]->boneref[k] = keep_all_bones;
+			model[i]->boneref[k] = flagKeepAllBones;
 		}
 		for (j = 0; j < model[i]->numverts; j++)
 		{
@@ -388,9 +388,9 @@ void SimplifyModel()
 		{
 			for (k = 0; k < renameboneCount; k++)
 			{
-				if (!std::strcmp(model[i]->node[j].name, renamedbone[k].from))
+				if (!std::strcmp(model[i]->node[j].name, renameboneCommand[k].from))
 				{
-					std::strcpy(model[i]->node[j].name, renamedbone[k].to);
+					std::strcpy(model[i]->node[j].name, renameboneCommand[k].to);
 					break;
 				}
 			}
@@ -457,7 +457,7 @@ void SimplifyModel()
 		}
 	}
 
-	if (iError && !(ignore_warnings))
+	if (iError && !(flagIgnoreWarnings))
 	{
 		exit(1);
 	}
@@ -474,9 +474,9 @@ void SimplifyModel()
 		{
 			for (k = 0; k < renameboneCount; k++)
 			{
-				if (!std::strcmp(sequence[i].panim[0]->node[j].name, renamedbone[k].from))
+				if (!std::strcmp(sequence[i].panim[0]->node[j].name, renameboneCommand[k].from))
 				{
-					std::strcpy(sequence[i].panim[0]->node[j].name, renamedbone[k].to);
+					std::strcpy(sequence[i].panim[0]->node[j].name, renameboneCommand[k].to);
 					break;
 				}
 			}
@@ -524,7 +524,7 @@ void SimplifyModel()
 			}
 		}
 	}
-	if (iError && !(ignore_warnings))
+	if (iError && !(flagIgnoreWarnings))
 	{
 		exit(1);
 	}
@@ -581,14 +581,14 @@ void SimplifyModel()
 	{
 		for (k = 0; k < bonesCount; k++)
 		{
-			if (std::strcmp(bonetable[k].name, hitgroup[j].name) == 0)
+			if (std::strcmp(bonetable[k].name, hitgroupCommand[j].name) == 0)
 			{
-				bonetable[k].group = hitgroup[j].group;
+				bonetable[k].group = hitgroupCommand[j].group;
 				break;
 			}
 		}
 		if (k >= bonesCount)
-			Error("cannot find bone %s for hitgroup %d\n", hitgroup[j].name, hitgroup[j].group);
+			Error("cannot find bone %s for hitgroup %d\n", hitgroupCommand[j].name, hitgroupCommand[j].group);
 	}
 	for (k = 0; k < bonesCount; k++)
 	{
@@ -664,7 +664,7 @@ void SimplifyModel()
 				VectorCopy(bonetable[k].bmin, hitbox[hitboxesCount].bmin);
 				VectorCopy(bonetable[k].bmax, hitbox[hitboxesCount].bmax);
 
-				if (dump_hboxes)
+				if (flagDumpHitboxes)
 				{
 					printf("$hbox %d \"%s\" %.2f %.2f %.2f  %.2f %.2f %.2f\n",
 						   hitbox[hitboxesCount].group,
@@ -1128,7 +1128,7 @@ int FindVertexNormalIndex(s_model_t *pmodel, s_normal_t *pnormal)
 	int i;
 	for (i = 0; i < pmodel->numnorms; i++)
 	{
-		if (DotProduct(pmodel->normal[i].org, pnormal->org) > normal_blend && pmodel->normal[i].bone == pnormal->bone && pmodel->normal[i].skinref == pnormal->skinref)
+		if (DotProduct(pmodel->normal[i].org, pnormal->org) > flagNormalBlendAngle && pmodel->normal[i].bone == pnormal->bone && pmodel->normal[i].skinref == pnormal->skinref)
 		{
 			return i;
 		}
@@ -1179,9 +1179,9 @@ void AdjustVertexToQcOrigin(float *org)
 
 void ScaleVertexByQcScale(float *org)
 {
-	org[0] = org[0] * scale_up;
-	org[1] = org[1] * scale_up;
-	org[2] = org[2] * scale_up;
+	org[0] = org[0] * scaleBodyAndSequenceOption;
+	org[1] = org[1] * scaleBodyAndSequenceOption;
+	org[2] = org[2] * scaleBodyAndSequenceOption;
 }
 
 // Called for the base frame
@@ -1257,7 +1257,7 @@ void ResizeTexture(s_texture_t *ptexture)
 {
 	int i, j, s, t;
 	byte *pdest;
-	int srcadjwidth;
+	int srcadjustedwidth;
 
 	// Keep the original texture without resizing to avoid uv shift
 	ptexture->skintop = ptexture->min_t;
@@ -1280,7 +1280,7 @@ void ResizeTexture(s_texture_t *ptexture)
 	ptexture->pdata = pdest;
 
 	// Data is saved as a multiple of 4
-	srcadjwidth = (ptexture->srcwidth + 3) & ~3;
+	srcadjustedwidth = (ptexture->srcwidth + 3) & ~3;
 
 	// Move the picture data to the model area, replicating missing data, deleting unused data.
 	for (i = 0, t = ptexture->srcheight - ptexture->skinheight - ptexture->skintop + 10 * ptexture->srcheight; i < ptexture->skinheight; i++, t++)
@@ -1293,18 +1293,18 @@ void ResizeTexture(s_texture_t *ptexture)
 		{
 			while (s >= ptexture->srcwidth)
 				s -= ptexture->srcwidth;
-			*(pdest++) = *(ptexture->ppicture + s + t * srcadjwidth);
+			*(pdest++) = *(ptexture->ppicture + s + t * srcadjustedwidth);
 		}
 	}
 
 	// TODO: process the texture and flag it if fullbright or transparent are used.
 	// TODO: only save as many palette entries as are actually used.
-	if (texgamma != 1.8)
+	if (gammaCommand != 1.8)
 	// gamma correct the monster textures to a gamma of 1.8
 	{
 		float g;
 		byte *psrc = (byte *)ptexture->ppal;
-		g = texgamma / 1.8;
+		g = gammaCommand / 1.8;
 		for (i = 0; i < 768; i++)
 		{
 			pdest[i] = pow(psrc[i] / 255.0, g) * 255;
@@ -1321,37 +1321,39 @@ void ResizeTexture(s_texture_t *ptexture)
 
 void Grab_Skin(s_texture_t *ptexture)
 {
-	char file1[1024];
+	char textureFilePath[1024];
 
-	sprintf(file1, "%s/%s", cdpartial, ptexture->name);
-	ExpandPathAndArchive(file1);
+	sprintf(textureFilePath, "%s/%s", cdPartialPath, ptexture->name);
+	ExpandPathAndArchive(textureFilePath);
 
-	if (cdtextureset)
+	if (cdtexturePathCount)
 	{
 		int i;
 		int time1 = -1;
-		for (i = 0; i < cdtextureset; i++)
+		for (i = 0; i < cdtexturePathCount; i++)
 		{
-			sprintf(file1, "%s/%s", cdtexture[i], ptexture->name);
-			time1 = FileTime(file1);
+			sprintf(textureFilePath, "%s/%s", cdtextureCommand[i], ptexture->name);
+			time1 = FileTime(textureFilePath);
 			if (time1 != -1)
+			{
 				break;
+			}
 		}
 		if (time1 == -1)
-			Error("%s not found", file1);
+			Error("%s not found", textureFilePath);
 	}
 	else
 	{
-		sprintf(file1, "%s/%s", cddir, ptexture->name);
+		sprintf(textureFilePath, "%s/%s", cdCommand, ptexture->name);
 	}
 
-	if (stricmp(".bmp", &file1[strlen(file1) - 4]) == 0)
+	if (stricmp(".bmp", &textureFilePath[strlen(textureFilePath) - 4]) == 0)
 	{
-		Grab_BMP(file1, ptexture);
+		Grab_BMP(textureFilePath, ptexture);
 	}
 	else
 	{
-		Error("unknown graphics type: \"%s\"\n", file1);
+		Error("unknown graphics type: \"%s\"\n", textureFilePath);
 	}
 }
 
@@ -1421,7 +1423,7 @@ void SetSkinValues()
 	{
 		for (j = 0; j < texturegroupreps[0]; j++)
 		{
-			skinref[i][texturegroup[0][0][j]] = texturegroup[0][i][j];
+			skinref[i][texturegroupCommand[0][0][j]] = texturegroupCommand[0][i][j];
 		}
 	}
 	if (i != 0)
@@ -1438,40 +1440,40 @@ void SetSkinValues()
 void Build_Reference(s_model_t *pmodel)
 {
 	int i;
-	float angle[3];
+	float boneAngle[3];
 
 	for (i = 0; i < pmodel->numbones; i++)
 	{
 		int parent;
 
 		// convert to degrees
-		angle[0] = pmodel->skeleton[i].rot[0] * (180.0 / Q_PI);
-		angle[1] = pmodel->skeleton[i].rot[1] * (180.0 / Q_PI);
-		angle[2] = pmodel->skeleton[i].rot[2] * (180.0 / Q_PI);
+		boneAngle[0] = pmodel->skeleton[i].rot[0] * (180.0 / Q_PI);
+		boneAngle[1] = pmodel->skeleton[i].rot[1] * (180.0 / Q_PI);
+		boneAngle[2] = pmodel->skeleton[i].rot[2] * (180.0 / Q_PI);
 
 		parent = pmodel->node[i].parent;
 		if (parent == -1)
 		{
 			// scale the done pos.
 			// calc rotational matrices
-			AngleMatrix(angle, bonefixup[i].m);
-			AngleIMatrix(angle, bonefixup[i].im);
-			VectorCopy(pmodel->skeleton[i].pos, bonefixup[i].worldorg);
+			AngleMatrix(boneAngle, boneFixup[i].m);
+			AngleIMatrix(boneAngle, boneFixup[i].im);
+			VectorCopy(pmodel->skeleton[i].pos, boneFixup[i].worldorg);
 		}
 		else
 		{
-			vec3_t p;
-			float m[3][4];
+			vec3_t truePos;
+			float rotationMatrix[3][4];
 			// calc compound rotational matrices
 			// FIXME : Hey, it's orthogical so inv(A) == transpose(A)
-			AngleMatrix(angle, m);
-			R_ConcatTransforms(bonefixup[parent].m, m, bonefixup[i].m);
-			AngleIMatrix(angle, m);
-			R_ConcatTransforms(m, bonefixup[parent].im, bonefixup[i].im);
+			AngleMatrix(boneAngle, rotationMatrix);
+			R_ConcatTransforms(boneFixup[parent].m, rotationMatrix, boneFixup[i].m);
+			AngleIMatrix(boneAngle, rotationMatrix);
+			R_ConcatTransforms(rotationMatrix, boneFixup[parent].im, boneFixup[i].im);
 
 			// calc true world coord.
-			VectorTransform(pmodel->skeleton[i].pos, bonefixup[parent].m, p);
-			VectorAdd(p, bonefixup[parent].worldorg, bonefixup[i].worldorg);
+			VectorTransform(pmodel->skeleton[i].pos, boneFixup[parent].m, truePos);
+			VectorAdd(truePos, boneFixup[parent].worldorg, boneFixup[i].worldorg);
 		}
 	}
 }
@@ -1479,8 +1481,8 @@ void Build_Reference(s_model_t *pmodel)
 void Grab_SMDTriangles(s_model_t *pmodel)
 {
 	int i, j;
-	int tcount = 0;
-	int ncount = 0;
+	int trianglesCount = 0;
+	int badNormalsCount = 0;
 	vec3_t vmin, vmax;
 
 	vmin[0] = vmin[1] = vmin[2] = 99999;
@@ -1491,178 +1493,178 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 	// load the base triangles
 	while (true)
 	{
-		if (fgets(line, sizeof(line), input) != NULL)
+		if (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
 		{
 			s_mesh_t *pmesh;
-			char texturename[64];
-			s_trianglevert_t *ptriv;
-			int bone;
+			char triangleMaterial[64];
+			s_trianglevert_t *ptriangleVert;
+			int parentBone;
 
-			vec3_t vert[3];
-			vec3_t norm[3];
+			vec3_t triangleVertices[3];
+			vec3_t triangleNormals[3];
 
-			linecount++;
+			lineCount++;
 
 			// check for end
-			if (std::strcmp("end\n", line) == 0)
+			if (std::strcmp("end\n", currentLine) == 0)
 				return;
 
 			// strip off trailing smag
-			std::strcpy(texturename, line);
-			for (i = strlen(texturename) - 1; i >= 0 && !isgraph(texturename[i]); i--)
+			std::strcpy(triangleMaterial, currentLine);
+			for (i = strlen(triangleMaterial) - 1; i >= 0 && !isgraph(triangleMaterial[i]); i--)
 				;
-			texturename[i + 1] = '\0';
+			triangleMaterial[i + 1] = '\0';
 
 			// funky texture overrides
-			for (i = 0; i < numrep; i++)
+			for (i = 0; i < numTextureReplacements; i++)
 			{
-				if (sourcetexture[i][0] == '\0')
+				if (sourceTexture[i][0] == '\0')
 				{
-					std::strcpy(texturename, defaulttexture[i]);
+					std::strcpy(triangleMaterial, defaultTextures[i]);
 					break;
 				}
-				if (stricmp(texturename, sourcetexture[i]) == 0)
+				if (stricmp(triangleMaterial, sourceTexture[i]) == 0)
 				{
-					std::strcpy(texturename, defaulttexture[i]);
+					std::strcpy(triangleMaterial, defaultTextures[i]);
 					break;
 				}
 			}
 
-			if (texturename[0] == '\0')
+			if (triangleMaterial[0] == '\0')
 			{
 				// weird model problem, skip them
-				fgets(line, sizeof(line), input);
-				fgets(line, sizeof(line), input);
-				fgets(line, sizeof(line), input);
-				linecount += 3;
+				fgets(currentLine, sizeof(currentLine), inputFile);
+				fgets(currentLine, sizeof(currentLine), inputFile);
+				fgets(currentLine, sizeof(currentLine), inputFile);
+				lineCount += 3;
 				continue;
 			}
 
-			pmesh = FindMeshByTexture(pmodel, texturename);
+			pmesh = FindMeshByTexture(pmodel, triangleMaterial);
 
 			for (j = 0; j < 3; j++)
 			{
-				if (flip_triangles)
+				if (flagFlipTriangles)
 					// quake wants them in the reverse order
-					ptriv = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + 2 - j;
+					ptriangleVert = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + 2 - j;
 				else
-					ptriv = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + j;
+					ptriangleVert = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + j;
 
-				if (fgets(line, sizeof(line), input) != NULL)
+				if (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
 				{
-					s_vertex_t p;
-					s_normal_t normal;
+					s_vertex_t triangleVertex;
+					s_normal_t triangleNormal;
 
-					linecount++;
-					if (sscanf(line, "%d %f %f %f %f %f %f %f %f",
-							   &bone,
-							   &p.org[0], &p.org[1], &p.org[2],
-							   &normal.org[0], &normal.org[1], &normal.org[2],
-							   &ptriv->u, &ptriv->v) == 9)
+					lineCount++;
+					if (sscanf(currentLine, "%d %f %f %f %f %f %f %f %f",
+							   &parentBone,
+							   &triangleVertex.org[0], &triangleVertex.org[1], &triangleVertex.org[2],
+							   &triangleNormal.org[0], &triangleNormal.org[1], &triangleNormal.org[2],
+							   &ptriangleVert->u, &ptriangleVert->v) == 9)
 					{
-						if (bone < 0 || bone >= pmodel->numbones)
+						if (parentBone < 0 || parentBone >= pmodel->numbones)
 						{
 							fprintf(stderr, "bogus bone index\n");
-							fprintf(stderr, "%d %s :\n%s", linecount, filename, line);
+							fprintf(stderr, "%d %s :\n%s", lineCount, inputFilename, currentLine);
 							exit(1);
 						}
 
-						VectorCopy(p.org, vert[j]);
-						VectorCopy(normal.org, norm[j]);
+						VectorCopy(triangleVertex.org, triangleVertices[j]);
+						VectorCopy(triangleNormal.org, triangleNormals[j]);
 
-						p.bone = bone;
-						normal.bone = bone;
-						normal.skinref = pmesh->skinref;
+						triangleVertex.bone = parentBone;
+						triangleNormal.bone = parentBone;
+						triangleNormal.skinref = pmesh->skinref;
 
-						if (p.org[2] < vmin[2])
-							vmin[2] = p.org[2];
+						if (triangleVertex.org[2] < vmin[2])
+							vmin[2] = triangleVertex.org[2];
 
-						AdjustVertexToQcOrigin(p.org);
-						ScaleVertexByQcScale(p.org);
+						AdjustVertexToQcOrigin(triangleVertex.org);
+						ScaleVertexByQcScale(triangleVertex.org);
 
 						// move vertex position to object space.
 						vec3_t tmp;
-						VectorSubstract(p.org, bonefixup[p.bone].worldorg, tmp);
-						VectorTransform(tmp, bonefixup[p.bone].im, p.org);
+						VectorSubstract(triangleVertex.org, boneFixup[triangleVertex.bone].worldorg, tmp);
+						VectorTransform(tmp, boneFixup[triangleVertex.bone].im, triangleVertex.org);
 
 						// move normal to object space.
-						VectorCopy(normal.org, tmp);
-						VectorTransform(tmp, bonefixup[p.bone].im, normal.org);
-						VectorNormalize(normal.org);
+						VectorCopy(triangleNormal.org, tmp);
+						VectorTransform(tmp, boneFixup[triangleVertex.bone].im, triangleNormal.org);
+						VectorNormalize(triangleNormal.org);
 
-						ptriv->normindex = FindVertexNormalIndex(pmodel, &normal);
-						ptriv->vertindex = FindVertexIndex(pmodel, &p);
+						ptriangleVert->normindex = FindVertexNormalIndex(pmodel, &triangleNormal);
+						ptriangleVert->vertindex = FindVertexIndex(pmodel, &triangleVertex);
 
 						// tag bone as being used
 						// pmodel->bone[bone].ref = 1;
 					}
 					else
 					{
-						Error("%s: error on line %d: %s", filename, linecount, line);
+						Error("%s: error on line %d: %s", inputFilename, lineCount, currentLine);
 					}
 				}
 			}
 
-			if (tag_reversed || tag_normals)
+			if (flagReversedTriangles || flagBadNormals)
 			{
 				// check triangle direction
 
-				if (DotProduct(norm[0], norm[1]) < 0.0 || DotProduct(norm[1], norm[2]) < 0.0 || DotProduct(norm[2], norm[0]) < 0.0)
+				if (DotProduct(triangleNormals[0], triangleNormals[1]) < 0.0 || DotProduct(triangleNormals[1], triangleNormals[2]) < 0.0 || DotProduct(triangleNormals[2], triangleNormals[0]) < 0.0)
 				{
 
-					ncount++;
+					badNormalsCount++;
 
-					if (tag_normals)
+					if (flagBadNormals)
 					{
 						// steal the triangle and make it white
 						s_trianglevert_t *ptriv2;
 						pmesh = FindMeshByTexture(pmodel, "..\\white.bmp");
 						ptriv2 = FindMeshTriangleByIndex(pmesh, pmesh->numtris);
 
-						ptriv2[0] = ptriv[0];
-						ptriv2[1] = ptriv[1];
-						ptriv2[2] = ptriv[2];
+						ptriv2[0] = ptriangleVert[0];
+						ptriv2[1] = ptriangleVert[1];
+						ptriv2[2] = ptriangleVert[2];
 					}
 				}
 				else
 				{
-					vec3_t a1, a2, sn;
+					vec3_t triangleEdge1, triangleEdge2, surfaceNormal;
 					float x, y, z;
 
-					VectorSubstract(vert[1], vert[0], a1);
-					VectorSubstract(vert[2], vert[0], a2);
-					CrossProduct(a1, a2, sn);
-					VectorNormalize(sn);
+					VectorSubstract(triangleVertices[1], triangleVertices[0], triangleEdge1);
+					VectorSubstract(triangleVertices[2], triangleVertices[0], triangleEdge2);
+					CrossProduct(triangleEdge1, triangleEdge2, surfaceNormal);
+					VectorNormalize(surfaceNormal);
 
-					x = DotProduct(sn, norm[0]);
-					y = DotProduct(sn, norm[1]);
-					z = DotProduct(sn, norm[2]);
+					x = DotProduct(surfaceNormal, triangleNormals[0]);
+					y = DotProduct(surfaceNormal, triangleNormals[1]);
+					z = DotProduct(surfaceNormal, triangleNormals[2]);
 					if (x < 0.0 || y < 0.0 || z < 0.0)
 					{
-						if (tag_reversed)
+						if (flagReversedTriangles)
 						{
 							// steal the triangle and make it white
 							s_trianglevert_t *ptriv2;
 
 							printf("triangle reversed (%f %f %f)\n",
-								   DotProduct(norm[0], norm[1]),
-								   DotProduct(norm[1], norm[2]),
-								   DotProduct(norm[2], norm[0]));
+								   DotProduct(triangleNormals[0], triangleNormals[1]),
+								   DotProduct(triangleNormals[1], triangleNormals[2]),
+								   DotProduct(triangleNormals[2], triangleNormals[0]));
 
 							pmesh = FindMeshByTexture(pmodel, "..\\white.bmp");
 							ptriv2 = FindMeshTriangleByIndex(pmesh, pmesh->numtris);
 
-							ptriv2[0] = ptriv[0];
-							ptriv2[1] = ptriv[1];
-							ptriv2[2] = ptriv[2];
+							ptriv2[0] = ptriangleVert[0];
+							ptriv2[1] = ptriangleVert[1];
+							ptriv2[2] = ptriangleVert[2];
 						}
 					}
 				}
 			}
 
-			pmodel->trimesh[tcount] = pmesh;
-			pmodel->trimap[tcount] = pmesh->numtris++;
-			tcount++;
+			pmodel->trimesh[trianglesCount] = pmesh;
+			pmodel->trimap[trianglesCount] = pmesh->numtris++;
+			trianglesCount++;
 		}
 		else
 		{
@@ -1670,8 +1672,8 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 		}
 	}
 
-	if (ncount)
-		printf("%d triangles with misdirected normals\n", ncount);
+	if (badNormalsCount)
+		printf("%d triangles with misdirected normals\n", badNormalsCount);
 
 	if (vmin[2] != 0.0)
 	{
@@ -1681,31 +1683,31 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 
 void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
 {
-	float x, y, z, xr, yr, zr;
+	float posX, posY, posZ, rotX, rotY, rotZ;
 	char cmd[1024];
-	int index;
+	int node;
 
-	while (fgets(line, sizeof(line), input) != NULL)
+	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
 	{
-		linecount++;
-		if (sscanf(line, "%d %f %f %f %f %f %f", &index, &x, &y, &z, &xr, &yr, &zr) == 7)
+		lineCount++;
+		if (sscanf(currentLine, "%d %f %f %f %f %f %f", &node, &posX, &posY, &posZ, &rotX, &rotY, &rotZ) == 7)
 		{
-			pbones[index].pos[0] = x;
-			pbones[index].pos[1] = y;
-			pbones[index].pos[2] = z;
+			pbones[node].pos[0] = posX;
+			pbones[node].pos[1] = posY;
+			pbones[node].pos[2] = posZ;
 
-			ScaleVertexByQcScale(pbones[index].pos);
+			ScaleVertexByQcScale(pbones[node].pos);
 
-			if (pnodes[index].mirrored)
-				VectorScale(pbones[index].pos, -1.0, pbones[index].pos);
+			if (pnodes[node].mirrored)
+				VectorScale(pbones[node].pos, -1.0, pbones[node].pos);
 
-			pbones[index].rot[0] = xr;
-			pbones[index].rot[1] = yr;
-			pbones[index].rot[2] = zr;
+			pbones[node].rot[0] = rotX;
+			pbones[node].rot[1] = rotY;
+			pbones[node].rot[2] = rotZ;
 
-			clip_rotations(pbones[index].rot);
+			clip_rotations(pbones[node].rot);
 		}
-		else if (sscanf(line, "%s %d", cmd, &index))
+		else if (sscanf(currentLine, "%s %d", cmd, &node)) // Delete this
 		{
 			if (std::strcmp(cmd, "time") == 0)
 			{
@@ -1722,24 +1724,24 @@ void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
 int Grab_SMDNodes(s_node_t *pnodes)
 {
 	int index;
-	char name[1024];
+	char boneName[1024];
 	int parent;
-	int numbones = 0;
+	int numBones = 0;
 	int i;
 
-	while (fgets(line, sizeof(line), input) != NULL)
+	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
 	{
-		linecount++;
-		if (sscanf(line, "%d \"%[^\"]\" %d", &index, name, &parent) == 3)
+		lineCount++;
+		if (sscanf(currentLine, "%d \"%[^\"]\" %d", &index, boneName, &parent) == 3)
 		{
 
-			strcpyn(pnodes[index].name, name);
+			strcpyn(pnodes[index].name, boneName);
 			pnodes[index].parent = parent;
-			numbones = index;
+			numBones = index;
 			// check for mirrored bones;
 			for (i = 0; i < mirroredCount; i++)
 			{
-				if (std::strcmp(name, mirrored[i]) == 0)
+				if (std::strcmp(boneName, mirrorboneCommand[i]) == 0)
 					pnodes[index].mirrored = 1;
 			}
 			if ((!pnodes[index].mirrored) && parent != -1)
@@ -1749,10 +1751,10 @@ int Grab_SMDNodes(s_node_t *pnodes)
 		}
 		else
 		{
-			return numbones + 1;
+			return numBones + 1;
 		}
 	}
-	Error("Unexpected EOF at line %d\n", linecount);
+	Error("Unexpected EOF at line %d\n", lineCount);
 	return 0;
 }
 
@@ -1762,23 +1764,23 @@ void ParseSMD(s_model_t *pmodel)
 	char cmd[1024];
 	int option;
 
-	sprintf(filename, "%s/%s.smd", cddir, pmodel->name);
-	time1 = FileTime(filename);
+	sprintf(inputFilename, "%s/%s.smd", cdCommand, pmodel->name);
+	time1 = FileTime(inputFilename);
 	if (time1 == -1)
-		Error("%s doesn't exist", filename);
+		Error("%s doesn't exist", inputFilename);
 
-	printf("grabbing %s\n", filename);
+	printf("grabbing %s\n", inputFilename);
 
-	if ((input = fopen(filename, "r")) == 0)
+	if ((inputFile = fopen(inputFilename, "r")) == 0)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", filename);
+		fprintf(stderr, "reader: could not open file '%s'\n", inputFilename);
 	}
-	linecount = 0;
+	lineCount = 0;
 
-	while (fgets(line, sizeof(line), input) != NULL)
+	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
 	{
-		linecount++;
-		sscanf(line, "%s %d", cmd, &option);
+		lineCount++;
+		sscanf(currentLine, "%s %d", cmd, &option);
 		if (std::strcmp(cmd, "version") == 0)
 		{
 			if (option != 1)
@@ -1803,7 +1805,7 @@ void ParseSMD(s_model_t *pmodel)
 			printf("unknown studio command\n");
 		}
 	}
-	fclose(input);
+	fclose(inputFile);
 }
 
 void Cmd_Eyeposition()
@@ -1842,21 +1844,21 @@ void Cmd_Body_OptionStudio()
 
 	strcpyn(model[modelsCount]->name, token);
 
-	flip_triangles = 1;
+	flagFlipTriangles = 1;
 
-	scale_up = default_scale;
+	scaleBodyAndSequenceOption = scaleCommand;
 
 	while (TokenAvailable())
 	{
 		GetToken(false);
 		if (stricmp("reverse", token) == 0)
 		{
-			flip_triangles = 0;
+			flagFlipTriangles = 0;
 		}
 		else if (stricmp("scale", token) == 0)
 		{
 			GetToken(false);
-			scale_up = atof(token);
+			scaleBodyAndSequenceOption = atof(token);
 		}
 	}
 
@@ -1865,7 +1867,7 @@ void Cmd_Body_OptionStudio()
 	bodypart[bodygroupCount].nummodels++;
 	modelsCount++;
 
-	scale_up = default_scale;
+	scaleBodyAndSequenceOption = scaleCommand;
 }
 
 int Cmd_Body_OptionBlank()
@@ -1961,13 +1963,13 @@ void Grab_OptionAnimation(s_animation_t *panim)
 		panim->rot[index] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
 	}
 
-	cz = cos(zrotation);
-	sz = sin(zrotation);
+	cz = cos(rotateCommand);
+	sz = sin(rotateCommand);
 
-	while (fgets(line, sizeof(line), input) != NULL)
+	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
 	{
-		linecount++;
-		if (sscanf(line, "%d %f %f %f %f %f %f", &index, &pos[0], &pos[1], &pos[2], &rot[0], &rot[1], &rot[2]) == 7)
+		lineCount++;
+		if (sscanf(currentLine, "%d %f %f %f %f %f %f", &index, &pos[0], &pos[1], &pos[2], &rot[0], &rot[1], &rot[2]) == 7)
 		{
 			if (t >= panim->startframe && t <= panim->endframe)
 			{
@@ -1978,7 +1980,7 @@ void Grab_OptionAnimation(s_animation_t *panim)
 					panim->pos[index][t][1] = sz * pos[0] + cz * pos[1];
 					panim->pos[index][t][2] = pos[2];
 					// rotate model
-					rot[2] += zrotation;
+					rot[2] += rotateCommand;
 				}
 				else
 				{
@@ -1999,7 +2001,7 @@ void Grab_OptionAnimation(s_animation_t *panim)
 				VectorCopy(rot, panim->rot[index][t]);
 			}
 		}
-		else if (sscanf(line, "%s %d", cmd, &index))
+		else if (sscanf(currentLine, "%s %d", cmd, &index))
 		{
 			if (std::strcmp(cmd, "time") == 0)
 			{
@@ -2013,12 +2015,12 @@ void Grab_OptionAnimation(s_animation_t *panim)
 			}
 			else
 			{
-				Error("Error(%d) : %s", linecount, line);
+				Error("Error(%d) : %s", lineCount, currentLine);
 			}
 		}
 		else
 		{
-			Error("Error(%d) : %s", linecount, line);
+			Error("Error(%d) : %s", lineCount, currentLine);
 		}
 	}
 	Error("unexpected EOF: %s\n", panim->name);
@@ -2059,24 +2061,24 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 
 	strcpyn(panim->name, name);
 
-	sprintf(filename, "%s/%s.smd", cddir, panim->name);
-	time1 = FileTime(filename);
+	sprintf(inputFilename, "%s/%s.smd", cdCommand, panim->name);
+	time1 = FileTime(inputFilename);
 	if (time1 == -1)
-		Error("%s doesn't exist", filename);
+		Error("%s doesn't exist", inputFilename);
 
-	printf("grabbing %s\n", filename);
+	printf("grabbing %s\n", inputFilename);
 
-	if ((input = fopen(filename, "r")) == 0)
+	if ((inputFile = fopen(inputFilename, "r")) == 0)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", filename);
+		fprintf(stderr, "reader: could not open file '%s'\n", inputFilename);
 		Error(0);
 	}
-	linecount = 0;
+	lineCount = 0;
 
-	while (fgets(line, sizeof(line), input) != NULL)
+	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
 	{
-		linecount++;
-		sscanf(line, "%s %d", cmd, &option);
+		lineCount++;
+		sscanf(currentLine, "%s %d", cmd, &option);
 		if (std::strcmp(cmd, "version") == 0)
 		{
 			if (option != 1)
@@ -2096,15 +2098,15 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 		else
 		{
 			printf("unknown studio command : %s\n", cmd);
-			while (fgets(line, sizeof(line), input) != NULL)
+			while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
 			{
-				linecount++;
-				if (strncmp(line, "end", 3) == 0)
+				lineCount++;
+				if (strncmp(currentLine, "end", 3) == 0)
 					break;
 			}
 		}
 	}
-	fclose(input);
+	fclose(inputFile);
 }
 
 int Cmd_Sequence_OptionDeform(s_sequence_t *psequence) // delete this
@@ -2178,18 +2180,18 @@ int Cmd_Sequence_OptionAddPivot(s_sequence_t *psequence)
 void Cmd_Origin()
 {
 	GetToken(false);
-	origin[0] = atof(token);
+	originCommand[0] = atof(token);
 
 	GetToken(false);
-	origin[1] = atof(token);
+	originCommand[1] = atof(token);
 
 	GetToken(false);
-	origin[2] = atof(token);
+	originCommand[2] = atof(token);
 
 	if (TokenAvailable())
 	{
 		GetToken(false);
-		defaultzrotation = (atof(token) + 90) * (Q_PI / 180.0);
+		originCommandRotation = (atof(token) + 90) * (Q_PI / 180.0);
 	}
 }
 
@@ -2208,28 +2210,28 @@ void Cmd_Sequence_OptionOrigin()
 void Cmd_Sequence_OptionRotate()
 {
 	GetToken(false);
-	zrotation = (atof(token) + 90) * (Q_PI / 180.0);
+	rotateCommand = (atof(token) + 90) * (Q_PI / 180.0);
 }
 
 void Cmd_ScaleUp()
 {
 
 	GetToken(false);
-	default_scale = scale_up = atof(token);
+	scaleCommand = scaleBodyAndSequenceOption = atof(token);
 }
 
 void Cmd_Rotate() // XDM
 {
 	if (!GetToken(false))
 		return;
-	zrotation = (atof(token) + 90) * (Q_PI / 180.0);
+	rotateCommand = (atof(token) + 90) * (Q_PI / 180.0);
 }
 
 void Cmd_Sequence_OptionScaleUp()
 {
 
 	GetToken(false);
-	scale_up = atof(token);
+	scaleBodyAndSequenceOption = atof(token);
 }
 
 int Cmd_SequenceGroup()
@@ -2272,10 +2274,10 @@ int Cmd_Sequence()
 
 	strcpyn(sequence[sequenceCount].name, token);
 
-	VectorCopy(origin, sequenceOrigin);
-	scale_up = default_scale;
+	VectorCopy(originCommand, sequenceOrigin);
+	scaleBodyAndSequenceOption = scaleCommand;
 
-	zrotation = defaultzrotation;
+	rotateCommand = originCommandRotation;
 	sequence[sequenceCount].fps = 30.0;
 	sequence[sequenceCount].seqgroup = sequencegroupCount - 1;
 	sequence[sequenceCount].blendstart[0] = 0.0;
@@ -2421,12 +2423,12 @@ int Cmd_Sequence()
 	}
 	for (i = 0; i < numblends; i++)
 	{
-		panimation[animationCount] = (s_animation_t *)malloc(sizeof(s_animation_t));
-		sequence[sequenceCount].panim[i] = panimation[animationCount];
+		animationSequenceOption[animationCount] = (s_animation_t *)malloc(sizeof(s_animation_t));
+		sequence[sequenceCount].panim[i] = animationSequenceOption[animationCount];
 		sequence[sequenceCount].panim[i]->startframe = start;
 		sequence[sequenceCount].panim[i]->endframe = end;
 		sequence[sequenceCount].panim[i]->flags = 0;
-		Cmd_Sequence_OptionAnimation(smdfilename[i], panimation[animationCount]);
+		Cmd_Sequence_OptionAnimation(smdfilename[i], animationSequenceOption[animationCount]);
 		animationCount++;
 	}
 	sequence[sequenceCount].numblends = numblends;
@@ -2520,13 +2522,13 @@ void Cmd_CBox()
 void Cmd_Mirror()
 {
 	GetToken(false);
-	strcpyn(mirrored[mirroredCount++], token);
+	strcpyn(mirrorboneCommand[mirroredCount++], token);
 }
 
 void Cmd_Gamma()
 {
 	GetToken(false);
-	texgamma = atof(token);
+	gammaCommand = atof(token);
 }
 
 int Cmd_TextureGroup()
@@ -2575,9 +2577,9 @@ int Cmd_TextureGroup()
 		else if (depth == 2)
 		{
 			i = FindTextureIndex(token);
-			texturegroup[texturegroupCount][group][index] = i;
+			texturegroupCommand[texturegroupCount][group][index] = i;
 			if (group != 0)
-				texture[i].parent = texturegroup[texturegroupCount][0][index];
+				texture[i].parent = texturegroupCommand[texturegroupCount][0][index];
 			index++;
 			texturegroupreps[texturegroupCount] = index;
 			texturegrouplayers[texturegroupCount] = group + 1;
@@ -2592,9 +2594,9 @@ int Cmd_TextureGroup()
 int Cmd_Hitgroup()
 {
 	GetToken(false);
-	hitgroup[hitgroupsCount].group = atoi(token);
+	hitgroupCommand[hitgroupsCount].group = atoi(token);
 	GetToken(false);
-	strcpyn(hitgroup[hitgroupsCount].name, token);
+	strcpyn(hitgroupCommand[hitgroupsCount].name, token);
 	hitgroupsCount++;
 
 	return 0;
@@ -2656,11 +2658,11 @@ void Cmd_Renamebone()
 {
 	// from
 	GetToken(false);
-	std::strcpy(renamedbone[renameboneCount].from, token);
+	std::strcpy(renameboneCommand[renameboneCount].from, token);
 
 	// to
 	GetToken(false);
-	std::strcpy(renamedbone[renameboneCount].to, token);
+	std::strcpy(renameboneCommand[renameboneCount].to, token);
 
 	renameboneCount++;
 }
@@ -2718,20 +2720,21 @@ void ParseQCscript()
 		}
 		else if (!std::strcmp(token, "$cd"))
 		{
-			if (cdset)
+			if (isCdSet)
 				Error("Two $cd in one model");
-			cdset = true;
+			isCdSet = true;
 			GetToken(false);
-			std::strcpy(cdpartial, token);
-			std::strcpy(cddir, ExpandPath(token));
+
+			std::strcpy(cdPartialPath, token);
+			std::strcpy(cdCommand, ExpandPath(token));
 		}
 		else if (!std::strcmp(token, "$cdtexture"))
 		{
 			while (TokenAvailable())
 			{
 				GetToken(false);
-				std::strcpy(cdtexture[cdtextureset], ExpandPath(token));
-				cdtextureset++;
+				std::strcpy(cdtextureCommand[cdtexturePathCount], ExpandPath(token));
+				cdtexturePathCount++;
 			}
 		}
 		else if (!std::strcmp(token, "$scale"))
@@ -2826,18 +2829,18 @@ int main(int argc, char **argv)
 	int i;
 	char path[1024];
 
-	default_scale = 1.0;
-	defaultzrotation = Q_PI / 2;
+	scaleCommand = 1.0;
+	originCommandRotation = Q_PI / 2;
 
-	numrep = 0;
-	tag_reversed = 0;
-	tag_normals = 0;
-	flip_triangles = 1;
-	keep_all_bones = false;
+	numTextureReplacements = 0;
+	flagReversedTriangles = 0;
+	flagBadNormals = 0;
+	flagFlipTriangles = 1;
+	flagKeepAllBones = false;
 
-	normal_blend = cos(2.0 * (Q_PI / 180.0));
+	flagNormalBlendAngle = cos(2.0 * (Q_PI / 180.0));
 
-	texgamma = 1.8;
+	gammaCommand = 1.8;
 
 	if (argc == 1)
 		Error("usage: studiomdl <flags>\n [-t texture]\n -r(tag reversed)\n -n(tag bad normals)\n -f(flip all triangles)\n [-a normal_blend_angle]\n -h(dump hboxes)\n -i(ignore warnings) \n b(keep all unused bones)\n file.qc");
@@ -2850,37 +2853,37 @@ int main(int argc, char **argv)
 			{
 			case 't':
 				i++;
-				std::strcpy(defaulttexture[numrep], argv[i]);
+				std::strcpy(defaultTextures[numTextureReplacements], argv[i]);
 				if (i < argc - 2 && argv[i + 1][0] != '-')
 				{
 					i++;
-					std::strcpy(sourcetexture[numrep], argv[i]);
-					printf("Replaceing %s with %s\n", sourcetexture[numrep], defaulttexture[numrep]);
+					std::strcpy(sourceTexture[numTextureReplacements], argv[i]);
+					printf("Replaceing %s with %s\n", sourceTexture[numTextureReplacements], defaultTextures[numTextureReplacements]);
 				}
-				printf("Using default texture: %s\n", defaulttexture);
-				numrep++;
+				printf("Using default texture: %s\n", defaultTextures);
+				numTextureReplacements++;
 				break;
 			case 'r':
-				tag_reversed = 1;
+				flagReversedTriangles = 1;
 				break;
 			case 'n':
-				tag_normals = 1;
+				flagBadNormals = 1;
 				break;
 			case 'f':
-				flip_triangles = 0;
+				flagFlipTriangles = 0;
 				break;
 			case 'a':
 				i++;
-				normal_blend = cos(atof(argv[i]) * (Q_PI / 180.0));
+				flagNormalBlendAngle = cos(atof(argv[i]) * (Q_PI / 180.0));
 				break;
 			case 'h':
-				dump_hboxes = 1;
+				flagDumpHitboxes = 1;
 				break;
 			case 'i':
-				ignore_warnings = 1;
+				flagIgnoreWarnings = 1;
 				break;
 			case 'b':
-				keep_all_bones = true;
+				flagKeepAllBones = true;
 				break;
 			}
 		}
