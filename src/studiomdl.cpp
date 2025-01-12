@@ -2197,7 +2197,7 @@ void Cmd_Origin()
 	}
 }
 
-void Option_Origin()
+void Cmd_Sequence_OptionOrigin()
 {
 	GetToken(false);
 	sequenceOrigin[0] = atof(token);
@@ -2341,7 +2341,7 @@ int Cmd_Sequence()
 		}
 		else if (stricmp("origin", token) == 0)
 		{
-			Option_Origin();
+			Cmd_Sequence_OptionOrigin();
 		}
 		else if (stricmp("rotate", token) == 0)
 		{
