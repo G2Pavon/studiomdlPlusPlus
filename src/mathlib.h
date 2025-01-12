@@ -17,6 +17,7 @@ float DotProduct(const vec3_t v1, const vec3_t v2);
 void CrossProduct(const vec3_t v1, const vec3_t v2, vec3_t cross);
 float VectorNormalize(vec3_t v);
 
+void MatrixCopy(float in[3][4], float out[3][4]);
 void AngleMatrix(const vec3_t angles, float matrix[3][4]);
 void AngleIMatrix(const vec3_t angles, float matrix[3][4]);
 void R_ConcatTransforms(const float in1[3][4], const float in2[3][4], float out[3][4]);

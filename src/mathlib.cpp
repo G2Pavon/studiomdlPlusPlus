@@ -74,6 +74,19 @@ float VectorNormalize(vec3_t v)
 	return length;
 }
 
+void MatrixCopy(float in[3][4], float out[3][4])
+{
+	int i, j;
+
+	for (i = 0; i < 3; i++)
+	{
+		for (j = 0; j < 4; j++)
+		{
+			out[i][j] = in[i][j];
+		}
+	}
+}
+
 void AngleMatrix(const vec3_t angles, float (*matrix)[4])
 {
 	float angle;

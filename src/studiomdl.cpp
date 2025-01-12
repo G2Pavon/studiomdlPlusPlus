@@ -66,6 +66,20 @@ int texturegrouplayers[32];
 int texturegroupreps[32];
 // ---------------------------------------
 
+void clip_rotations(vec3_t rot)
+{
+	int j;
+	// clip everything to : -Q_PI <= x < Q_PI
+
+	for (j = 0; j < 3; j++)
+	{
+		while (rot[j] >= Q_PI)
+			rot[j] -= Q_PI * 2;
+		while (rot[j] < -Q_PI)
+			rot[j] += Q_PI * 2;
+	}
+}
+
 void ExtractMotion()
 {
 	int i, j, k;
@@ -194,7 +208,7 @@ void ExtractMotion()
 	}
 }
 
-void OptimizeAnimations(void)
+void OptimizeAnimations()
 {
 	int i, j;
 	int n, m;
@@ -269,18 +283,6 @@ int findNode(char *name)
 	return -1;
 }
 
-void MatrixCopy(float in[3][4], float out[3][4])
-{
-	int i, j;
-
-	for (i = 0; i < 3; i++)
-	{
-		for (j = 0; j < 4; j++)
-		{
-			out[i][j] = in[i][j];
-		}
-	}
-}
 void MakeTransitions()
 {
 	int i, j, k;
@@ -341,7 +343,7 @@ void MakeTransitions()
 	}
 }
 
-void SimplifyModel(void)
+void SimplifyModel()
 {
 	int i, j, k;
 	int n, m, q;
@@ -1808,21 +1810,7 @@ void Grab_Studio(s_model_t *pmodel)
 	fclose(input);
 }
 
-void clip_rotations(vec3_t rot)
-{
-	int j;
-	// clip everything to : -Q_PI <= x < Q_PI
-
-	for (j = 0; j < 3; j++)
-	{
-		while (rot[j] >= Q_PI)
-			rot[j] -= Q_PI * 2;
-		while (rot[j] < -Q_PI)
-			rot[j] += Q_PI * 2;
-	}
-}
-
-void Cmd_Eyeposition(void)
+void Cmd_Eyeposition()
 {
 	// rotate points into frame of reference so model points down the positive x
 	// axis
@@ -1836,13 +1824,13 @@ void Cmd_Eyeposition(void)
 	eyeposition[2] = atof(token);
 }
 
-void Cmd_Flags(void)
+void Cmd_Flags()
 {
 	GetToken(false);
 	gflags = atoi(token);
 }
 
-void Cmd_Modelname(void)
+void Cmd_Modelname()
 {
 	GetToken(false);
 	strcpyn(outname, token);
@@ -2123,7 +2111,7 @@ void Option_Animation(char *name, s_animation_t *panim)
 	fclose(input);
 }
 
-int Option_Deform(s_sequence_t *psequence)
+int Option_Deform(s_sequence_t *psequence) // delete this
 {
 	return 0;
 }
@@ -2191,7 +2179,7 @@ int Option_AddPivot(s_sequence_t *psequence)
 	return 0;
 }
 
-void Cmd_Origin(void)
+void Cmd_Origin()
 {
 	GetToken(false);
 	origin[0] = atof(token);
@@ -2209,7 +2197,7 @@ void Cmd_Origin(void)
 	}
 }
 
-void Option_Origin(void)
+void Option_Origin()
 {
 	GetToken(false);
 	sequenceOrigin[0] = atof(token);
@@ -2221,27 +2209,27 @@ void Option_Origin(void)
 	sequenceOrigin[2] = atof(token);
 }
 
-void Option_Rotate(void)
+void Option_Rotate()
 {
 	GetToken(false);
 	zrotation = (atof(token) + 90) * (Q_PI / 180.0);
 }
 
-void Cmd_ScaleUp(void)
+void Cmd_ScaleUp()
 {
 
 	GetToken(false);
 	default_scale = scale_up = atof(token);
 }
 
-void Cmd_Rotate(void) // XDM
+void Cmd_Rotate() // XDM
 {
 	if (!GetToken(false))
 		return;
 	zrotation = (atof(token) + 90) * (Q_PI / 180.0);
 }
 
-void Option_ScaleUp(void)
+void Option_ScaleUp()
 {
 
 	GetToken(false);
@@ -2452,7 +2440,7 @@ int Cmd_Sequence()
 	return 0;
 }
 
-int Cmd_Controller(void)
+int Cmd_Controller()
 {
 	if (GetToken(false))
 	{
@@ -2491,7 +2479,7 @@ int Cmd_Controller(void)
 	return 1;
 }
 
-void Cmd_BBox(void)
+void Cmd_BBox()
 {
 	GetToken(false);
 	bbox[0][0] = atof(token);
@@ -2512,7 +2500,7 @@ void Cmd_BBox(void)
 	bbox[1][2] = atof(token);
 }
 
-void Cmd_CBox(void)
+void Cmd_CBox()
 {
 	GetToken(false);
 	cbox[0][0] = atof(token);
@@ -2533,13 +2521,13 @@ void Cmd_CBox(void)
 	cbox[1][2] = atof(token);
 }
 
-void Cmd_Mirror(void)
+void Cmd_Mirror()
 {
 	GetToken(false);
 	strcpyn(mirrored[mirroredCount++], token);
 }
 
-void Cmd_Gamma(void)
+void Cmd_Gamma()
 {
 	GetToken(false);
 	texgamma = atof(token);
@@ -2681,7 +2669,7 @@ void Cmd_Renamebone()
 	renameboneCount++;
 }
 
-void Cmd_TexRenderMode(void)
+void Cmd_TexRenderMode()
 {
 	char tex_name[256];
 	GetToken(false);
@@ -2707,7 +2695,8 @@ void Cmd_TexRenderMode(void)
 	else
 		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);
 }
-void ParseScript(void)
+
+void ParseScript()
 {
 	while (true)
 	{
