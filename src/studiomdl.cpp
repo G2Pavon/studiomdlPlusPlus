@@ -1480,7 +1480,7 @@ void Build_Reference(s_model_t *pmodel)
 	}
 }
 
-void Grab_Triangles(s_model_t *pmodel)
+void Grab_SMDTriangles(s_model_t *pmodel)
 {
 	int i, j;
 	int tcount = 0;
@@ -1683,7 +1683,7 @@ void Grab_Triangles(s_model_t *pmodel)
 	}
 }
 
-void Grab_Skeleton(s_node_t *pnodes, s_bone_t *pbones)
+void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
 {
 	float x, y, z, xr, yr, zr;
 	char cmd[1024];
@@ -1723,7 +1723,7 @@ void Grab_Skeleton(s_node_t *pnodes, s_bone_t *pbones)
 	}
 }
 
-int Grab_Nodes(s_node_t *pnodes)
+int Grab_SMDNodes(s_node_t *pnodes)
 {
 	int index;
 	char name[1024];
@@ -1760,7 +1760,7 @@ int Grab_Nodes(s_node_t *pnodes)
 	return 0;
 }
 
-void Grab_Studio(s_model_t *pmodel)
+void ParseSMD(s_model_t *pmodel)
 {
 	int time1;
 	char cmd[1024];
@@ -1792,15 +1792,15 @@ void Grab_Studio(s_model_t *pmodel)
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			pmodel->numbones = Grab_Nodes(pmodel->node);
+			pmodel->numbones = Grab_SMDNodes(pmodel->node);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
-			Grab_Skeleton(pmodel->node, pmodel->skeleton);
+			Grab_SMDSkeleton(pmodel->node, pmodel->skeleton);
 		}
 		else if (std::strcmp(cmd, "triangles") == 0)
 		{
-			Grab_Triangles(pmodel);
+			Grab_SMDTriangles(pmodel);
 		}
 		else
 		{
@@ -1836,7 +1836,7 @@ void Cmd_Modelname()
 	strcpyn(outname, token);
 }
 
-void Option_Studio()
+void Cmd_Body_OptionStudio()
 {
 	if (!GetToken(false))
 		return;
@@ -1864,7 +1864,7 @@ void Option_Studio()
 		}
 	}
 
-	Grab_Studio(model[modelsCount]);
+	ParseSMD(model[modelsCount]);
 
 	bodypart[bodygroupCount].nummodels++;
 	modelsCount++;
@@ -1872,7 +1872,7 @@ void Option_Studio()
 	scale_up = default_scale;
 }
 
-int Option_Blank()
+int Cmd_Body_OptionBlank()
 {
 	model[modelsCount] = (s_model_t *)(1, sizeof(s_model_t));
 	bodypart[bodygroupCount].pmodel[bodypart[bodygroupCount].nummodels] = model[modelsCount];
@@ -1916,11 +1916,11 @@ void Cmd_Bodygroup()
 		}
 		else if (stricmp("studio", token) == 0)
 		{
-			Option_Studio();
+			Cmd_Body_OptionStudio();
 		}
 		else if (stricmp("blank", token) == 0)
 		{
-			Option_Blank();
+			Cmd_Body_OptionBlank();
 		}
 	}
 
@@ -1943,12 +1943,12 @@ void Cmd_Body()
 	}
 	strcpyn(bodypart[bodygroupCount].name, token);
 
-	Option_Studio();
+	Cmd_Body_OptionStudio();
 
 	bodygroupCount++;
 }
 
-void Grab_Animation(s_animation_t *panim)
+void Grab_OptionAnimation(s_animation_t *panim)
 {
 	vec3_t pos;
 	vec3_t rot;
@@ -2028,7 +2028,7 @@ void Grab_Animation(s_animation_t *panim)
 	Error("unexpected EOF: %s\n", panim->name);
 }
 
-void Shift_Animation(s_animation_t *panim)
+void Shift_OptionAnimation(s_animation_t *panim)
 {
 	int j;
 
@@ -2055,7 +2055,7 @@ void Shift_Animation(s_animation_t *panim)
 	}
 }
 
-void Option_Animation(char *name, s_animation_t *panim)
+void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 {
 	int time1;
 	char cmd[1024];
@@ -2090,12 +2090,12 @@ void Option_Animation(char *name, s_animation_t *panim)
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			panim->numbones = Grab_Nodes(panim->node);
+			panim->numbones = Grab_SMDNodes(panim->node);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
-			Grab_Animation(panim);
-			Shift_Animation(panim);
+			Grab_OptionAnimation(panim);
+			Shift_OptionAnimation(panim);
 		}
 		else
 		{
@@ -2111,12 +2111,12 @@ void Option_Animation(char *name, s_animation_t *panim)
 	fclose(input);
 }
 
-int Option_Deform(s_sequence_t *psequence) // delete this
+int Cmd_Sequence_OptionDeform(s_sequence_t *psequence) // delete this
 {
 	return 0;
 }
 
-int Option_Event(s_sequence_t *psequence)
+int Cmd_Sequence_OptionEvent(s_sequence_t *psequence)
 {
 	int event;
 
@@ -2148,7 +2148,7 @@ int Option_Event(s_sequence_t *psequence)
 	return 0;
 }
 
-int Option_Fps(s_sequence_t *psequence)
+int Cmd_Sequence_OptionFps(s_sequence_t *psequence)
 {
 	GetToken(false);
 
@@ -2157,7 +2157,7 @@ int Option_Fps(s_sequence_t *psequence)
 	return 0;
 }
 
-int Option_AddPivot(s_sequence_t *psequence)
+int Cmd_Sequence_OptionAddPivot(s_sequence_t *psequence)
 {
 	if (psequence->numpivots + 1 >= MAXSTUDIOPIVOTS)
 	{
@@ -2209,7 +2209,7 @@ void Option_Origin()
 	sequenceOrigin[2] = atof(token);
 }
 
-void Option_Rotate()
+void Cmd_Sequence_OptionRotate()
 {
 	GetToken(false);
 	zrotation = (atof(token) + 90) * (Q_PI / 180.0);
@@ -2229,7 +2229,7 @@ void Cmd_Rotate() // XDM
 	zrotation = (atof(token) + 90) * (Q_PI / 180.0);
 }
 
-void Option_ScaleUp()
+void Cmd_Sequence_OptionScaleUp()
 {
 
 	GetToken(false);
@@ -2245,7 +2245,7 @@ int Cmd_SequenceGroup()
 	return 0;
 }
 
-int lookupActivity(char *szActivity)
+int Cmd_Sequence_OptionAction(char *szActivity)
 {
 	int i;
 
@@ -2325,19 +2325,19 @@ int Cmd_Sequence()
 		}
 		else if (stricmp("deform", token) == 0)
 		{
-			Option_Deform(&sequence[sequenceCount]);
+			Cmd_Sequence_OptionDeform(&sequence[sequenceCount]);
 		}
 		else if (stricmp("event", token) == 0)
 		{
-			depth -= Option_Event(&sequence[sequenceCount]);
+			depth -= Cmd_Sequence_OptionEvent(&sequence[sequenceCount]);
 		}
 		else if (stricmp("pivot", token) == 0)
 		{
-			Option_AddPivot(&sequence[sequenceCount]);
+			Cmd_Sequence_OptionAddPivot(&sequence[sequenceCount]);
 		}
 		else if (stricmp("fps", token) == 0)
 		{
-			Option_Fps(&sequence[sequenceCount]);
+			Cmd_Sequence_OptionFps(&sequence[sequenceCount]);
 		}
 		else if (stricmp("origin", token) == 0)
 		{
@@ -2345,11 +2345,11 @@ int Cmd_Sequence()
 		}
 		else if (stricmp("rotate", token) == 0)
 		{
-			Option_Rotate();
+			Cmd_Sequence_OptionRotate();
 		}
 		else if (stricmp("scale", token) == 0)
 		{
-			Option_ScaleUp();
+			Cmd_Sequence_OptionScaleUp();
 		}
 		else if (strnicmp("loop", token, 4) == 0)
 		{
@@ -2391,7 +2391,7 @@ int Cmd_Sequence()
 			sequence[sequenceCount].exitnode = atoi(token);
 			sequence[sequenceCount].nodeflags |= 1;
 		}
-		else if (lookupControl(token) != -1)
+		else if (lookupControl(token) != -1) // motion flags [motion extraction]
 		{
 			sequence[sequenceCount].motiontype |= lookupControl(token);
 		}
@@ -2400,7 +2400,7 @@ int Cmd_Sequence()
 			GetToken(false);
 			strcpyn(smdfilename[numblends++], token);
 		}
-		else if ((i = lookupActivity(token)) != 0)
+		else if ((i = Cmd_Sequence_OptionAction(token)) != 0)
 		{
 			sequence[sequenceCount].activity = i;
 			GetToken(false);
@@ -2430,7 +2430,7 @@ int Cmd_Sequence()
 		sequence[sequenceCount].panim[i]->startframe = start;
 		sequence[sequenceCount].panim[i]->endframe = end;
 		sequence[sequenceCount].panim[i]->flags = 0;
-		Option_Animation(smdfilename[i], panimation[animationCount]);
+		Cmd_Sequence_OptionAnimation(smdfilename[i], panimation[animationCount]);
 		animationCount++;
 	}
 	sequence[sequenceCount].numblends = numblends;
@@ -2696,7 +2696,7 @@ void Cmd_TexRenderMode()
 		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);
 }
 
-void ParseScript()
+void ParseQCscript()
 {
 	while (true)
 	{
@@ -2897,7 +2897,7 @@ int main(int argc, char **argv)
 	LoadScriptFile(path);
 	// parse it
 	std::strcpy(outname, argv[i]);
-	ParseScript();
+	ParseQCscript();
 	SetSkinValues();
 	SimplifyModel();
 	WriteFile();

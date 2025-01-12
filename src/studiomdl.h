@@ -296,67 +296,83 @@ extern int skinrefCount;
 extern int skinfamiliesCount;
 extern int skinref[256][MAXSTUDIOSKINS]; // [skin][skinref], returns texture index
 
-void clip_rotations(vec3_t rot);
-void ExtractMotion();
-void OptimizeAnimations();
-int findNode(char *name);
-void MakeTransitions();
-void SimplifyModel();
-int lookupControl(char *string);
-char *stristr(const char *string, const char *string2);
-int lookup_texture(char *texturename);
-s_mesh_t *lookup_mesh(s_model_t *pmodel, char *texturename);
-s_trianglevert_t *lookup_triangle(s_mesh_t *pmesh, int index);
-int lookup_normal(s_model_t *pmodel, s_normal_t *pnormal);
-int lookup_vertex(s_model_t *pmodel, s_vertex_t *pv);
-void adjust_vertex(float *org);
-void scale_vertex(float *org);
-float adjust_texcoord(float coord);
-void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture);
-void ResetTextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture);
+// Main functions -----------------------
+
+// setSkinValues:
+void SetSkinValues();
+void Grab_Skin(s_texture_t *ptexture);
 void Grab_BMP(char *filename, s_texture_t *ptexture);
 void ResizeTexture(s_texture_t *ptexture);
-void Grab_Skin(s_texture_t *ptexture);
-void SetSkinValues();
-void Build_Reference(s_model_t *pmodel);
-void Grab_Triangles(s_model_t *pmodel);
-void Grab_Skeleton(s_node_t *pnodes, s_bone_t *pbones);
-int Grab_Nodes(s_node_t *pnodes);
-void Grab_Studio(s_model_t *pmodel);
-void Cmd_Eyeposition();
-void Cmd_Flags();
+void ResetTextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture);
+float adjust_texcoord(float coord); // for UV shift fix
+void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture);
+
+// SimplifyModel:
+void SimplifyModel();
+void MakeTransitions();
+int findNode(char *name);
+void OptimizeAnimations();
+void ExtractMotion();
+
+// End Main functions --------------------
+
+// QC Parser
 void Cmd_Modelname();
-void Option_Studio();
-int Option_Blank();
-void Cmd_Bodygroup();
-void Cmd_Body();
-void Grab_Animation(s_animation_t *panim);
-void Shift_Animation(s_animation_t *panim);
-void Option_Animation(char *name, s_animation_t *panim);
-int Option_Deform(s_sequence_t *psequence); // delete this
-int Option_Event(s_sequence_t *psequence);
-int Option_Fps(s_sequence_t *psequence);
-int Option_AddPivot(s_sequence_t *psequence);
-void Cmd_Origin();
-void Option_Rotate();
 void Cmd_ScaleUp();
 void Cmd_Rotate();
-void Option_ScaleUp();
-int Cmd_SequenceGroup();
-int lookupActivity(char *szActivity);
-int Cmd_Sequence();
 int Cmd_Controller();
+void Cmd_Body();
+void Cmd_Bodygroup();
+void Cmd_Body_OptionStudio();
+int Cmd_Body_OptionBlank();
+int Cmd_Sequence();
+int Cmd_Sequence_OptionDeform(s_sequence_t *psequence); // delete this
+int Cmd_Sequence_OptionEvent(s_sequence_t *psequence);
+int Cmd_Sequence_OptionAddPivot(s_sequence_t *psequence);
+int Cmd_Sequence_OptionFps(s_sequence_t *psequence);
+void Cmd_Sequence_OptionRotate();
+void Cmd_Sequence_OptionScaleUp();
+void Cmd_Sequence_OptionRotate();
+void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim);
+void Grab_OptionAnimation(s_animation_t *panim);
+void Shift_OptionAnimation(s_animation_t *panim);
+int Cmd_Sequence_OptionAction(char *szActivity);
+int Cmd_SequenceGroup();
+void Cmd_Eyeposition();
+void Cmd_Origin();
 void Cmd_BBox();
 void Cmd_CBox();
 void Cmd_Mirror();
 void Cmd_Gamma();
+void Cmd_Flags();
 int Cmd_TextureGroup();
 int Cmd_Hitgroup();
 int Cmd_Hitbox();
 int Cmd_Attachment();
 void Cmd_Renamebone();
 void Cmd_TexRenderMode();
-void ParseScript();
+int lookupControl(char *string);
+void ParseQCscript();
+
+// SMD Parser
+void ParseSMD(s_model_t *pmodel);
+void Grab_SMDTriangles(s_model_t *pmodel);
+void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones);
+int Grab_SMDNodes(s_node_t *pnodes);
+void Build_Reference(s_model_t *pmodel);
+s_mesh_t *lookup_mesh(s_model_t *pmodel, char *texturename);
+s_trianglevert_t *lookup_triangle(s_mesh_t *pmesh, int index);
+int lookup_normal(s_model_t *pmodel, s_normal_t *pnormal);
+int lookup_vertex(s_model_t *pmodel, s_vertex_t *pv);
+void adjust_vertex(float *org);
+void scale_vertex(float *org);
+void clip_rotations(vec3_t rot);
+
+// Common QC and SMD parser
+int lookup_texture(char *texturename);
+
+// Helpers
+char *stristr(const char *string, const char *string2);
 
 extern int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata);
 extern int LoadBMP(const char *szFile, byte **ppbBits, byte **ppbPalette, int *width, int *height);
