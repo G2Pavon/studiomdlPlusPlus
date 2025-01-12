@@ -304,7 +304,6 @@ void Grab_Skin(s_texture_t *ptexture);
 void Grab_BMP(char *filename, s_texture_t *ptexture);
 void ResizeTexture(s_texture_t *ptexture);
 void ResetTextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture);
-float adjust_texcoord(float coord); // for UV shift fix
 void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture);
 
 // SimplifyModel:
@@ -360,16 +359,16 @@ void Grab_SMDTriangles(s_model_t *pmodel);
 void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones);
 int Grab_SMDNodes(s_node_t *pnodes);
 void Build_Reference(s_model_t *pmodel);
-s_mesh_t *lookup_mesh(s_model_t *pmodel, char *texturename);
-s_trianglevert_t *lookup_triangle(s_mesh_t *pmesh, int index);
-int lookup_normal(s_model_t *pmodel, s_normal_t *pnormal);
-int lookup_vertex(s_model_t *pmodel, s_vertex_t *pv);
-void adjust_vertex(float *org);
-void scale_vertex(float *org);
+s_mesh_t *FindMeshByTexture(s_model_t *pmodel, char *texturename);
+s_trianglevert_t *FindMeshTriangleByIndex(s_mesh_t *pmesh, int index);
+int FindVertexNormalIndex(s_model_t *pmodel, s_normal_t *pnormal);
+int FindVertexIndex(s_model_t *pmodel, s_vertex_t *pv);
+void AdjustVertexToQcOrigin(float *org);
+void ScaleVertexByQcScale(float *org);
 void clip_rotations(vec3_t rot);
 
 // Common QC and SMD parser
-int lookup_texture(char *texturename);
+int FindTextureIndex(char *texturename);
 
 // Helpers
 char *stristr(const char *string, const char *string2);

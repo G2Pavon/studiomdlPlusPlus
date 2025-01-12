@@ -1051,7 +1051,7 @@ char *stristr(const char *string, const char *string2)
 	return (char *)string;
 }
 
-int lookup_texture(char *texturename)
+int FindTextureIndex(char *texturename)
 {
 	int i;
 
@@ -1077,11 +1077,11 @@ int lookup_texture(char *texturename)
 	return i;
 }
 
-s_mesh_t *lookup_mesh(s_model_t *pmodel, char *texturename)
+s_mesh_t *FindMeshByTexture(s_model_t *pmodel, char *texturename)
 {
 	int i, j;
 
-	j = lookup_texture(texturename);
+	j = FindTextureIndex(texturename);
 
 	for (i = 0; i < pmodel->nummesh; i++)
 	{
@@ -1103,7 +1103,7 @@ s_mesh_t *lookup_mesh(s_model_t *pmodel, char *texturename)
 	return pmodel->pmesh[i];
 }
 
-s_trianglevert_t *lookup_triangle(s_mesh_t *pmesh, int index)
+s_trianglevert_t *FindMeshTriangleByIndex(s_mesh_t *pmesh, int index)
 {
 	if (index >= pmesh->alloctris)
 	{
@@ -1123,7 +1123,7 @@ s_trianglevert_t *lookup_triangle(s_mesh_t *pmesh, int index)
 	return pmesh->triangle[index];
 }
 
-int lookup_normal(s_model_t *pmodel, s_normal_t *pnormal)
+int FindVertexNormalIndex(s_model_t *pmodel, s_normal_t *pnormal)
 {
 	int i;
 	for (i = 0; i < pmodel->numnorms; i++)
@@ -1144,7 +1144,7 @@ int lookup_normal(s_model_t *pmodel, s_normal_t *pnormal)
 	return i;
 }
 
-int lookup_vertex(s_model_t *pmodel, s_vertex_t *pv)
+int FindVertexIndex(s_model_t *pmodel, s_vertex_t *pv)
 {
 	int i;
 
@@ -1170,23 +1170,18 @@ int lookup_vertex(s_model_t *pmodel, s_vertex_t *pv)
 	return i;
 }
 
-void adjust_vertex(float *org)
+void AdjustVertexToQcOrigin(float *org)
 {
 	org[0] = (org[0] - sequenceOrigin[0]);
 	org[1] = (org[1] - sequenceOrigin[1]);
 	org[2] = (org[2] - sequenceOrigin[2]);
 }
 
-void scale_vertex(float *org)
+void ScaleVertexByQcScale(float *org)
 {
 	org[0] = org[0] * scale_up;
 	org[1] = org[1] * scale_up;
 	org[2] = org[2] * scale_up;
-}
-
-float adjust_texcoord(float coord)
-{
-	return static_cast<int>(std::round(coord));
 }
 
 // Called for the base frame
@@ -1221,8 +1216,9 @@ void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
 	{
 		for (j = 0; j < 3; j++)
 		{
-			pmesh->triangle[i][j].s = adjust_texcoord(pmesh->triangle[i][j].u * (ptexture->srcwidth));
-			pmesh->triangle[i][j].t = adjust_texcoord(pmesh->triangle[i][j].v * (ptexture->srcheight));
+			// round to fix UV shift
+			pmesh->triangle[i][j].s = static_cast<int>(std::round(pmesh->triangle[i][j].u * (ptexture->srcwidth)));
+			pmesh->triangle[i][j].t = static_cast<int>(std::round(pmesh->triangle[i][j].v * (ptexture->srcheight)));
 		}
 	}
 
@@ -1542,15 +1538,15 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 				continue;
 			}
 
-			pmesh = lookup_mesh(pmodel, texturename);
+			pmesh = FindMeshByTexture(pmodel, texturename);
 
 			for (j = 0; j < 3; j++)
 			{
 				if (flip_triangles)
 					// quake wants them in the reverse order
-					ptriv = lookup_triangle(pmesh, pmesh->numtris) + 2 - j;
+					ptriv = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + 2 - j;
 				else
-					ptriv = lookup_triangle(pmesh, pmesh->numtris) + j;
+					ptriv = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + j;
 
 				if (fgets(line, sizeof(line), input) != NULL)
 				{
@@ -1581,8 +1577,8 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 						if (p.org[2] < vmin[2])
 							vmin[2] = p.org[2];
 
-						adjust_vertex(p.org);
-						scale_vertex(p.org);
+						AdjustVertexToQcOrigin(p.org);
+						ScaleVertexByQcScale(p.org);
 
 						// move vertex position to object space.
 						vec3_t tmp;
@@ -1594,8 +1590,8 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 						VectorTransform(tmp, bonefixup[p.bone].im, normal.org);
 						VectorNormalize(normal.org);
 
-						ptriv->normindex = lookup_normal(pmodel, &normal);
-						ptriv->vertindex = lookup_vertex(pmodel, &p);
+						ptriv->normindex = FindVertexNormalIndex(pmodel, &normal);
+						ptriv->vertindex = FindVertexIndex(pmodel, &p);
 
 						// tag bone as being used
 						// pmodel->bone[bone].ref = 1;
@@ -1620,8 +1616,8 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 					{
 						// steal the triangle and make it white
 						s_trianglevert_t *ptriv2;
-						pmesh = lookup_mesh(pmodel, "..\\white.bmp");
-						ptriv2 = lookup_triangle(pmesh, pmesh->numtris);
+						pmesh = FindMeshByTexture(pmodel, "..\\white.bmp");
+						ptriv2 = FindMeshTriangleByIndex(pmesh, pmesh->numtris);
 
 						ptriv2[0] = ptriv[0];
 						ptriv2[1] = ptriv[1];
@@ -1653,8 +1649,8 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 								   DotProduct(norm[1], norm[2]),
 								   DotProduct(norm[2], norm[0]));
 
-							pmesh = lookup_mesh(pmodel, "..\\white.bmp");
-							ptriv2 = lookup_triangle(pmesh, pmesh->numtris);
+							pmesh = FindMeshByTexture(pmodel, "..\\white.bmp");
+							ptriv2 = FindMeshTriangleByIndex(pmesh, pmesh->numtris);
 
 							ptriv2[0] = ptriv[0];
 							ptriv2[1] = ptriv[1];
@@ -1698,7 +1694,7 @@ void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
 			pbones[index].pos[1] = y;
 			pbones[index].pos[2] = z;
 
-			scale_vertex(pbones[index].pos);
+			ScaleVertexByQcScale(pbones[index].pos);
 
 			if (pnodes[index].mirrored)
 				VectorScale(pbones[index].pos, -1.0, pbones[index].pos);
@@ -1977,7 +1973,7 @@ void Grab_OptionAnimation(s_animation_t *panim)
 			{
 				if (panim->node[index].parent == -1)
 				{
-					adjust_vertex(pos);
+					AdjustVertexToQcOrigin(pos);
 					panim->pos[index][t][0] = cz * pos[0] - sz * pos[1];
 					panim->pos[index][t][1] = sz * pos[0] + cz * pos[1];
 					panim->pos[index][t][2] = pos[2];
@@ -1996,7 +1992,7 @@ void Grab_OptionAnimation(s_animation_t *panim)
 				if (panim->node[index].mirrored)
 					VectorScale(panim->pos[index][t], -1.0, panim->pos[index][t]);
 
-				scale_vertex(panim->pos[index][t]);
+				ScaleVertexByQcScale(panim->pos[index][t]);
 
 				clip_rotations(rot);
 
@@ -2578,7 +2574,7 @@ int Cmd_TextureGroup()
 		}
 		else if (depth == 2)
 		{
-			i = lookup_texture(token);
+			i = FindTextureIndex(token);
 			texturegroup[texturegroupCount][group][index] = i;
 			if (group != 0)
 				texture[i].parent = texturegroup[texturegroupCount][0][index];
@@ -2678,19 +2674,19 @@ void Cmd_TexRenderMode()
 	GetToken(false);
 	if (!std::strcmp(token, "additive"))
 	{
-		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_ADDITIVE;
+		texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_ADDITIVE;
 	}
 	else if (!std::strcmp(token, "masked"))
 	{
-		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_TRANSPARENT;
+		texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_TRANSPARENT;
 	}
 	else if (!std::strcmp(token, "fullbright"))
 	{
-		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
+		texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
 	}
 	else if (!std::strcmp(token, "flatshade"))
 	{
-		texture[lookup_texture(tex_name)].flags |= STUDIO_NF_FLATSHADE;
+		texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_FLATSHADE;
 	}
 	else
 		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);
