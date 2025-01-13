@@ -28,12 +28,10 @@ s_mesh_t *pmesh;
 void FindNeighbor(int starttri, int startv)
 {
 	s_trianglevert_t m1, m2;
-	int j;
+	int j, k;
 	s_trianglevert_t *last, *check;
-	int k;
 
 	// used[starttri] |= (1 << startv);
-
 	last = &triangles[starttri][0];
 
 	m1 = last[(startv + 1) % 3];
@@ -159,12 +157,10 @@ int numcommandnodes;
 int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata)
 {
 	int i, j, k, m;
-	int startv;
 	int len, bestlen, besttype;
 	int bestverts[MAXSTUDIOTRIANGLES];
 	int besttris[MAXSTUDIOTRIANGLES];
 	int peak[MAXSTUDIOTRIANGLES];
-	int type;
 	int total = 0;
 	long t;
 	int maxlen;
@@ -225,9 +221,9 @@ int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata)
 				continue;
 
 			m++;
-			for (type = 0; type < 2; type++)
+			for (int type = 0; type < 2; type++)
 			{
-				for (startv = 0; startv < 3; startv++)
+				for (int startv = 0; startv < 3; startv++)
 				{
 					if (type == 1)
 						len = FanLength(k, startv);

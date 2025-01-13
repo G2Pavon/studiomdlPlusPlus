@@ -68,10 +68,8 @@ int texturegroupreps[32];
 
 void clip_rotations(vec3_t rot)
 {
-	int j;
 	// clip everything to : -Q_PI <= x < Q_PI
-
-	for (j = 0; j < 3; j++)
+	for (int j = 0; j < 3; j++)
 	{
 		while (rot[j] >= Q_PI)
 			rot[j] -= Q_PI * 2;
@@ -210,26 +208,24 @@ void ExtractMotion()
 
 void OptimizeAnimations()
 {
-	int i, j;
 	int startFrame, endFrame;
 	int typeMotion;
-	int q;
 	int iError = 0;
 
 	// optimize animations
-	for (i = 0; i < sequenceCount; i++)
+	for (int i = 0; i < sequenceCount; i++)
 	{
 		sequence[i].numframes = sequence[i].panim[0]->endframe - sequence[i].panim[0]->startframe + 1;
 
 		// force looping animations to be looping
 		if (sequence[i].flags & STUDIO_LOOPING)
 		{
-			for (j = 0; j < sequence[i].panim[0]->numbones; j++)
+			for (int j = 0; j < sequence[i].panim[0]->numbones; j++)
 			{
-				for (q = 0; q < sequence[i].numblends; q++)
+				for (int blends = 0; blends < sequence[i].numblends; blends++)
 				{
-					vec3_t *ppos = sequence[i].panim[q]->pos[j];
-					vec3_t *prot = sequence[i].panim[q]->rot[j];
+					vec3_t *ppos = sequence[i].panim[blends]->pos[j];
+					vec3_t *prot = sequence[i].panim[blends]->rot[j];
 
 					startFrame = 0;						  // sequence[i].panim[q]->startframe;
 					endFrame = sequence[i].numframes - 1; // sequence[i].panim[q]->endframe;
@@ -249,7 +245,7 @@ void OptimizeAnimations()
 			}
 		}
 
-		for (j = 0; j < sequence[i].numevents; j++)
+		for (int j = 0; j < sequence[i].numevents; j++)
 		{
 			if (sequence[i].event[j].frame < sequence[i].panim[0]->startframe)
 			{
@@ -271,9 +267,7 @@ void OptimizeAnimations()
 
 int findNode(char *name)
 {
-	int k;
-
-	for (k = 0; k < bonesCount; k++)
+	for (int k = 0; k < bonesCount; k++)
 	{
 		if (std::strcmp(bonetable[k].name, name) == 0)
 		{
@@ -285,7 +279,7 @@ int findNode(char *name)
 
 void MakeTransitions()
 {
-	int i, j, k;
+	int i, j;
 	int iHit;
 
 	// Add in direct node transitions
@@ -314,7 +308,7 @@ void MakeTransitions()
 				// If I can't go there directly
 				if (i != j && xnode[i - 1][j - 1] == 0)
 				{
-					for (k = 1; k < numxnodes; k++)
+					for (int k = 1; k < numxnodes; k++)
 					{
 						// But I found someone who knows how that I can get to
 						if (xnode[k - 1][j - 1] > 0 && xnode[i - 1][k - 1] > 0)
@@ -1054,7 +1048,6 @@ char *stristr(const char *string, const char *string2)
 int FindTextureIndex(char *texturename)
 {
 	int i;
-
 	for (i = 0; i < texturesCount; i++)
 	{
 		if (stricmp(texture[i].name, texturename) == 0)
@@ -1231,12 +1224,10 @@ void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
 
 void ResetTextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
 {
-	int i, j;
-
 	// adjust top, left edge
-	for (i = 0; i < pmesh->numtris; i++)
+	for (int i = 0; i < pmesh->numtris; i++)
 	{
-		for (j = 0; j < 3; j++)
+		for (int j = 0; j < 3; j++)
 		{
 			pmesh->triangle[i][j].t = -pmesh->triangle[i][j].t + ptexture->srcheight - ptexture->min_t;
 		}
@@ -1255,7 +1246,7 @@ void Grab_BMP(char *filename, s_texture_t *ptexture)
 
 void ResizeTexture(s_texture_t *ptexture)
 {
-	int i, j, s, t;
+	int i, t;
 	byte *pdest;
 	int srcadjustedwidth;
 
@@ -1289,7 +1280,7 @@ void ResizeTexture(s_texture_t *ptexture)
 			t -= ptexture->srcheight;
 		while (t < 0)
 			t += ptexture->srcheight;
-		for (j = 0, s = ptexture->skinleft + 10 * ptexture->srcwidth; j < ptexture->skinwidth; j++, s++)
+		for (int j = 0, s = ptexture->skinleft + 10 * ptexture->srcwidth; j < ptexture->skinwidth; j++, s++)
 		{
 			while (s >= ptexture->srcwidth)
 				s -= ptexture->srcwidth;
@@ -1328,9 +1319,8 @@ void Grab_Skin(s_texture_t *ptexture)
 
 	if (cdtexturePathCount)
 	{
-		int i;
 		int time1 = -1;
-		for (i = 0; i < cdtexturePathCount; i++)
+		for (int i = 0; i < cdtexturePathCount; i++)
 		{
 			sprintf(textureFilePath, "%s/%s", cdtextureCommand[i], ptexture->name);
 			time1 = FileTime(textureFilePath);
@@ -1439,10 +1429,9 @@ void SetSkinValues()
 
 void Build_Reference(s_model_t *pmodel)
 {
-	int i;
 	float boneAngle[3];
 
-	for (i = 0; i < pmodel->numbones; i++)
+	for (int i = 0; i < pmodel->numbones; i++)
 	{
 		int parent;
 
@@ -1480,7 +1469,7 @@ void Build_Reference(s_model_t *pmodel)
 
 void Grab_SMDTriangles(s_model_t *pmodel)
 {
-	int i, j;
+	int i;
 	int trianglesCount = 0;
 	int badNormalsCount = 0;
 	vec3_t vmin, vmax;
@@ -1542,7 +1531,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 
 			pmesh = FindMeshByTexture(pmodel, triangleMaterial);
 
-			for (j = 0; j < 3; j++)
+			for (int j = 0; j < 3; j++)
 			{
 				if (flagFlipTriangles)
 					// quake wants them in the reverse order
@@ -1727,7 +1716,6 @@ int Grab_SMDNodes(s_node_t *pnodes)
 	char boneName[1024];
 	int parent;
 	int numBones = 0;
-	int i;
 
 	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
 	{
@@ -1739,7 +1727,7 @@ int Grab_SMDNodes(s_node_t *pnodes)
 			pnodes[index].parent = parent;
 			numBones = index;
 			// check for mirrored bones;
-			for (i = 0; i < mirroredCount; i++)
+			for (int i = 0; i < mirroredCount; i++)
 			{
 				if (std::strcmp(boneName, mirrorboneCommand[i]) == 0)
 					pnodes[index].mirrored = 1;
@@ -2028,13 +2016,11 @@ void Grab_OptionAnimation(s_animation_t *panim)
 
 void Shift_OptionAnimation(s_animation_t *panim)
 {
-	int j;
-
 	int size;
 
 	size = (panim->endframe - panim->startframe + 1) * sizeof(vec3_t);
 	// shift
-	for (j = 0; j < panim->numbones; j++)
+	for (int j = 0; j < panim->numbones; j++)
 	{
 		vec3_t *ppos;
 		vec3_t *prot;
@@ -2245,9 +2231,7 @@ int Cmd_SequenceGroup()
 
 int Cmd_Sequence_OptionAction(char *szActivity)
 {
-	int i;
-
-	for (i = 0; activity_map[i].name; i++)
+	for (int i = 0; activity_map[i].name; i++)
 	{
 		if (stricmp(szActivity, activity_map[i].name) == 0)
 			return activity_map[i].type;

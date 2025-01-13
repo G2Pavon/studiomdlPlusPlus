@@ -244,16 +244,13 @@ void WriteSequenceInfo()
 
 byte *WriteAnimations(byte *pData, const byte *pStart, int group)
 {
-	int i, j, k;
-	int q, n;
-
 	mstudioanim_t *panim;
 	mstudioanimvalue_t *panimvalue;
 
 	// hack for seqgroup 0
 	// pseqgroup->data = (pData - pStart);
 
-	for (i = 0; i < sequenceCount; i++)
+	for (int i = 0; i < sequenceCount; i++)
 	{
 		if (sequence[i].seqgroup == group)
 		{
@@ -264,23 +261,23 @@ byte *WriteAnimations(byte *pData, const byte *pStart, int group)
 			pData = (byte *)ALIGN(pData);
 
 			panimvalue = (mstudioanimvalue_t *)pData;
-			for (q = 0; q < sequence[i].numblends; q++)
+			for (int blends = 0; blends < sequence[i].numblends; blends++)
 			{
 				// save animation value info
-				for (j = 0; j < bonesCount; j++)
+				for (int j = 0; j < bonesCount; j++)
 				{
-					for (k = 0; k < 6; k++)
+					for (int k = 0; k < 6; k++)
 					{
-						if (sequence[i].panim[q]->numanim[j][k] == 0)
+						if (sequence[i].panim[blends]->numanim[j][k] == 0)
 						{
 							panim->offset[k] = 0;
 						}
 						else
 						{
 							panim->offset[k] = ((byte *)panimvalue - (byte *)panim);
-							for (n = 0; n < sequence[i].panim[q]->numanim[j][k]; n++)
+							for (int n = 0; n < sequence[i].panim[blends]->numanim[j][k]; n++)
 							{
-								panimvalue->value = sequence[i].panim[q]->anim[j][k][n].value;
+								panimvalue->value = sequence[i].panim[blends]->anim[j][k][n].value;
 								panimvalue++;
 							}
 						}
@@ -301,7 +298,7 @@ byte *WriteAnimations(byte *pData, const byte *pStart, int group)
 
 void WriteTextures()
 {
-	int i, j;
+	int i;
 	mstudiotexture_t *ptexture;
 	short *pref;
 
@@ -319,7 +316,7 @@ void WriteTextures()
 
 	for (i = 0; i < phdr->numskinfamilies; i++)
 	{
-		for (j = 0; j < phdr->numskinref; j++)
+		for (int j = 0; j < phdr->numskinref; j++)
 		{
 			*pref = skinref[i][j];
 			pref++;
@@ -490,13 +487,12 @@ void WriteFile(void)
 {
 	FILE *modelouthandle;
 	int total = 0;
-	int i;
 
 	pStart = (byte *)std::calloc(1, FILEBUFFER);
 
 	StripExtension(outname);
 
-	for (i = 1; i < sequencegroupCount; i++)
+	for (int i = 1; i < sequencegroupCount; i++)
 	{
 		// write the non-default sequence group data to separate files
 		char groupname[128], localname[128];
