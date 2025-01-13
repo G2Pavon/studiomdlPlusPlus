@@ -822,14 +822,10 @@ void SimplifyModel()
 
 				for (j = 0; j < bonesCount; j++)
 				{
-					vec3_t angle;
-
 					// convert to degrees
-					angle[0] = sequence[i].panim[q]->rot[j][n][0] * (180.0 / Q_PI);
-					angle[1] = sequence[i].panim[q]->rot[j][n][1] * (180.0 / Q_PI);
-					angle[2] = sequence[i].panim[q]->rot[j][n][2] * (180.0 / Q_PI);
+					vec3_t angles = sequence[i].panim[q]->rot[j][n] * (180.0 / Q_PI);
 
-					AngleMatrix(angle, bonematrix);
+					AngleMatrix(angles, bonematrix);
 
 					bonematrix[0][3] = sequence[i].panim[q]->pos[j][n][0];
 					bonematrix[1][3] = sequence[i].panim[q]->pos[j][n][1];
