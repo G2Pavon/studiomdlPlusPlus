@@ -113,20 +113,20 @@ void ExtractMotion()
 					{
 						ptrPos = sequence[i].panim[0]->pos[k];
 
-						VectorScale(motion, j * 1.0 / (sequence[i].numframes - 1), adjustedPosition);
+						adjustedPosition = motion * (j * 1.0 / (sequence[i].numframes - 1));
 						for (blendIndex = 0; blendIndex < sequence[i].numblends; blendIndex++)
 						{
-							VectorSubstract(sequence[i].panim[blendIndex]->pos[k][j], adjustedPosition, sequence[i].panim[blendIndex]->pos[k][j]);
+							sequence[i].panim[blendIndex]->pos[k][j] = sequence[i].panim[blendIndex]->pos[k][j] - adjustedPosition;
 						}
 					}
 				}
 			}
 
-			VectorCopy(motion, sequence[i].linearmovement);
+			sequence[i].linearmovement = motion;
 		}
 		else
-		{
-			VectorSubstract(sequence[i].linearmovement, sequence[i].linearmovement, sequence[i].linearmovement);
+		{ //
+			sequence[i].linearmovement = sequence[i].linearmovement - sequence[i].linearmovement;
 		}
 	}
 
@@ -200,8 +200,8 @@ void ExtractMotion()
 			if (typeAutoMotion & STUDIO_AZR)
 				angles[2] = ptrAutoRot[j][2] - ptrAutoRot[0][2];
 
-			VectorCopy(motion, sequence[i].automovepos[j]);
-			VectorCopy(angles, sequence[i].automoveangle[j]);
+			sequence[i].automovepos[j] = motion;
+			sequence[i].automoveangle[j] = angles;
 		}
 	}
 }
@@ -420,11 +420,11 @@ void SimplifyModel()
 					defaultrot[k] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
 					for (n = 0; n < MAXSTUDIOANIMATIONS; n++)
 					{
-						VectorCopy(model[i]->skeleton[j].pos, defaultpos[k][n]);
-						VectorCopy(model[i]->skeleton[j].rot, defaultrot[k][n]);
+						defaultpos[k][n] = model[i]->skeleton[j].pos;
+						defaultrot[k][n] = model[i]->skeleton[j].rot;
 					}
-					VectorCopy(model[i]->skeleton[j].pos, bonetable[k].pos);
-					VectorCopy(model[i]->skeleton[j].rot, bonetable[k].rot);
+					bonetable[k].pos = model[i]->skeleton[j].pos;
+					bonetable[k].rot = model[i]->skeleton[j].rot;
 					bonesCount++;
 				}
 				else
@@ -612,7 +612,7 @@ void SimplifyModel()
 			vec3_t p;
 			for (j = 0; j < model[i]->numverts; j++)
 			{
-				VectorCopy(model[i]->vert[j].org, p);
+				p = model[i]->vert[j].org;
 				k = model[i]->vert[j].bone;
 
 				if (p[0] < bonetable[k].bmin[0])
@@ -655,8 +655,8 @@ void SimplifyModel()
 			{
 				hitbox[hitboxesCount].bone = k;
 				hitbox[hitboxesCount].group = bonetable[k].group;
-				VectorCopy(bonetable[k].bmin, hitbox[hitboxesCount].bmin);
-				VectorCopy(bonetable[k].bmax, hitbox[hitboxesCount].bmax);
+				hitbox[hitboxesCount].bmin = bonetable[k].bmin;
+				hitbox[hitboxesCount].bmax = bonetable[k].bmax;
 
 				if (flagDumpHitboxes)
 				{
@@ -868,8 +868,8 @@ void SimplifyModel()
 			}
 		}
 
-		VectorCopy(bmin, sequence[i].bmin);
-		VectorCopy(bmax, sequence[i].bmax);
+		sequence[i].bmin = bmin;
+		sequence[i].bmax = bmax;
 	}
 
 	// reduce animations
@@ -1121,7 +1121,7 @@ int FindVertexNormalIndex(s_model_t *pmodel, s_normal_t *pnormal)
 	int i;
 	for (i = 0; i < pmodel->numnorms; i++)
 	{
-		if (DotProduct(pmodel->normal[i].org, pnormal->org) > flagNormalBlendAngle && pmodel->normal[i].bone == pnormal->bone && pmodel->normal[i].skinref == pnormal->skinref)
+		if (pmodel->normal[i].org.dot(pnormal->org) > flagNormalBlendAngle && pmodel->normal[i].bone == pnormal->bone && pmodel->normal[i].skinref == pnormal->skinref)
 		{
 			return i;
 		}
@@ -1130,7 +1130,7 @@ int FindVertexNormalIndex(s_model_t *pmodel, s_normal_t *pnormal)
 	{
 		Error("too many normals in model: \"%s\"\n", pmodel->name);
 	}
-	VectorCopy(pnormal->org, pmodel->normal[i].org);
+	pmodel->normal[i].org = pnormal->org;
 	pmodel->normal[i].bone = pnormal->bone;
 	pmodel->normal[i].skinref = pnormal->skinref;
 	pmodel->numnorms = i + 1;
@@ -1148,7 +1148,7 @@ int FindVertexIndex(s_model_t *pmodel, s_vertex_t *pv)
 
 	for (i = 0; i < pmodel->numverts; i++)
 	{
-		if (VectorCompare(pmodel->vert[i].org, pv->org) && pmodel->vert[i].bone == pv->bone)
+		if ((pmodel->vert[i].org == pv->org) && pmodel->vert[i].bone == pv->bone)
 		{
 			return i;
 		}
@@ -1157,20 +1157,20 @@ int FindVertexIndex(s_model_t *pmodel, s_vertex_t *pv)
 	{
 		Error("too many vertices in model: \"%s\"\n", pmodel->name);
 	}
-	VectorCopy(pv->org, pmodel->vert[i].org);
+	pmodel->vert[i].org = pv->org;
 	pmodel->vert[i].bone = pv->bone;
 	pmodel->numverts = i + 1;
 	return i;
 }
 
-void AdjustVertexToQcOrigin(float *org)
+void AdjustVertexToQcOrigin(vec3_t org)
 {
 	org[0] = (org[0] - sequenceOrigin[0]);
 	org[1] = (org[1] - sequenceOrigin[1]);
 	org[2] = (org[2] - sequenceOrigin[2]);
 }
 
-void ScaleVertexByQcScale(float *org)
+void ScaleVertexByQcScale(vec3_t org)
 {
 	org[0] = org[0] * scaleBodyAndSequenceOption;
 	org[1] = org[1] * scaleBodyAndSequenceOption;
@@ -1429,7 +1429,7 @@ void SetSkinValues()
 
 void Build_Reference(s_model_t *pmodel)
 {
-	float boneAngle[3];
+	vec3_t boneAngle{};
 
 	for (int i = 0; i < pmodel->numbones; i++)
 	{
@@ -1447,7 +1447,7 @@ void Build_Reference(s_model_t *pmodel)
 			// calc rotational matrices
 			AngleMatrix(boneAngle, boneFixup[i].m);
 			AngleIMatrix(boneAngle, boneFixup[i].im);
-			VectorCopy(pmodel->skeleton[i].pos, boneFixup[i].worldorg);
+			boneFixup[i].worldorg = pmodel->skeleton[i].pos;
 		}
 		else
 		{
@@ -1462,7 +1462,7 @@ void Build_Reference(s_model_t *pmodel)
 
 			// calc true world coord.
 			VectorTransform(pmodel->skeleton[i].pos, boneFixup[parent].m, truePos);
-			VectorAdd(truePos, boneFixup[parent].worldorg, boneFixup[i].worldorg);
+			boneFixup[i].worldorg = truePos + boneFixup[parent].worldorg;
 		}
 	}
 }
@@ -1558,8 +1558,8 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 							exit(1);
 						}
 
-						VectorCopy(triangleVertex.org, triangleVertices[j]);
-						VectorCopy(triangleNormal.org, triangleNormals[j]);
+						triangleVertices[j] = triangleVertex.org;
+						triangleNormals[j] = triangleNormal.org;
 
 						triangleVertex.bone = parentBone;
 						triangleNormal.bone = parentBone;
@@ -1573,13 +1573,13 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 
 						// move vertex position to object space.
 						vec3_t tmp;
-						VectorSubstract(triangleVertex.org, boneFixup[triangleVertex.bone].worldorg, tmp);
+						tmp = triangleVertex.org - boneFixup[triangleVertex.bone].worldorg;
 						VectorTransform(tmp, boneFixup[triangleVertex.bone].im, triangleVertex.org);
 
 						// move normal to object space.
-						VectorCopy(triangleNormal.org, tmp);
+						tmp = triangleNormal.org;
 						VectorTransform(tmp, boneFixup[triangleVertex.bone].im, triangleNormal.org);
-						VectorNormalize(triangleNormal.org);
+						triangleNormal.org.normalize();
 
 						ptriangleVert->normindex = FindVertexNormalIndex(pmodel, &triangleNormal);
 						ptriangleVert->vertindex = FindVertexIndex(pmodel, &triangleVertex);
@@ -1598,9 +1598,8 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 			{
 				// check triangle direction
 
-				if (DotProduct(triangleNormals[0], triangleNormals[1]) < 0.0 || DotProduct(triangleNormals[1], triangleNormals[2]) < 0.0 || DotProduct(triangleNormals[2], triangleNormals[0]) < 0.0)
+				if (triangleNormals[0].dot(triangleNormals[1]) < 0.0 || triangleNormals[1].dot(triangleNormals[2]) < 0.0 || triangleNormals[2].dot(triangleNormals[0]) < 0.0)
 				{
-
 					badNormalsCount++;
 
 					if (flagBadNormals)
@@ -1620,14 +1619,14 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 					vec3_t triangleEdge1, triangleEdge2, surfaceNormal;
 					float x, y, z;
 
-					VectorSubstract(triangleVertices[1], triangleVertices[0], triangleEdge1);
-					VectorSubstract(triangleVertices[2], triangleVertices[0], triangleEdge2);
-					CrossProduct(triangleEdge1, triangleEdge2, surfaceNormal);
-					VectorNormalize(surfaceNormal);
+					triangleEdge1 = triangleVertices[1] - triangleVertices[0];
+					triangleEdge2 = triangleVertices[2] - triangleVertices[0];
+					surfaceNormal = triangleEdge1.cross(triangleEdge2);
+					surfaceNormal.normalize();
 
-					x = DotProduct(surfaceNormal, triangleNormals[0]);
-					y = DotProduct(surfaceNormal, triangleNormals[1]);
-					z = DotProduct(surfaceNormal, triangleNormals[2]);
+					x = surfaceNormal.dot(triangleNormals[0]);
+					y = surfaceNormal.dot(triangleNormals[1]);
+					z = surfaceNormal.dot(triangleNormals[2]);
 					if (x < 0.0 || y < 0.0 || z < 0.0)
 					{
 						if (flagReversedTriangles)
@@ -1636,9 +1635,9 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 							s_trianglevert_t *ptriv2;
 
 							printf("triangle reversed (%f %f %f)\n",
-								   DotProduct(triangleNormals[0], triangleNormals[1]),
-								   DotProduct(triangleNormals[1], triangleNormals[2]),
-								   DotProduct(triangleNormals[2], triangleNormals[0]));
+								   triangleNormals[0].dot(triangleNormals[1]),
+								   triangleNormals[1].dot(triangleNormals[2]),
+								   triangleNormals[2].dot(triangleNormals[0]));
 
 							pmesh = FindMeshByTexture(pmodel, "..\\white.bmp");
 							ptriv2 = FindMeshTriangleByIndex(pmesh, pmesh->numtris);
@@ -1688,7 +1687,7 @@ void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
 			ScaleVertexByQcScale(pbones[node].pos);
 
 			if (pnodes[node].mirrored)
-				VectorScale(pbones[node].pos, -1.0, pbones[node].pos);
+				pbones[node].pos = pbones[node].pos * -1.0;
 
 			pbones[node].rot[0] = rotX;
 			pbones[node].rot[1] = rotY;
@@ -1972,7 +1971,7 @@ void Grab_OptionAnimation(s_animation_t *panim)
 				}
 				else
 				{
-					VectorCopy(pos, panim->pos[index][t]);
+					panim->pos[index][t] = pos;
 				}
 				if (t > end)
 					end = t;
@@ -1980,13 +1979,13 @@ void Grab_OptionAnimation(s_animation_t *panim)
 					start = t;
 
 				if (panim->node[index].mirrored)
-					VectorScale(panim->pos[index][t], -1.0, panim->pos[index][t]);
+					panim->pos[index][t] = panim->pos[index][t] * -1.0;
 
 				ScaleVertexByQcScale(panim->pos[index][t]);
 
 				clip_rotations(rot);
 
-				VectorCopy(rot, panim->rot[index][t]);
+				panim->rot[index][t] = rot;
 			}
 		}
 		else if (sscanf(currentLine, "%s %d", cmd, &index))
@@ -2258,7 +2257,7 @@ int Cmd_Sequence()
 
 	strcpyn(sequence[sequenceCount].name, token);
 
-	VectorCopy(originCommand, sequenceOrigin);
+	sequenceOrigin = originCommand;
 	scaleBodyAndSequenceOption = scaleCommand;
 
 	rotateCommand = originCommandRotation;

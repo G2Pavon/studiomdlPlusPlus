@@ -112,7 +112,7 @@ void WriteBoneInfo()
 	for (i = 0; i < attachmentsCount; i++)
 	{
 		pattachment[i].bone = attachment[i].bone;
-		VectorCopy(attachment[i].org, pattachment[i].org);
+		pattachment[i].org = attachment[i].org;
 	}
 	pData += attachmentsCount * sizeof(mstudioattachment_t);
 	pData = (byte *)ALIGN(pData);
@@ -126,8 +126,8 @@ void WriteBoneInfo()
 	{
 		pbbox[i].bone = hitbox[i].bone;
 		pbbox[i].group = hitbox[i].group;
-		VectorCopy(hitbox[i].bmin, pbbox[i].bbmin);
-		VectorCopy(hitbox[i].bmax, pbbox[i].bbmax);
+		pbbox[i].bbmin = hitbox[i].bmin;
+		pbbox[i].bbmax = hitbox[i].bmax;
 	}
 	pData += hitboxesCount * sizeof(mstudiobbox_t);
 	pData = (byte *)ALIGN(pData);
@@ -164,7 +164,7 @@ void WriteSequenceInfo()
 
 		pseqdesc->motiontype = sequence[i].motiontype;
 		pseqdesc->motionbone = 0; // sequence[i].motionbone;
-		VectorCopy(sequence[i].linearmovement, pseqdesc->linearmovement);
+		pseqdesc->linearmovement = sequence[i].linearmovement;
 
 		pseqdesc->seqgroup = sequence[i].seqgroup;
 
@@ -173,8 +173,8 @@ void WriteSequenceInfo()
 		pseqdesc->activity = sequence[i].activity;
 		pseqdesc->actweight = sequence[i].actweight;
 
-		VectorCopy(sequence[i].bmin, pseqdesc->bbmin);
-		VectorCopy(sequence[i].bmax, pseqdesc->bbmax);
+		pseqdesc->bbmin = sequence[i].bmin;
+		pseqdesc->bbmax = sequence[i].bmax;
 
 		pseqdesc->entrynode = sequence[i].entrynode;
 		pseqdesc->exitnode = sequence[i].exitnode;
@@ -206,7 +206,7 @@ void WriteSequenceInfo()
 			pData += pseqdesc->numpivots * sizeof(mstudiopivot_t);
 			for (j = 0; j < sequence[i].numpivots; j++)
 			{
-				VectorCopy(sequence[i].pivot[j].org, ppivot[j].org);
+				ppivot[j].org = sequence[i].pivot[j].org;
 				ppivot[j].start = sequence[i].pivot[j].start - sequence[i].frameoffset;
 				ppivot[j].end = sequence[i].pivot[j].end - sequence[i].frameoffset;
 			}
@@ -430,12 +430,12 @@ void WriteModel()
 
 			for (j = 0; j < model[i]->numverts; j++)
 			{
-				VectorCopy(model[i]->vert[j].org, pvert[j]);
+				pvert[j] = model[i]->vert[j].org;
 			}
 
 			for (j = 0; j < model[i]->numnorms; j++)
 			{
-				VectorCopy(model[i]->normal[normimap[j]].org, pnorm[j]);
+				pnorm[j] = model[i]->normal[normimap[j]].org;
 			}
 			printf("vertices  %6d bytes (%d vertices, %d normals)\n", pData - cur, model[i]->numverts, model[i]->numnorms);
 			cur = reinterpret_cast<intptr_t>(pData);
@@ -536,11 +536,11 @@ void WriteFile(void)
 	phdr->ident = IDSTUDIOHEADER;
 	phdr->version = STUDIO_VERSION;
 	std::strcpy(phdr->name, outname);
-	VectorCopy(eyeposition, phdr->eyeposition);
-	VectorCopy(bbox[0], phdr->min);
-	VectorCopy(bbox[1], phdr->max);
-	VectorCopy(cbox[0], phdr->bbmin);
-	VectorCopy(cbox[1], phdr->bbmax);
+	phdr->eyeposition = eyeposition;
+	phdr->min = bbox[0];
+	phdr->max = bbox[1];
+	phdr->bbmin = cbox[0];
+	phdr->bbmax = cbox[1];
 
 	phdr->flags = gflags;
 
