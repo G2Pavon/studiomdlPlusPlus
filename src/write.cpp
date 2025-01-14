@@ -11,8 +11,8 @@ float g_totalseconds = 0;
 constexpr int FILEBUFFER = 16 * 1024 * 1024;
 extern int g_numcommandnodes;
 
-byte *g_pData;
-byte *g_pStart;
+std::uint8_t *g_pData;
+std::uint8_t *g_pStart;
 studiohdr_t *g_phdr;
 studioseqhdr_t *g_pseqhdr;
 
@@ -48,7 +48,7 @@ void WriteBoneInfo()
 		pbone[i].scale[5] = g_bonetable[i].rotscale[2];
 	}
 	g_pData += g_bonescount * sizeof(mstudiobone_t);
-	g_pData = (byte *)ALIGN(g_pData);
+	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	// map bonecontroller to bones
 	for (i = 0; i < g_bonescount; i++)
@@ -102,7 +102,7 @@ void WriteBoneInfo()
 		pbonecontroller[i].end = g_bonecontrollerCommand[i].end;
 	}
 	g_pData += g_bonecontrollerscount * sizeof(mstudiobonecontroller_t);
-	g_pData = (byte *)ALIGN(g_pData);
+	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	// save attachment info
 	pattachment = (mstudioattachment_t *)g_pData;
@@ -115,7 +115,7 @@ void WriteBoneInfo()
 		pattachment[i].org = g_attachmentCommand[i].org;
 	}
 	g_pData += g_attachmentscount * sizeof(mstudioattachment_t);
-	g_pData = (byte *)ALIGN(g_pData);
+	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	// save bbox info
 	pbbox = (mstudiobbox_t *)g_pData;
@@ -130,7 +130,7 @@ void WriteBoneInfo()
 		pbbox[i].bbmax = g_hitboxCommand[i].bmax;
 	}
 	g_pData += g_hitboxescount * sizeof(mstudiobbox_t);
-	g_pData = (byte *)ALIGN(g_pData);
+	g_pData = (std::uint8_t *)ALIGN(g_pData);
 }
 void WriteSequenceInfo()
 {
@@ -138,7 +138,7 @@ void WriteSequenceInfo()
 
 	mstudioseqgroup_t *pseqgroup;
 	mstudioseqdesc_t *pseqdesc;
-	byte *ptransition;
+	std::uint8_t *ptransition;
 
 	// save sequence info
 	pseqdesc = (mstudioseqdesc_t *)g_pData;
@@ -195,7 +195,7 @@ void WriteSequenceInfo()
 				pevent[j].event = g_sequenceCommand[i].event[j].event;
 				memcpy(pevent[j].options, g_sequenceCommand[i].event[j].options, sizeof(pevent[j].options));
 			}
-			g_pData = (byte *)ALIGN(g_pData);
+			g_pData = (std::uint8_t *)ALIGN(g_pData);
 		}
 
 		// save pivots
@@ -210,7 +210,7 @@ void WriteSequenceInfo()
 				ppivot[j].start = g_sequenceCommand[i].pivot[j].start - g_sequenceCommand[i].frameoffset;
 				ppivot[j].end = g_sequenceCommand[i].pivot[j].end - g_sequenceCommand[i].frameoffset;
 			}
-			g_pData = (byte *)ALIGN(g_pData);
+			g_pData = (std::uint8_t *)ALIGN(g_pData);
 		}
 	}
 
@@ -219,7 +219,7 @@ void WriteSequenceInfo()
 	g_phdr->numseqgroups = g_sequencegroupcount;
 	g_phdr->seqgroupindex = (g_pData - g_pStart);
 	g_pData += g_phdr->numseqgroups * sizeof(mstudioseqgroup_t);
-	g_pData = (byte *)ALIGN(g_pData);
+	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	for (i = 0; i < g_sequencegroupcount; i++)
 	{
@@ -228,11 +228,11 @@ void WriteSequenceInfo()
 	}
 
 	// save transition graph
-	ptransition = (byte *)g_pData;
+	ptransition = (std::uint8_t *)g_pData;
 	g_phdr->numtransitions = g_numxnodes;
 	g_phdr->transitionindex = (g_pData - g_pStart);
-	g_pData += g_numxnodes * g_numxnodes * sizeof(byte);
-	g_pData = (byte *)ALIGN(g_pData);
+	g_pData += g_numxnodes * g_numxnodes * sizeof(std::uint8_t);
+	g_pData = (std::uint8_t *)ALIGN(g_pData);
 	for (i = 0; i < g_numxnodes; i++)
 	{
 		for (j = 0; j < g_numxnodes; j++)
@@ -242,7 +242,7 @@ void WriteSequenceInfo()
 	}
 }
 
-byte *WriteAnimations(byte *pData, const byte *pStart, int group)
+std::uint8_t *WriteAnimations(std::uint8_t *pData, const std::uint8_t *pStart, int group)
 {
 	mstudioanim_t *panim;
 	mstudioanimvalue_t *panimvalue;
@@ -258,7 +258,7 @@ byte *WriteAnimations(byte *pData, const byte *pStart, int group)
 			panim = (mstudioanim_t *)pData;
 			g_sequenceCommand[i].animindex = (pData - pStart);
 			pData += g_sequenceCommand[i].numblends * g_bonescount * sizeof(mstudioanim_t);
-			pData = (byte *)ALIGN(pData);
+			pData = (std::uint8_t *)ALIGN(pData);
 
 			panimvalue = (mstudioanimvalue_t *)pData;
 			for (int blends = 0; blends < g_sequenceCommand[i].numblends; blends++)
@@ -274,7 +274,7 @@ byte *WriteAnimations(byte *pData, const byte *pStart, int group)
 						}
 						else
 						{
-							panim->offset[k] = ((byte *)panimvalue - (byte *)panim);
+							panim->offset[k] = ((std::uint8_t *)panimvalue - (std::uint8_t *)panim);
 							for (int n = 0; n < g_sequenceCommand[i].panim[blends]->numanim[j][k]; n++)
 							{
 								panimvalue->value = g_sequenceCommand[i].panim[blends]->anim[j][k][n].value;
@@ -282,15 +282,15 @@ byte *WriteAnimations(byte *pData, const byte *pStart, int group)
 							}
 						}
 					}
-					if (((byte *)panimvalue - (byte *)panim) > 65535)
+					if (((std::uint8_t *)panimvalue - (std::uint8_t *)panim) > 65535)
 						Error("sequence \"%s\" is greate than 64K\n", g_sequenceCommand[i].name);
 					panim++;
 				}
 			}
 
-			// printf("raw bone data %d : %s\n", (byte *)panimvalue - pData, sequence[i].name);
-			pData = (byte *)panimvalue;
-			pData = (byte *)ALIGN(pData);
+			// printf("raw bone data %d : %s\n", (std::uint8_t *)panimvalue - pData, sequence[i].name);
+			pData = (std::uint8_t *)panimvalue;
+			pData = (std::uint8_t *)ALIGN(pData);
 		}
 	}
 	return pData;
@@ -307,7 +307,7 @@ void WriteTextures()
 	g_phdr->numtextures = g_texturescount;
 	g_phdr->textureindex = (g_pData - g_pStart);
 	g_pData += g_texturescount * sizeof(mstudiotexture_t);
-	g_pData = (byte *)ALIGN(g_pData);
+	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	g_phdr->skinindex = (g_pData - g_pStart);
 	g_phdr->numskinref = g_skinrefcount;
@@ -322,8 +322,8 @@ void WriteTextures()
 			pref++;
 		}
 	}
-	g_pData = (byte *)pref;
-	g_pData = (byte *)ALIGN(g_pData);
+	g_pData = (std::uint8_t *)pref;
+	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	g_phdr->texturedataindex = (g_pData - g_pStart); // must be the end of the file!
 
@@ -337,7 +337,7 @@ void WriteTextures()
 		memcpy(g_pData, g_texture[i].pdata, g_texture[i].size);
 		g_pData += g_texture[i].size;
 	}
-	g_pData = (byte *)ALIGN(g_pData);
+	g_pData = (std::uint8_t *)ALIGN(g_pData);
 }
 
 void WriteModel()
@@ -347,7 +347,7 @@ void WriteModel()
 	mstudiobodyparts_t *pbodypart;
 	mstudiomodel_t *pmodel;
 	// vec3_t			*bbox;
-	byte *pbone;
+	std::uint8_t *pbone;
 	s_trianglevert_t *psrctri;
 	int cur;
 
@@ -364,10 +364,10 @@ void WriteModel()
 		std::strcpy(pbodypart[i].name, g_bodypart[i].name);
 		pbodypart[i].nummodels = g_bodypart[i].nummodels;
 		pbodypart[i].base = g_bodypart[i].base;
-		pbodypart[i].modelindex = ((byte *)&pmodel[j]) - g_pStart;
+		pbodypart[i].modelindex = ((std::uint8_t *)&pmodel[j]) - g_pStart;
 		j += g_bodypart[i].nummodels;
 	}
-	g_pData = (byte *)ALIGN(g_pData);
+	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	cur = reinterpret_cast<intptr_t>(g_pData);
 	for (i = 0; i < g_submodelscount; i++)
@@ -403,16 +403,16 @@ void WriteModel()
 		{
 			*pbone++ = g_submodel[i]->vert[j].bone;
 		}
-		pbone = (byte *)ALIGN(pbone);
+		pbone = (std::uint8_t *)ALIGN(pbone);
 
 		// save normal bones
 		pmodel[i].numnorms = g_submodel[i]->numnorms;
-		pmodel[i].norminfoindex = ((byte *)pbone - g_pStart);
+		pmodel[i].norminfoindex = ((std::uint8_t *)pbone - g_pStart);
 		for (j = 0; j < pmodel[i].numnorms; j++)
 		{
 			*pbone++ = g_submodel[i]->normal[normimap[j]].bone;
 		}
-		pbone = (byte *)ALIGN(pbone);
+		pbone = (std::uint8_t *)ALIGN(pbone);
 
 		g_pData = pbone;
 
@@ -420,13 +420,13 @@ void WriteModel()
 		{
 			vec3_t *pvert = (vec3_t *)g_pData;
 			g_pData += g_submodel[i]->numverts * sizeof(vec3_t);
-			pmodel[i].vertindex = ((byte *)pvert - g_pStart);
-			g_pData = (byte *)ALIGN(g_pData);
+			pmodel[i].vertindex = ((std::uint8_t *)pvert - g_pStart);
+			g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 			vec3_t *pnorm = (vec3_t *)g_pData;
 			g_pData += g_submodel[i]->numnorms * sizeof(vec3_t);
-			pmodel[i].normindex = ((byte *)pnorm - g_pStart);
-			g_pData = (byte *)ALIGN(g_pData);
+			pmodel[i].normindex = ((std::uint8_t *)pnorm - g_pStart);
+			g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 			for (j = 0; j < g_submodel[i]->numverts; j++)
 			{
@@ -448,14 +448,14 @@ void WriteModel()
 			pmodel[i].nummesh = g_submodel[i]->nummesh;
 			pmodel[i].meshindex = (g_pData - g_pStart);
 			g_pData += pmodel[i].nummesh * sizeof(mstudiomesh_t);
-			g_pData = (byte *)ALIGN(g_pData);
+			g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 			int total_tris = 0;
 			int total_strips = 0;
 			for (j = 0; j < g_submodel[i]->nummesh; j++)
 			{
 				int numCmdBytes;
-				byte *pCmdSrc;
+				std::uint8_t *pCmdSrc;
 
 				pmesh[j].numtris = g_submodel[i]->pmesh[j]->numtris;
 				pmesh[j].skinref = g_submodel[i]->pmesh[j]->skinref;
@@ -473,7 +473,7 @@ void WriteModel()
 				pmesh[j].triindex = (g_pData - g_pStart);
 				memcpy(g_pData, pCmdSrc, numCmdBytes);
 				g_pData += numCmdBytes;
-				g_pData = (byte *)ALIGN(g_pData);
+				g_pData = (std::uint8_t *)ALIGN(g_pData);
 				total_tris += pmesh[j].numtris;
 				total_strips += g_numcommandnodes;
 			}
@@ -488,7 +488,7 @@ void WriteFile(void)
 	FILE *modelouthandle;
 	int total = 0;
 
-	g_pStart = (byte *)std::calloc(1, FILEBUFFER);
+	g_pStart = (std::uint8_t *)std::calloc(1, FILEBUFFER);
 
 	StripExtension(g_modelnameCommand);
 
@@ -544,7 +544,7 @@ void WriteFile(void)
 
 	g_phdr->flags = g_flagsCommand;
 
-	g_pData = (byte *)g_phdr + sizeof(studiohdr_t);
+	g_pData = (std::uint8_t *)g_phdr + sizeof(studiohdr_t);
 
 	WriteBoneInfo();
 	printf("bones     %6d bytes (%d)\n", g_pData - g_pStart - total, g_bonescount);

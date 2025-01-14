@@ -4,8 +4,6 @@
 
 extern bool g_archive;
 
-typedef unsigned char byte;
-
 int filelength(FILE *f);
 int FileTime(char *path);
 

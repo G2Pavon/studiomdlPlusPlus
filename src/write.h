@@ -6,7 +6,7 @@
 
 void WriteBoneInfo();
 void WriteSequenceInfo();
-byte *WriteAnimations(byte *pData, const byte *pStart, int group);
+std::uint8_t *WriteAnimations(std::uint8_t *pData, const std::uint8_t *pStart, int group);
 void WriteTextures();
 void WriteModel();
 

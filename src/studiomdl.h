@@ -174,11 +174,11 @@ struct s_sequencegroup_t
 
 struct rgb_t
 {
-	byte r, g, b;
+	std::uint8_t r, g, b;
 };
 struct rgb2_t
 {
-	byte b, g, r, x;
+	std::uint8_t b, g, r, x;
 };
 
 // FIXME: what about texture overrides inline with loading models
@@ -188,7 +188,7 @@ struct s_texture_t
 	int flags;
 	int srcwidth;
 	int srcheight;
-	byte *ppicture;
+	std::uint8_t *ppicture;
 	rgb_t *ppal;
 	float max_s;
 	float min_s;
@@ -373,5 +373,5 @@ int FindTextureIndex(char *texturename);
 // Helpers
 char *stristr(const char *string, const char *string2);
 
-extern int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata);
-extern int LoadBMP(const char *szFile, byte **ppbBits, byte **ppbPalette, int *width, int *height);
+extern int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, std::uint8_t **ppdata);
+extern int LoadBMP(const char *szFile, std::uint8_t **ppbBits, std::uint8_t **ppbPalette, int *width, int *height);

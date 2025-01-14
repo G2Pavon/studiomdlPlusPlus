@@ -211,8 +211,8 @@ union mstudioanimvalue_t
 {
 	struct
 	{
-		byte valid;
-		byte total;
+		std::uint8_t valid;
+		std::uint8_t total;
 	} num;
 	short value;
 };

@@ -1233,7 +1233,7 @@ void Grab_BMP(char *filename, s_texture_t *ptexture)
 {
 	int result;
 
-	if (result = LoadBMP(filename, &ptexture->ppicture, (byte **)&ptexture->ppal, &ptexture->srcwidth, &ptexture->srcheight))
+	if (result = LoadBMP(filename, &ptexture->ppicture, (std::uint8_t **)&ptexture->ppal, &ptexture->srcwidth, &ptexture->srcheight))
 	{
 		Error("error %d reading BMP image \"%s\"\n", result, filename);
 	}
@@ -1242,7 +1242,7 @@ void Grab_BMP(char *filename, s_texture_t *ptexture)
 void ResizeTexture(s_texture_t *ptexture)
 {
 	int i, t;
-	byte *pdest;
+	std::uint8_t *pdest;
 	int srcadjustedwidth;
 
 	// Keep the original texture without resizing to avoid uv shift
@@ -1262,7 +1262,7 @@ void ResizeTexture(s_texture_t *ptexture)
 		printf("%.0f %.0f %.0f %.0f\n", ptexture->min_s, ptexture->max_s, ptexture->min_t, ptexture->max_t);
 		Error("texture too large\n");
 	}
-	pdest = (byte *)malloc(ptexture->size);
+	pdest = (std::uint8_t *)malloc(ptexture->size);
 	ptexture->pdata = pdest;
 
 	// Data is saved as a multiple of 4
@@ -1289,7 +1289,7 @@ void ResizeTexture(s_texture_t *ptexture)
 	// gamma correct the monster textures to a gamma of 1.8
 	{
 		float g;
-		byte *psrc = (byte *)ptexture->ppal;
+		std::uint8_t *psrc = (std::uint8_t *)ptexture->ppal;
 		g = g_gammaCommand / 1.8;
 		for (i = 0; i < 768; i++)
 		{

@@ -152,7 +152,7 @@ int FanLength(int starttri, int startv)
 // Generate a list of trifans or strips for the model, which holds for all frames
 int g_numcommandnodes;
 
-int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata)
+int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, std::uint8_t **ppdata)
 {
 	int i, j, k, m;
 	int len, bestlen, besttype;
@@ -288,7 +288,7 @@ int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata)
 
 	g_commands[numcommands++] = 0; // end of list marker
 
-	*ppdata = (byte *)g_commands;
+	*ppdata = (std::uint8_t *)g_commands;
 
 	// printf("%d %d %d\n", g_numcommandnodes, numcommands, pmesh->numtris  );
 	return numcommands * sizeof(short);
