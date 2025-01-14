@@ -53,7 +53,7 @@ void WriteBoneInfo()
 	// map bonecontroller to bones
 	for (i = 0; i < g_bonescount; i++)
 	{
-		for (j = 0; j < 6; j++)
+		for (j = 0; j < DEGREESOFFREEDOM; j++)
 		{
 			pbone[i].bonecontroller[j] = -1;
 		}
@@ -266,7 +266,7 @@ byte *WriteAnimations(byte *pData, const byte *pStart, int group)
 				// save animation value info
 				for (int j = 0; j < g_bonescount; j++)
 				{
-					for (int k = 0; k < 6; k++)
+					for (int k = 0; k < DEGREESOFFREEDOM; k++)
 					{
 						if (g_sequenceCommand[i].panim[blends]->numanim[j][k] == 0)
 						{

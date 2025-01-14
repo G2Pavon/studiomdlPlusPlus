@@ -24,6 +24,16 @@ constexpr int MAXSTUDIOCONTROLLERS = 8;	  // max controllers per model
 constexpr int MAXSTUDIOATTACHMENTS = 4;	  // max attachments per model
 constexpr int MAXSTUDIOTEXTUREGROUP = 0;  // actually 1 but 0 cus is the first index of an texturegroup array, since engine doesn't support multiple texturegroup
 
+constexpr int MAXEVENTOPTIONS = 64;
+constexpr int MAXTEXTURENAMELENGTH = 64;
+constexpr int MAXMODELNAMELENGTH = 64;
+constexpr int MAXBODYPARTSNAMELENGHT = 64;
+constexpr int MAXBONENAMELENGTH = 32;
+constexpr int MAXSEQUENCENAMELENGTH = 32;
+constexpr int DEGREESOFFREEDOM = 6; // X, Y, Z, rotX, rotY, rotZ
+constexpr int MAXATTACHVECTORS = 3;
+constexpr int MAXSEQUENCEBLEND = 2;
+
 struct studiohdr_t
 {
 	int ident;
@@ -70,16 +80,15 @@ struct studiohdr_t
 	int numattachments; // queryable attachable points
 	int attachmentindex;
 
-	int soundtable;
-	int soundindex;
-	int soundgroups;
-	int soundgroupindex;
+	int soundtable;		 // unused
+	int soundindex;		 // unused
+	int soundgroups;	 // unused
+	int soundgroupindex; // unused
 
 	int numtransitions; // animation node to animation node transition graph
 	int transitionindex;
 };
 
-// header for demand loaded sequence group data
 struct studioseqhdr_t
 {
 	int id;
@@ -89,18 +98,16 @@ struct studioseqhdr_t
 	int length;
 };
 
-// bones
 struct mstudiobone_t
 {
-	char name[32];		   // bone name for symbolic links
-	int parent;			   // parent bone
-	int flags;			   // ??
-	int bonecontroller[6]; // bone controller index, -1 == none
-	float value[6];		   // default DoF values
-	float scale[6];		   // scale for delta DoF values
+	char name[MAXBONENAMELENGTH];		  // bone name for symbolic links
+	int parent;							  // parent bone
+	int flags;							  // ??
+	int bonecontroller[DEGREESOFFREEDOM]; // bone controller index, -1 == none
+	float value[DEGREESOFFREEDOM];		  // default DoF values
+	float scale[DEGREESOFFREEDOM];		  // scale for delta DoF values
 };
 
-// bone controllers
 struct mstudiobonecontroller_t
 {
 	int bone; // -1 == 0
@@ -111,7 +118,6 @@ struct mstudiobonecontroller_t
 	int index; // 0-3 user set controller, 4 mouth
 };
 
-// intersection boxes
 struct mstudiobbox_t
 {
 	int bone;
@@ -120,21 +126,17 @@ struct mstudiobbox_t
 	vec3_t bbmax;
 };
 
-//
-// demand loaded sequence groups
-//
 struct mstudioseqgroup_t
 {
 	char label[32]; // textual name
 	char name[64];	// file name
-	int32_t unused1;
+	int unused1;
 	int unused2; // was "data" -  hack for group 0
 };
 
-// sequence descriptions
 struct mstudioseqdesc_t
 {
-	char label[32]; // sequence label
+	char label[MAXSEQUENCENAMELENGTH]; // sequence label
 
 	float fps; // frames per second
 	int flags; // looping/non-looping flags
@@ -163,9 +165,9 @@ struct mstudioseqdesc_t
 	int animindex; // mstudioanim_t pointer relative to start of sequence group data
 				   // [blend][bone][X, Y, Z, XR, YR, ZR]
 
-	int blendtype[2];	 // X, Y, Z, XR, YR, ZR
-	float blendstart[2]; // starting value
-	float blendend[2];	 // ending value
+	int blendtype[MAXSEQUENCEBLEND];	// X, Y, Z, XR, YR, ZR
+	float blendstart[MAXSEQUENCEBLEND]; // starting value
+	float blendend[MAXSEQUENCEBLEND];	// ending value
 	int blendparent;
 
 	int seqgroup; // sequence group for demand loading
@@ -177,16 +179,14 @@ struct mstudioseqdesc_t
 	int nextseq; // auto advancing sequences
 };
 
-// events
 struct mstudioevent_t
 {
 	int frame;
 	int event;
 	int type;
-	char options[64];
+	char options[MAXEVENTOPTIONS];
 };
 
-// pivots
 struct mstudiopivot_t
 {
 	vec3_t org; // pivot point
@@ -194,22 +194,19 @@ struct mstudiopivot_t
 	int end;
 };
 
-// attachment
 struct mstudioattachment_t
 {
-	char name[32];
-	int type;
-	int bone;
-	vec3_t org; // attachment point
-	vec3_t vectors[3];
+	char name[32];					  // unused in goldsrc
+	int type;						  // unused in goldsrc
+	int bone;						  // index of the bone this is attached
+	vec3_t org;						  // attachment point, offset from bone origin
+	vec3_t vectors[MAXATTACHVECTORS]; // unused in goldsrc
 };
 
 struct mstudioanim_t
 {
-	unsigned short offset[6];
+	unsigned short offset[DEGREESOFFREEDOM];
 };
-
-// animation frames
 
 union mstudioanimvalue_t
 {
@@ -220,32 +217,27 @@ union mstudioanimvalue_t
 	} num;
 	short value;
 };
-// body part index
+
 struct mstudiobodyparts_t
 {
-	char name[64];
+	char name[MAXBODYPARTSNAMELENGHT];
 	int nummodels;
 	int base;
 	int modelindex; // index into models array
 };
 
-// skin info
 struct mstudiotexture_t
 {
-	char name[64];
+	char name[MAXTEXTURENAMELENGTH];
 	int flags;
 	int width;
 	int height;
 	int index;
 };
 
-// skin families
-// short	index[skinfamilies][skinref]
-
-// studio models
 struct mstudiomodel_t
 {
-	char name[64];
+	char name[MAXMODELNAMELENGTH];
 
 	int type;
 
@@ -265,9 +257,6 @@ struct mstudiomodel_t
 	int groupindex;
 };
 
-// vec3_t	boundingbox[model][bone][2];	// complex intersection info
-
-// meshes
 struct mstudiomesh_t
 {
 	int numtris;
@@ -284,7 +273,7 @@ struct mstudiomesh_t
 // #define STUDIO_NF_NOMIPS 0x0008
 // #define STUDIO_NF_ALPHA 0x0010
 #define STUDIO_NF_ADDITIVE 0x0020
-#define STUDIO_NF_TRANSPARENT 0x0040 // or STUDIO_NF_MASKED
+#define STUDIO_NF_MASKED 0x0040
 
 // motion flags
 #define STUDIO_X 0x0001

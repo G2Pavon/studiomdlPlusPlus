@@ -722,7 +722,7 @@ void SimplifyModel()
 	// find scales for all bones
 	for (j = 0; j < g_bonescount; j++)
 	{
-		for (k = 0; k < 6; k++)
+		for (k = 0; k < DEGREESOFFREEDOM; k++)
 		{
 			float minv, maxv, scale;
 
@@ -879,7 +879,7 @@ void SimplifyModel()
 			{
 				for (j = 0; j < g_bonescount; j++)
 				{
-					for (k = 0; k < 6; k++)
+					for (k = 0; k < DEGREESOFFREEDOM; k++)
 					{
 						mstudioanimvalue_t *pcount, *pvalue;
 						float v;
@@ -2658,7 +2658,7 @@ void Cmd_TexRenderMode()
 	}
 	else if (!std::strcmp(g_token, "masked"))
 	{
-		g_texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_TRANSPARENT;
+		g_texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_MASKED;
 	}
 	else if (!std::strcmp(g_token, "fullbright"))
 	{
