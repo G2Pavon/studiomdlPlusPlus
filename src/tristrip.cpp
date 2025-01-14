@@ -8,22 +8,20 @@
 #include "studio.h"
 #include "studiomdl.h"
 
-int used[MAXSTUDIOTRIANGLES];
+int g_used[MAXSTUDIOTRIANGLES];
 // the command list holds counts and s/t values that are valid for
 // every frame
-short commands[MAXSTUDIOTRIANGLES * 13];
-int numcommands;
+short g_commands[MAXSTUDIOTRIANGLES * 13];
 // all frames will have their vertexes rearranged and expanded
 // so they are in the order expected by the command list
-int allverts, alltris;
-int stripverts[MAXSTUDIOTRIANGLES + 2];
-int striptris[MAXSTUDIOTRIANGLES + 2];
-int stripcount;
-int neighbortri[MAXSTUDIOTRIANGLES][3];
-int neighboredge[MAXSTUDIOTRIANGLES][3];
+int g_stripverts[MAXSTUDIOTRIANGLES + 2];
+int g_striptris[MAXSTUDIOTRIANGLES + 2];
+int g_stripcount;
+int g_neighbortri[MAXSTUDIOTRIANGLES][3];
+int g_neighboredge[MAXSTUDIOTRIANGLES][3];
 
-s_trianglevert_t (*triangles)[3];
-s_mesh_t *pmesh;
+s_trianglevert_t (*g_triangles)[3];
+s_mesh_t *g_pmesh;
 
 void FindNeighbor(int starttri, int startv)
 {
@@ -32,14 +30,14 @@ void FindNeighbor(int starttri, int startv)
 	s_trianglevert_t *last, *check;
 
 	// used[starttri] |= (1 << startv);
-	last = &triangles[starttri][0];
+	last = &g_triangles[starttri][0];
 
 	m1 = last[(startv + 1) % 3];
 	m2 = last[(startv + 0) % 3];
 
-	for (j = starttri + 1, check = &triangles[starttri + 1][0]; j < pmesh->numtris; j++, check += 3)
+	for (j = starttri + 1, check = &g_triangles[starttri + 1][0]; j < g_pmesh->numtris; j++, check += 3)
 	{
-		if (used[j] == 7)
+		if (g_used[j] == 7)
 			continue;
 		for (k = 0; k < 3; k++)
 		{
@@ -48,14 +46,14 @@ void FindNeighbor(int starttri, int startv)
 			if (memcmp(&check[(k + 1) % 3], &m2, sizeof(m2)))
 				continue;
 
-			neighbortri[starttri][startv] = j;
-			neighboredge[starttri][startv] = k;
+			g_neighbortri[starttri][startv] = j;
+			g_neighboredge[starttri][startv] = k;
 
-			neighbortri[j][k] = starttri;
-			neighboredge[j][k] = startv;
+			g_neighbortri[j][k] = starttri;
+			g_neighboredge[j][k] = startv;
 
-			used[starttri] |= (1 << startv);
-			used[j] |= (1 << k);
+			g_used[starttri] |= (1 << startv);
+			g_used[j] |= (1 << k);
 			return;
 		}
 	}
@@ -66,48 +64,48 @@ int StripLength(int starttri, int startv)
 	int j;
 	int k;
 
-	used[starttri] = 2;
+	g_used[starttri] = 2;
 
-	stripverts[0] = (startv) % 3;
-	stripverts[1] = (startv + 1) % 3;
-	stripverts[2] = (startv + 2) % 3;
+	g_stripverts[0] = (startv) % 3;
+	g_stripverts[1] = (startv + 1) % 3;
+	g_stripverts[2] = (startv + 2) % 3;
 
-	striptris[0] = starttri;
-	striptris[1] = starttri;
-	striptris[2] = starttri;
-	stripcount = 3;
+	g_striptris[0] = starttri;
+	g_striptris[1] = starttri;
+	g_striptris[2] = starttri;
+	g_stripcount = 3;
 
 	while (true)
 	{
-		if (stripcount & 1)
+		if (g_stripcount & 1)
 		{
-			j = neighbortri[starttri][(startv + 1) % 3];
-			k = neighboredge[starttri][(startv + 1) % 3];
+			j = g_neighbortri[starttri][(startv + 1) % 3];
+			k = g_neighboredge[starttri][(startv + 1) % 3];
 		}
 		else
 		{
-			j = neighbortri[starttri][(startv + 2) % 3];
-			k = neighboredge[starttri][(startv + 2) % 3];
+			j = g_neighbortri[starttri][(startv + 2) % 3];
+			k = g_neighboredge[starttri][(startv + 2) % 3];
 		}
-		if (j == -1 || used[j])
+		if (j == -1 || g_used[j])
 			break;
 
-		stripverts[stripcount] = (k + 2) % 3;
-		striptris[stripcount] = j;
-		stripcount++;
+		g_stripverts[g_stripcount] = (k + 2) % 3;
+		g_striptris[g_stripcount] = j;
+		g_stripcount++;
 
-		used[j] = 2;
+		g_used[j] = 2;
 
 		starttri = j;
 		startv = k;
 	}
 
 	// clear the temp used flags
-	for (j = 0; j < pmesh->numtris; j++)
-		if (used[j] == 2)
-			used[j] = 0;
+	for (j = 0; j < g_pmesh->numtris; j++)
+		if (g_used[j] == 2)
+			g_used[j] = 0;
 
-	return stripcount;
+	return g_stripcount;
 }
 
 int FanLength(int starttri, int startv)
@@ -115,44 +113,44 @@ int FanLength(int starttri, int startv)
 	int j;
 	int k;
 
-	used[starttri] = 2;
+	g_used[starttri] = 2;
 
-	stripverts[0] = (startv) % 3;
-	stripverts[1] = (startv + 1) % 3;
-	stripverts[2] = (startv + 2) % 3;
+	g_stripverts[0] = (startv) % 3;
+	g_stripverts[1] = (startv + 1) % 3;
+	g_stripverts[2] = (startv + 2) % 3;
 
-	striptris[0] = starttri;
-	striptris[1] = starttri;
-	striptris[2] = starttri;
-	stripcount = 3;
+	g_striptris[0] = starttri;
+	g_striptris[1] = starttri;
+	g_striptris[2] = starttri;
+	g_stripcount = 3;
 
 	while (true)
 	{
-		j = neighbortri[starttri][(startv + 2) % 3];
-		k = neighboredge[starttri][(startv + 2) % 3];
+		j = g_neighbortri[starttri][(startv + 2) % 3];
+		k = g_neighboredge[starttri][(startv + 2) % 3];
 
-		if (j == -1 || used[j])
+		if (j == -1 || g_used[j])
 			break;
 
-		stripverts[stripcount] = (k + 2) % 3;
-		striptris[stripcount] = j;
-		stripcount++;
+		g_stripverts[g_stripcount] = (k + 2) % 3;
+		g_striptris[g_stripcount] = j;
+		g_stripcount++;
 
-		used[j] = 2;
+		g_used[j] = 2;
 
 		starttri = j;
 		startv = k;
 	}
 	// clear the temp used flags
-	for (j = 0; j < pmesh->numtris; j++)
-		if (used[j] == 2)
-			used[j] = 0;
+	for (j = 0; j < g_pmesh->numtris; j++)
+		if (g_used[j] == 2)
+			g_used[j] = 0;
 
-	return stripcount;
+	return g_stripcount;
 }
 
 // Generate a list of trifans or strips for the model, which holds for all frames
-int numcommandnodes;
+int g_numcommandnodes;
 
 int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata)
 {
@@ -165,43 +163,43 @@ int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata)
 	long t;
 	int maxlen;
 
-	triangles = x;
-	pmesh = y;
+	g_triangles = x;
+	g_pmesh = y;
 
 	t = time(NULL);
 
-	for (i = 0; i < pmesh->numtris; i++)
+	for (i = 0; i < g_pmesh->numtris; i++)
 	{
-		neighbortri[i][0] = neighbortri[i][1] = neighbortri[i][2] = -1;
-		used[i] = 0;
-		peak[i] = pmesh->numtris;
+		g_neighbortri[i][0] = g_neighbortri[i][1] = g_neighbortri[i][2] = -1;
+		g_used[i] = 0;
+		peak[i] = g_pmesh->numtris;
 	}
 
 	// printf("finding neighbors\n");
-	for (i = 0; i < pmesh->numtris; i++)
+	for (i = 0; i < g_pmesh->numtris; i++)
 	{
 		for (k = 0; k < 3; k++)
 		{
-			if (used[i] & (1 << k))
+			if (g_used[i] & (1 << k))
 				continue;
 
 			FindNeighbor(i, k);
 		}
-		// printf("%d", used[i] );
+		// printf("%d", g_used[i] );
 	}
 	// printf("\n");
 
 	//
 	// build tristrips
 	//
-	numcommandnodes = 0;
-	numcommands = 0;
-	std::memset(used, 0, sizeof(used));
+	g_numcommandnodes = 0;
+	int numcommands = 0;
+	std::memset(g_used, 0, sizeof(g_used));
 
-	for (i = 0; i < pmesh->numtris;)
+	for (i = 0; i < g_pmesh->numtris;)
 	{
 		// pick an unused triangle and start the trifan
-		if (used[i])
+		if (g_used[i])
 		{
 			i++;
 			continue;
@@ -210,11 +208,11 @@ int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata)
 		maxlen = 9999;
 		bestlen = 0;
 		m = 0;
-		for (k = i; k < pmesh->numtris && bestlen < 127; k++)
+		for (k = i; k < g_pmesh->numtris && bestlen < 127; k++)
 		{
 			int localpeak = 0;
 
-			if (used[k])
+			if (g_used[k])
 				continue;
 
 			if (peak[k] <= bestlen)
@@ -239,8 +237,8 @@ int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata)
 						bestlen = len;
 						for (j = 0; j < bestlen; j++)
 						{
-							besttris[j] = striptris[j];
-							bestverts[j] = stripverts[j];
+							besttris[j] = g_striptris[j];
+							bestverts[j] = g_stripverts[j];
 						}
 						// printf("%d %d\n", k, bestlen );
 					}
@@ -260,38 +258,38 @@ int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, byte **ppdata)
 
 		// mark the tris on the best strip as used
 		for (j = 0; j < bestlen; j++)
-			used[besttris[j]] = 1;
+			g_used[besttris[j]] = 1;
 
 		if (besttype == 1)
-			commands[numcommands++] = -bestlen;
+			g_commands[numcommands++] = -bestlen;
 		else
-			commands[numcommands++] = bestlen;
+			g_commands[numcommands++] = bestlen;
 
 		for (j = 0; j < bestlen; j++)
 		{
 			s_trianglevert_t *tri;
 
-			tri = &triangles[besttris[j]][bestverts[j]];
+			tri = &g_triangles[besttris[j]][bestverts[j]];
 
-			commands[numcommands++] = tri->vertindex;
-			commands[numcommands++] = tri->normindex;
-			commands[numcommands++] = tri->s;
-			commands[numcommands++] = tri->t;
+			g_commands[numcommands++] = tri->vertindex;
+			g_commands[numcommands++] = tri->normindex;
+			g_commands[numcommands++] = tri->s;
+			g_commands[numcommands++] = tri->t;
 		}
 		// printf("%d ", bestlen - 2 );
-		numcommandnodes++;
+		g_numcommandnodes++;
 
 		if (t != time(NULL))
 		{
-			printf("%2d%%\r", (total * 100) / pmesh->numtris);
+			printf("%2d%%\r", (total * 100) / g_pmesh->numtris);
 			t = time(NULL);
 		}
 	}
 
-	commands[numcommands++] = 0; // end of list marker
+	g_commands[numcommands++] = 0; // end of list marker
 
-	*ppdata = (byte *)commands;
+	*ppdata = (byte *)g_commands;
 
-	// printf("%d %d %d\n", numcommandnodes, numcommands, pmesh->numtris  );
+	// printf("%d %d %d\n", g_numcommandnodes, numcommands, pmesh->numtris  );
 	return numcommands * sizeof(short);
 }

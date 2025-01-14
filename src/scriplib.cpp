@@ -14,62 +14,62 @@ struct script_t
 };
 
 constexpr int MAX_INCLUDES = 8;
-script_t scriptstack[MAX_INCLUDES];
-script_t *script;
-int scriptline;
+script_t g_scriptstack[MAX_INCLUDES];
+script_t *g_script;
+int g_scriptline;
 
-char token[MAXTOKEN];
-bool endofscript;
-bool tokenready;
+char g_token[MAXTOKEN];
+bool g_endofscript;
+bool g_tokenready;
 
 void AddScriptToStack(char *filename)
 {
 	int size;
 
-	script++;
-	if (script == &scriptstack[MAX_INCLUDES])
+	g_script++;
+	if (g_script == &g_scriptstack[MAX_INCLUDES])
 		Error("script file exceeded MAX_INCLUDES");
-	std::strcpy(script->filename, ExpandPath(filename));
+	std::strcpy(g_script->filename, ExpandPath(filename));
 
-	size = LoadFile(script->filename, (void **)&script->buffer);
+	size = LoadFile(g_script->filename, (void **)&g_script->buffer);
 
-	printf("entering %s\n", script->filename);
+	printf("entering %s\n", g_script->filename);
 
-	script->line = 1;
+	g_script->line = 1;
 
-	script->script_p = script->buffer;
-	script->end_p = script->buffer + size;
+	g_script->script_p = g_script->buffer;
+	g_script->end_p = g_script->buffer + size;
 }
 
 void LoadScriptFile(char *filename)
 {
-	script = scriptstack;
+	g_script = g_scriptstack;
 	AddScriptToStack(filename);
 
-	endofscript = false;
-	tokenready = false;
+	g_endofscript = false;
+	g_tokenready = false;
 }
 
 bool EndOfScript(bool crossline)
 {
 	if (!crossline)
-		Error("Line %i is incomplete\n", scriptline);
+		Error("Line %i is incomplete\n", g_scriptline);
 
-	if (!std::strcmp(script->filename, "memory buffer"))
+	if (!std::strcmp(g_script->filename, "memory buffer"))
 	{
-		endofscript = true;
+		g_endofscript = true;
 		return false;
 	}
 
-	free(script->buffer);
-	if (script == scriptstack + 1)
+	free(g_script->buffer);
+	if (g_script == g_scriptstack + 1)
 	{
-		endofscript = true;
+		g_endofscript = true;
 		return false;
 	}
-	script--;
-	scriptline = script->line;
-	printf("returning to %s\n", script->filename);
+	g_script--;
+	g_scriptline = g_script->line;
+	printf("returning to %s\n", g_script->filename);
 	return GetToken(crossline);
 }
 
@@ -77,87 +77,87 @@ bool GetToken(bool crossline)
 {
 	char *token_p;
 
-	if (tokenready) // is a token already waiting?
+	if (g_tokenready) // is a token already waiting?
 	{
-		tokenready = false;
+		g_tokenready = false;
 		return true;
 	}
 
-	if (script->script_p >= script->end_p)
+	if (g_script->script_p >= g_script->end_p)
 		return EndOfScript(crossline);
 
 	// Skip spaces and comments
-	while (*script->script_p <= 32)
+	while (*g_script->script_p <= 32)
 	{
-		if (script->script_p >= script->end_p)
+		if (g_script->script_p >= g_script->end_p)
 			return EndOfScript(crossline);
 
-		if (*script->script_p++ == '\n')
+		if (*g_script->script_p++ == '\n')
 		{
 			if (!crossline)
-				Error("Line %i is incomplete\n", scriptline);
-			scriptline = script->line++;
+				Error("Line %i is incomplete\n", g_scriptline);
+			g_scriptline = g_script->line++;
 		}
 
 		// Check for comment (semicolon or line comment)
-		if (*script->script_p == ';' || *script->script_p == '#' ||
-			(*script->script_p == '/' && *((script->script_p) + 1) == '/'))
+		if (*g_script->script_p == ';' || *g_script->script_p == '#' ||
+			(*g_script->script_p == '/' && *((g_script->script_p) + 1) == '/'))
 		{
 			if (!crossline)
-				Error("Line %i is incomplete\n", scriptline);
+				Error("Line %i is incomplete\n", g_scriptline);
 
-			while (*script->script_p != '\n')
+			while (*g_script->script_p != '\n')
 			{
-				if (script->script_p >= script->end_p)
+				if (g_script->script_p >= g_script->end_p)
 					return EndOfScript(crossline);
-				script->script_p++;
+				g_script->script_p++;
 			}
 
 			// Continue skipping spaces after the comment
-			if (script->script_p < script->end_p)
+			if (g_script->script_p < g_script->end_p)
 				continue;
 			return EndOfScript(crossline);
 		}
 	}
 
-	if (script->script_p >= script->end_p)
+	if (g_script->script_p >= g_script->end_p)
 		return EndOfScript(crossline);
 
 	// Copy token
-	token_p = token;
+	token_p = g_token;
 
-	if (*script->script_p == '"')
+	if (*g_script->script_p == '"')
 	{
 		// Quoted token
-		script->script_p++;
-		while (*script->script_p != '"')
+		g_script->script_p++;
+		while (*g_script->script_p != '"')
 		{
-			*token_p++ = *script->script_p++;
-			if (script->script_p == script->end_p)
+			*token_p++ = *g_script->script_p++;
+			if (g_script->script_p == g_script->end_p)
 				break;
-			if (token_p == &token[MAXTOKEN])
-				Error("Token too large on line %i\n", scriptline);
+			if (token_p == &g_token[MAXTOKEN])
+				Error("Token too large on line %i\n", g_scriptline);
 		}
-		script->script_p++;
+		g_script->script_p++;
 	}
 	else // Regular token
 	{
-		while (*script->script_p > 32 && *script->script_p != ';')
+		while (*g_script->script_p > 32 && *g_script->script_p != ';')
 		{
-			*token_p++ = *script->script_p++;
-			if (script->script_p == script->end_p)
+			*token_p++ = *g_script->script_p++;
+			if (g_script->script_p == g_script->end_p)
 				break;
-			if (token_p == &token[MAXTOKEN])
-				Error("Token too large on line %i\n", scriptline);
+			if (token_p == &g_token[MAXTOKEN])
+				Error("Token too large on line %i\n", g_scriptline);
 		}
 	}
 
 	*token_p = 0;
 
-	if (!std::strcmp(token, "$include"))
+	if (!std::strcmp(g_token, "$include"))
 	{
 		GetToken(false);
-		AddScriptToStack(token);
+		AddScriptToStack(g_token);
 		return GetToken(crossline);
 	}
 
@@ -169,9 +169,9 @@ bool TokenAvailable(void)
 {
 	char *search_p;
 
-	search_p = script->script_p;
+	search_p = g_script->script_p;
 
-	if (search_p >= script->end_p)
+	if (search_p >= g_script->end_p)
 		return false;
 
 	while (*search_p <= 32)
@@ -179,7 +179,7 @@ bool TokenAvailable(void)
 		if (*search_p == '\n')
 			return false;
 		search_p++;
-		if (search_p == script->end_p)
+		if (search_p == g_script->end_p)
 			return false;
 	}
 

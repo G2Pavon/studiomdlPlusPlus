@@ -2,7 +2,7 @@
 
 #include <cstdio>
 
-extern bool archive;
+extern bool g_archive;
 
 typedef unsigned char byte;
 
@@ -32,5 +32,5 @@ void ExtractFileBase(char *path, char *dest);
 void CreatePath(char *path);
 void QCopyFile(char *from, char *to);
 
-extern bool archive;
-extern char archivedir[1024];
+extern bool g_archive;
+extern char g_archivedir[1024];

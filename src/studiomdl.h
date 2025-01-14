@@ -264,37 +264,37 @@ struct s_bodypart_t
 };
 
 // QC Command variables -----------------
-extern char outname[1024];				   // $modelname
-extern vec3_t eyeposition;				   // $eyeposition
-extern int gflags;						   // $flags
-extern vec3_t bbox[2];					   // $bbox
-extern vec3_t cbox[2];					   // $cbox
-extern s_bbox_t hitbox[MAXSTUDIOSRCBONES]; // $hbox
-extern int hitboxesCount;
-extern s_bonecontroller_t bonecontroller[MAXSTUDIOSRCBONES]; // $$controller
-extern int bonecontrollersCount;
-extern s_attachment_t attachment[MAXSTUDIOSRCBONES]; // $attachment
-extern int attachmentsCount;
-extern s_sequence_t sequence[MAXSTUDIOSEQUENCES]; // $sequence
-extern int sequenceCount;
-extern s_sequencegroup_t sequencegroup[MAXSTUDIOSEQUENCES]; // $sequencegroup
-extern int sequencegroupCount;
-extern s_model_t *model[MAXSTUDIOMODELS]; // $body
-extern int modelsCount;
-extern s_bodypart_t bodypart[MAXSTUDIOBODYPARTS]; // $bodygroup
-extern int bodygroupCount;
+extern char g_modelnameCommand[1024];				// $modelname
+extern vec3_t g_eyepositionCommand;					// $eyeposition
+extern int g_flagsCommand;							// $flags
+extern vec3_t g_bboxCommand[2];						// $bbox
+extern vec3_t g_cboxCommand[2];						// $cbox
+extern s_bbox_t g_hitboxCommand[MAXSTUDIOSRCBONES]; // $hbox
+extern int g_hitboxescount;
+extern s_bonecontroller_t g_bonecontrollerCommand[MAXSTUDIOSRCBONES]; // $$controller
+extern int g_bonecontrollerscount;
+extern s_attachment_t g_attachmentCommand[MAXSTUDIOSRCBONES]; // $attachment
+extern int g_attachmentscount;
+extern s_sequence_t g_sequenceCommand[MAXSTUDIOSEQUENCES]; // $sequence
+extern int g_sequencecount;
+extern s_sequencegroup_t g_sequencegroupCommand[MAXSTUDIOSEQUENCES]; // $sequencegroup
+extern int g_sequencegroupcount;
+extern s_model_t *g_submodel[MAXSTUDIOMODELS]; // $body
+extern int g_submodelscount;
+extern s_bodypart_t g_bodypart[MAXSTUDIOBODYPARTS]; // $bodygroup
+extern int g_bodygroupcount;
 // -----------------------------------------
 
-extern int numxnodes;
-extern int xnode[100][100];
-extern s_bonetable_t bonetable[MAXSTUDIOSRCBONES];
-extern int bonesCount;
+extern int g_numxnodes;
+extern int g_xnode[100][100];
+extern s_bonetable_t g_bonetable[MAXSTUDIOSRCBONES];
+extern int g_bonescount;
 
-extern s_texture_t texture[MAXSTUDIOSKINS];
-extern int texturesCount;
-extern int skinrefCount;
-extern int skinfamiliesCount;
-extern int skinref[256][MAXSTUDIOSKINS]; // [skin][skinref], returns texture index
+extern s_texture_t g_texture[MAXSTUDIOSKINS];
+extern int g_texturescount;
+extern int g_skinrefcount;
+extern int g_skinfamiliescount;
+extern int g_skinref[256][MAXSTUDIOSKINS]; // [skin][skinref], returns texture index
 
 // Main functions -----------------------
 

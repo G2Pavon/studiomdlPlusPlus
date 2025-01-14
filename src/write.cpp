@@ -6,15 +6,15 @@
 #include "studio.h"
 #include "studiomdl.h"
 
-int totalframes = 0;
-float totalseconds = 0;
+int g_totalframes = 0;
+float g_totalseconds = 0;
 constexpr int FILEBUFFER = 16 * 1024 * 1024;
-extern int numcommandnodes;
+extern int g_numcommandnodes;
 
-byte *pData;
-byte *pStart;
-studiohdr_t *phdr;
-studioseqhdr_t *pseqhdr;
+byte *g_pData;
+byte *g_pStart;
+studiohdr_t *g_phdr;
+studioseqhdr_t *g_pseqhdr;
 
 void WriteBoneInfo()
 {
@@ -25,33 +25,33 @@ void WriteBoneInfo()
 	mstudiobbox_t *pbbox;
 
 	// save bone info
-	pbone = (mstudiobone_t *)pData;
-	phdr->numbones = bonesCount;
-	phdr->boneindex = (pData - pStart);
+	pbone = (mstudiobone_t *)g_pData;
+	g_phdr->numbones = g_bonescount;
+	g_phdr->boneindex = (g_pData - g_pStart);
 
-	for (i = 0; i < bonesCount; i++)
+	for (i = 0; i < g_bonescount; i++)
 	{
-		std::strcpy(pbone[i].name, bonetable[i].name);
-		pbone[i].parent = bonetable[i].parent;
-		pbone[i].flags = bonetable[i].flags;
-		pbone[i].value[0] = bonetable[i].pos[0];
-		pbone[i].value[1] = bonetable[i].pos[1];
-		pbone[i].value[2] = bonetable[i].pos[2];
-		pbone[i].value[3] = bonetable[i].rot[0];
-		pbone[i].value[4] = bonetable[i].rot[1];
-		pbone[i].value[5] = bonetable[i].rot[2];
-		pbone[i].scale[0] = bonetable[i].posscale[0];
-		pbone[i].scale[1] = bonetable[i].posscale[1];
-		pbone[i].scale[2] = bonetable[i].posscale[2];
-		pbone[i].scale[3] = bonetable[i].rotscale[0];
-		pbone[i].scale[4] = bonetable[i].rotscale[1];
-		pbone[i].scale[5] = bonetable[i].rotscale[2];
+		std::strcpy(pbone[i].name, g_bonetable[i].name);
+		pbone[i].parent = g_bonetable[i].parent;
+		pbone[i].flags = g_bonetable[i].flags;
+		pbone[i].value[0] = g_bonetable[i].pos[0];
+		pbone[i].value[1] = g_bonetable[i].pos[1];
+		pbone[i].value[2] = g_bonetable[i].pos[2];
+		pbone[i].value[3] = g_bonetable[i].rot[0];
+		pbone[i].value[4] = g_bonetable[i].rot[1];
+		pbone[i].value[5] = g_bonetable[i].rot[2];
+		pbone[i].scale[0] = g_bonetable[i].posscale[0];
+		pbone[i].scale[1] = g_bonetable[i].posscale[1];
+		pbone[i].scale[2] = g_bonetable[i].posscale[2];
+		pbone[i].scale[3] = g_bonetable[i].rotscale[0];
+		pbone[i].scale[4] = g_bonetable[i].rotscale[1];
+		pbone[i].scale[5] = g_bonetable[i].rotscale[2];
 	}
-	pData += bonesCount * sizeof(mstudiobone_t);
-	pData = (byte *)ALIGN(pData);
+	g_pData += g_bonescount * sizeof(mstudiobone_t);
+	g_pData = (byte *)ALIGN(g_pData);
 
 	// map bonecontroller to bones
-	for (i = 0; i < bonesCount; i++)
+	for (i = 0; i < g_bonescount; i++)
 	{
 		for (j = 0; j < 6; j++)
 		{
@@ -59,10 +59,10 @@ void WriteBoneInfo()
 		}
 	}
 
-	for (i = 0; i < bonecontrollersCount; i++)
+	for (i = 0; i < g_bonecontrollerscount; i++)
 	{
-		j = bonecontroller[i].bone;
-		switch (bonecontroller[i].type & STUDIO_TYPES)
+		j = g_bonecontrollerCommand[i].bone;
+		switch (g_bonecontrollerCommand[i].type & STUDIO_TYPES)
 		{
 		case STUDIO_X:
 			pbone[j].bonecontroller[0] = i;
@@ -89,48 +89,48 @@ void WriteBoneInfo()
 	}
 
 	// save bonecontroller info
-	pbonecontroller = (mstudiobonecontroller_t *)pData;
-	phdr->numbonecontrollers = bonecontrollersCount;
-	phdr->bonecontrollerindex = (pData - pStart);
+	pbonecontroller = (mstudiobonecontroller_t *)g_pData;
+	g_phdr->numbonecontrollers = g_bonecontrollerscount;
+	g_phdr->bonecontrollerindex = (g_pData - g_pStart);
 
-	for (i = 0; i < bonecontrollersCount; i++)
+	for (i = 0; i < g_bonecontrollerscount; i++)
 	{
-		pbonecontroller[i].bone = bonecontroller[i].bone;
-		pbonecontroller[i].index = bonecontroller[i].index;
-		pbonecontroller[i].type = bonecontroller[i].type;
-		pbonecontroller[i].start = bonecontroller[i].start;
-		pbonecontroller[i].end = bonecontroller[i].end;
+		pbonecontroller[i].bone = g_bonecontrollerCommand[i].bone;
+		pbonecontroller[i].index = g_bonecontrollerCommand[i].index;
+		pbonecontroller[i].type = g_bonecontrollerCommand[i].type;
+		pbonecontroller[i].start = g_bonecontrollerCommand[i].start;
+		pbonecontroller[i].end = g_bonecontrollerCommand[i].end;
 	}
-	pData += bonecontrollersCount * sizeof(mstudiobonecontroller_t);
-	pData = (byte *)ALIGN(pData);
+	g_pData += g_bonecontrollerscount * sizeof(mstudiobonecontroller_t);
+	g_pData = (byte *)ALIGN(g_pData);
 
 	// save attachment info
-	pattachment = (mstudioattachment_t *)pData;
-	phdr->numattachments = attachmentsCount;
-	phdr->attachmentindex = (pData - pStart);
+	pattachment = (mstudioattachment_t *)g_pData;
+	g_phdr->numattachments = g_attachmentscount;
+	g_phdr->attachmentindex = (g_pData - g_pStart);
 
-	for (i = 0; i < attachmentsCount; i++)
+	for (i = 0; i < g_attachmentscount; i++)
 	{
-		pattachment[i].bone = attachment[i].bone;
-		pattachment[i].org = attachment[i].org;
+		pattachment[i].bone = g_attachmentCommand[i].bone;
+		pattachment[i].org = g_attachmentCommand[i].org;
 	}
-	pData += attachmentsCount * sizeof(mstudioattachment_t);
-	pData = (byte *)ALIGN(pData);
+	g_pData += g_attachmentscount * sizeof(mstudioattachment_t);
+	g_pData = (byte *)ALIGN(g_pData);
 
 	// save bbox info
-	pbbox = (mstudiobbox_t *)pData;
-	phdr->numhitboxes = hitboxesCount;
-	phdr->hitboxindex = (pData - pStart);
+	pbbox = (mstudiobbox_t *)g_pData;
+	g_phdr->numhitboxes = g_hitboxescount;
+	g_phdr->hitboxindex = (g_pData - g_pStart);
 
-	for (i = 0; i < hitboxesCount; i++)
+	for (i = 0; i < g_hitboxescount; i++)
 	{
-		pbbox[i].bone = hitbox[i].bone;
-		pbbox[i].group = hitbox[i].group;
-		pbbox[i].bbmin = hitbox[i].bmin;
-		pbbox[i].bbmax = hitbox[i].bmax;
+		pbbox[i].bone = g_hitboxCommand[i].bone;
+		pbbox[i].group = g_hitboxCommand[i].group;
+		pbbox[i].bbmin = g_hitboxCommand[i].bmin;
+		pbbox[i].bbmax = g_hitboxCommand[i].bmax;
 	}
-	pData += hitboxesCount * sizeof(mstudiobbox_t);
-	pData = (byte *)ALIGN(pData);
+	g_pData += g_hitboxescount * sizeof(mstudiobbox_t);
+	g_pData = (byte *)ALIGN(g_pData);
 }
 void WriteSequenceInfo()
 {
@@ -141,103 +141,103 @@ void WriteSequenceInfo()
 	byte *ptransition;
 
 	// save sequence info
-	pseqdesc = (mstudioseqdesc_t *)pData;
-	phdr->numseq = sequenceCount;
-	phdr->seqindex = (pData - pStart);
-	pData += sequenceCount * sizeof(mstudioseqdesc_t);
+	pseqdesc = (mstudioseqdesc_t *)g_pData;
+	g_phdr->numseq = g_sequencecount;
+	g_phdr->seqindex = (g_pData - g_pStart);
+	g_pData += g_sequencecount * sizeof(mstudioseqdesc_t);
 
-	for (i = 0; i < sequenceCount; i++, pseqdesc++)
+	for (i = 0; i < g_sequencecount; i++, pseqdesc++)
 	{
-		std::strcpy(pseqdesc->label, sequence[i].name);
-		pseqdesc->numframes = sequence[i].numframes;
-		pseqdesc->fps = sequence[i].fps;
-		pseqdesc->flags = sequence[i].flags;
+		std::strcpy(pseqdesc->label, g_sequenceCommand[i].name);
+		pseqdesc->numframes = g_sequenceCommand[i].numframes;
+		pseqdesc->fps = g_sequenceCommand[i].fps;
+		pseqdesc->flags = g_sequenceCommand[i].flags;
 
-		pseqdesc->numblends = sequence[i].numblends;
+		pseqdesc->numblends = g_sequenceCommand[i].numblends;
 
-		pseqdesc->blendtype[0] = sequence[i].blendtype[0];
-		pseqdesc->blendtype[1] = sequence[i].blendtype[1];
-		pseqdesc->blendstart[0] = sequence[i].blendstart[0];
-		pseqdesc->blendend[0] = sequence[i].blendend[0];
-		pseqdesc->blendstart[1] = sequence[i].blendstart[1];
-		pseqdesc->blendend[1] = sequence[i].blendend[1];
+		pseqdesc->blendtype[0] = g_sequenceCommand[i].blendtype[0];
+		pseqdesc->blendtype[1] = g_sequenceCommand[i].blendtype[1];
+		pseqdesc->blendstart[0] = g_sequenceCommand[i].blendstart[0];
+		pseqdesc->blendend[0] = g_sequenceCommand[i].blendend[0];
+		pseqdesc->blendstart[1] = g_sequenceCommand[i].blendstart[1];
+		pseqdesc->blendend[1] = g_sequenceCommand[i].blendend[1];
 
-		pseqdesc->motiontype = sequence[i].motiontype;
+		pseqdesc->motiontype = g_sequenceCommand[i].motiontype;
 		pseqdesc->motionbone = 0; // sequence[i].motionbone;
-		pseqdesc->linearmovement = sequence[i].linearmovement;
+		pseqdesc->linearmovement = g_sequenceCommand[i].linearmovement;
 
-		pseqdesc->seqgroup = sequence[i].seqgroup;
+		pseqdesc->seqgroup = g_sequenceCommand[i].seqgroup;
 
-		pseqdesc->animindex = sequence[i].animindex;
+		pseqdesc->animindex = g_sequenceCommand[i].animindex;
 
-		pseqdesc->activity = sequence[i].activity;
-		pseqdesc->actweight = sequence[i].actweight;
+		pseqdesc->activity = g_sequenceCommand[i].activity;
+		pseqdesc->actweight = g_sequenceCommand[i].actweight;
 
-		pseqdesc->bbmin = sequence[i].bmin;
-		pseqdesc->bbmax = sequence[i].bmax;
+		pseqdesc->bbmin = g_sequenceCommand[i].bmin;
+		pseqdesc->bbmax = g_sequenceCommand[i].bmax;
 
-		pseqdesc->entrynode = sequence[i].entrynode;
-		pseqdesc->exitnode = sequence[i].exitnode;
-		pseqdesc->nodeflags = sequence[i].nodeflags;
+		pseqdesc->entrynode = g_sequenceCommand[i].entrynode;
+		pseqdesc->exitnode = g_sequenceCommand[i].exitnode;
+		pseqdesc->nodeflags = g_sequenceCommand[i].nodeflags;
 
-		totalframes += sequence[i].numframes;
-		totalseconds += sequence[i].numframes / sequence[i].fps;
+		g_totalframes += g_sequenceCommand[i].numframes;
+		g_totalseconds += g_sequenceCommand[i].numframes / g_sequenceCommand[i].fps;
 
 		// save events
 		{
-			mstudioevent_t *pevent = (mstudioevent_t *)pData; // Declare inside the block
-			pseqdesc->numevents = sequence[i].numevents;
-			pseqdesc->eventindex = (pData - pStart);
-			pData += pseqdesc->numevents * sizeof(mstudioevent_t);
-			for (j = 0; j < sequence[i].numevents; j++)
+			mstudioevent_t *pevent = (mstudioevent_t *)g_pData; // Declare inside the block
+			pseqdesc->numevents = g_sequenceCommand[i].numevents;
+			pseqdesc->eventindex = (g_pData - g_pStart);
+			g_pData += pseqdesc->numevents * sizeof(mstudioevent_t);
+			for (j = 0; j < g_sequenceCommand[i].numevents; j++)
 			{
-				pevent[j].frame = sequence[i].event[j].frame - sequence[i].frameoffset;
-				pevent[j].event = sequence[i].event[j].event;
-				memcpy(pevent[j].options, sequence[i].event[j].options, sizeof(pevent[j].options));
+				pevent[j].frame = g_sequenceCommand[i].event[j].frame - g_sequenceCommand[i].frameoffset;
+				pevent[j].event = g_sequenceCommand[i].event[j].event;
+				memcpy(pevent[j].options, g_sequenceCommand[i].event[j].options, sizeof(pevent[j].options));
 			}
-			pData = (byte *)ALIGN(pData);
+			g_pData = (byte *)ALIGN(g_pData);
 		}
 
 		// save pivots
 		{
-			mstudiopivot_t *ppivot = (mstudiopivot_t *)pData; // Declare inside the block
-			pseqdesc->numpivots = sequence[i].numpivots;
-			pseqdesc->pivotindex = (pData - pStart);
-			pData += pseqdesc->numpivots * sizeof(mstudiopivot_t);
-			for (j = 0; j < sequence[i].numpivots; j++)
+			mstudiopivot_t *ppivot = (mstudiopivot_t *)g_pData; // Declare inside the block
+			pseqdesc->numpivots = g_sequenceCommand[i].numpivots;
+			pseqdesc->pivotindex = (g_pData - g_pStart);
+			g_pData += pseqdesc->numpivots * sizeof(mstudiopivot_t);
+			for (j = 0; j < g_sequenceCommand[i].numpivots; j++)
 			{
-				ppivot[j].org = sequence[i].pivot[j].org;
-				ppivot[j].start = sequence[i].pivot[j].start - sequence[i].frameoffset;
-				ppivot[j].end = sequence[i].pivot[j].end - sequence[i].frameoffset;
+				ppivot[j].org = g_sequenceCommand[i].pivot[j].org;
+				ppivot[j].start = g_sequenceCommand[i].pivot[j].start - g_sequenceCommand[i].frameoffset;
+				ppivot[j].end = g_sequenceCommand[i].pivot[j].end - g_sequenceCommand[i].frameoffset;
 			}
-			pData = (byte *)ALIGN(pData);
+			g_pData = (byte *)ALIGN(g_pData);
 		}
 	}
 
 	// save sequence group info
-	pseqgroup = (mstudioseqgroup_t *)pData;
-	phdr->numseqgroups = sequencegroupCount;
-	phdr->seqgroupindex = (pData - pStart);
-	pData += phdr->numseqgroups * sizeof(mstudioseqgroup_t);
-	pData = (byte *)ALIGN(pData);
+	pseqgroup = (mstudioseqgroup_t *)g_pData;
+	g_phdr->numseqgroups = g_sequencegroupcount;
+	g_phdr->seqgroupindex = (g_pData - g_pStart);
+	g_pData += g_phdr->numseqgroups * sizeof(mstudioseqgroup_t);
+	g_pData = (byte *)ALIGN(g_pData);
 
-	for (i = 0; i < sequencegroupCount; i++)
+	for (i = 0; i < g_sequencegroupcount; i++)
 	{
-		std::strcpy(pseqgroup[i].label, sequencegroup[i].label);
-		std::strcpy(pseqgroup[i].name, sequencegroup[i].name);
+		std::strcpy(pseqgroup[i].label, g_sequencegroupCommand[i].label);
+		std::strcpy(pseqgroup[i].name, g_sequencegroupCommand[i].name);
 	}
 
 	// save transition graph
-	ptransition = (byte *)pData;
-	phdr->numtransitions = numxnodes;
-	phdr->transitionindex = (pData - pStart);
-	pData += numxnodes * numxnodes * sizeof(byte);
-	pData = (byte *)ALIGN(pData);
-	for (i = 0; i < numxnodes; i++)
+	ptransition = (byte *)g_pData;
+	g_phdr->numtransitions = g_numxnodes;
+	g_phdr->transitionindex = (g_pData - g_pStart);
+	g_pData += g_numxnodes * g_numxnodes * sizeof(byte);
+	g_pData = (byte *)ALIGN(g_pData);
+	for (i = 0; i < g_numxnodes; i++)
 	{
-		for (j = 0; j < numxnodes; j++)
+		for (j = 0; j < g_numxnodes; j++)
 		{
-			*ptransition++ = xnode[i][j];
+			*ptransition++ = g_xnode[i][j];
 		}
 	}
 }
@@ -250,40 +250,40 @@ byte *WriteAnimations(byte *pData, const byte *pStart, int group)
 	// hack for seqgroup 0
 	// pseqgroup->data = (pData - pStart);
 
-	for (int i = 0; i < sequenceCount; i++)
+	for (int i = 0; i < g_sequencecount; i++)
 	{
-		if (sequence[i].seqgroup == group)
+		if (g_sequenceCommand[i].seqgroup == group)
 		{
 			// save animations
 			panim = (mstudioanim_t *)pData;
-			sequence[i].animindex = (pData - pStart);
-			pData += sequence[i].numblends * bonesCount * sizeof(mstudioanim_t);
+			g_sequenceCommand[i].animindex = (pData - pStart);
+			pData += g_sequenceCommand[i].numblends * g_bonescount * sizeof(mstudioanim_t);
 			pData = (byte *)ALIGN(pData);
 
 			panimvalue = (mstudioanimvalue_t *)pData;
-			for (int blends = 0; blends < sequence[i].numblends; blends++)
+			for (int blends = 0; blends < g_sequenceCommand[i].numblends; blends++)
 			{
 				// save animation value info
-				for (int j = 0; j < bonesCount; j++)
+				for (int j = 0; j < g_bonescount; j++)
 				{
 					for (int k = 0; k < 6; k++)
 					{
-						if (sequence[i].panim[blends]->numanim[j][k] == 0)
+						if (g_sequenceCommand[i].panim[blends]->numanim[j][k] == 0)
 						{
 							panim->offset[k] = 0;
 						}
 						else
 						{
 							panim->offset[k] = ((byte *)panimvalue - (byte *)panim);
-							for (int n = 0; n < sequence[i].panim[blends]->numanim[j][k]; n++)
+							for (int n = 0; n < g_sequenceCommand[i].panim[blends]->numanim[j][k]; n++)
 							{
-								panimvalue->value = sequence[i].panim[blends]->anim[j][k][n].value;
+								panimvalue->value = g_sequenceCommand[i].panim[blends]->anim[j][k][n].value;
 								panimvalue++;
 							}
 						}
 					}
 					if (((byte *)panimvalue - (byte *)panim) > 65535)
-						Error("sequence \"%s\" is greate than 64K\n", sequence[i].name);
+						Error("sequence \"%s\" is greate than 64K\n", g_sequenceCommand[i].name);
 					panim++;
 				}
 			}
@@ -303,41 +303,41 @@ void WriteTextures()
 	short *pref;
 
 	// save bone info
-	ptexture = (mstudiotexture_t *)pData;
-	phdr->numtextures = texturesCount;
-	phdr->textureindex = (pData - pStart);
-	pData += texturesCount * sizeof(mstudiotexture_t);
-	pData = (byte *)ALIGN(pData);
+	ptexture = (mstudiotexture_t *)g_pData;
+	g_phdr->numtextures = g_texturescount;
+	g_phdr->textureindex = (g_pData - g_pStart);
+	g_pData += g_texturescount * sizeof(mstudiotexture_t);
+	g_pData = (byte *)ALIGN(g_pData);
 
-	phdr->skinindex = (pData - pStart);
-	phdr->numskinref = skinrefCount;
-	phdr->numskinfamilies = skinfamiliesCount;
-	pref = (short *)pData;
+	g_phdr->skinindex = (g_pData - g_pStart);
+	g_phdr->numskinref = g_skinrefcount;
+	g_phdr->numskinfamilies = g_skinfamiliescount;
+	pref = (short *)g_pData;
 
-	for (i = 0; i < phdr->numskinfamilies; i++)
+	for (i = 0; i < g_phdr->numskinfamilies; i++)
 	{
-		for (int j = 0; j < phdr->numskinref; j++)
+		for (int j = 0; j < g_phdr->numskinref; j++)
 		{
-			*pref = skinref[i][j];
+			*pref = g_skinref[i][j];
 			pref++;
 		}
 	}
-	pData = (byte *)pref;
-	pData = (byte *)ALIGN(pData);
+	g_pData = (byte *)pref;
+	g_pData = (byte *)ALIGN(g_pData);
 
-	phdr->texturedataindex = (pData - pStart); // must be the end of the file!
+	g_phdr->texturedataindex = (g_pData - g_pStart); // must be the end of the file!
 
-	for (i = 0; i < texturesCount; i++)
+	for (i = 0; i < g_texturescount; i++)
 	{
-		std::strcpy(ptexture[i].name, texture[i].name);
-		ptexture[i].flags = texture[i].flags;
-		ptexture[i].width = texture[i].skinwidth;
-		ptexture[i].height = texture[i].skinheight;
-		ptexture[i].index = (pData - pStart);
-		memcpy(pData, texture[i].pdata, texture[i].size);
-		pData += texture[i].size;
+		std::strcpy(ptexture[i].name, g_texture[i].name);
+		ptexture[i].flags = g_texture[i].flags;
+		ptexture[i].width = g_texture[i].skinwidth;
+		ptexture[i].height = g_texture[i].skinheight;
+		ptexture[i].index = (g_pData - g_pStart);
+		memcpy(g_pData, g_texture[i].pdata, g_texture[i].size);
+		g_pData += g_texture[i].size;
 	}
-	pData = (byte *)ALIGN(pData);
+	g_pData = (byte *)ALIGN(g_pData);
 }
 
 void WriteModel()
@@ -351,134 +351,134 @@ void WriteModel()
 	s_trianglevert_t *psrctri;
 	int cur;
 
-	pbodypart = (mstudiobodyparts_t *)pData;
-	phdr->numbodyparts = bodygroupCount;
-	phdr->bodypartindex = (pData - pStart);
-	pData += bodygroupCount * sizeof(mstudiobodyparts_t);
+	pbodypart = (mstudiobodyparts_t *)g_pData;
+	g_phdr->numbodyparts = g_bodygroupcount;
+	g_phdr->bodypartindex = (g_pData - g_pStart);
+	g_pData += g_bodygroupcount * sizeof(mstudiobodyparts_t);
 
-	pmodel = (mstudiomodel_t *)pData;
-	pData += modelsCount * sizeof(mstudiomodel_t);
+	pmodel = (mstudiomodel_t *)g_pData;
+	g_pData += g_submodelscount * sizeof(mstudiomodel_t);
 
-	for (i = 0, j = 0; i < bodygroupCount; i++)
+	for (i = 0, j = 0; i < g_bodygroupcount; i++)
 	{
-		std::strcpy(pbodypart[i].name, bodypart[i].name);
-		pbodypart[i].nummodels = bodypart[i].nummodels;
-		pbodypart[i].base = bodypart[i].base;
-		pbodypart[i].modelindex = ((byte *)&pmodel[j]) - pStart;
-		j += bodypart[i].nummodels;
+		std::strcpy(pbodypart[i].name, g_bodypart[i].name);
+		pbodypart[i].nummodels = g_bodypart[i].nummodels;
+		pbodypart[i].base = g_bodypart[i].base;
+		pbodypart[i].modelindex = ((byte *)&pmodel[j]) - g_pStart;
+		j += g_bodypart[i].nummodels;
 	}
-	pData = (byte *)ALIGN(pData);
+	g_pData = (byte *)ALIGN(g_pData);
 
-	cur = reinterpret_cast<intptr_t>(pData);
-	for (i = 0; i < modelsCount; i++)
+	cur = reinterpret_cast<intptr_t>(g_pData);
+	for (i = 0; i < g_submodelscount; i++)
 	{
 		int normmap[MAXSTUDIOVERTS];
 		int normimap[MAXSTUDIOVERTS];
 		int n = 0;
 
-		std::strcpy(pmodel[i].name, model[i]->name);
+		std::strcpy(pmodel[i].name, g_submodel[i]->name);
 
 		// save bbox info
 
 		// remap normals to be sorted by skin reference
-		for (j = 0; j < model[i]->nummesh; j++)
+		for (j = 0; j < g_submodel[i]->nummesh; j++)
 		{
-			for (k = 0; k < model[i]->numnorms; k++)
+			for (k = 0; k < g_submodel[i]->numnorms; k++)
 			{
-				if (model[i]->normal[k].skinref == model[i]->pmesh[j]->skinref)
+				if (g_submodel[i]->normal[k].skinref == g_submodel[i]->pmesh[j]->skinref)
 				{
 					normmap[k] = n;
 					normimap[n] = k;
 					n++;
-					model[i]->pmesh[j]->numnorms++;
+					g_submodel[i]->pmesh[j]->numnorms++;
 				}
 			}
 		}
 
 		// save vertice bones
-		pbone = pData;
-		pmodel[i].numverts = model[i]->numverts;
-		pmodel[i].vertinfoindex = (pData - pStart);
+		pbone = g_pData;
+		pmodel[i].numverts = g_submodel[i]->numverts;
+		pmodel[i].vertinfoindex = (g_pData - g_pStart);
 		for (j = 0; j < pmodel[i].numverts; j++)
 		{
-			*pbone++ = model[i]->vert[j].bone;
+			*pbone++ = g_submodel[i]->vert[j].bone;
 		}
 		pbone = (byte *)ALIGN(pbone);
 
 		// save normal bones
-		pmodel[i].numnorms = model[i]->numnorms;
-		pmodel[i].norminfoindex = ((byte *)pbone - pStart);
+		pmodel[i].numnorms = g_submodel[i]->numnorms;
+		pmodel[i].norminfoindex = ((byte *)pbone - g_pStart);
 		for (j = 0; j < pmodel[i].numnorms; j++)
 		{
-			*pbone++ = model[i]->normal[normimap[j]].bone;
+			*pbone++ = g_submodel[i]->normal[normimap[j]].bone;
 		}
 		pbone = (byte *)ALIGN(pbone);
 
-		pData = pbone;
+		g_pData = pbone;
 
 		// save group info
 		{
-			vec3_t *pvert = (vec3_t *)pData;
-			pData += model[i]->numverts * sizeof(vec3_t);
-			pmodel[i].vertindex = ((byte *)pvert - pStart);
-			pData = (byte *)ALIGN(pData);
+			vec3_t *pvert = (vec3_t *)g_pData;
+			g_pData += g_submodel[i]->numverts * sizeof(vec3_t);
+			pmodel[i].vertindex = ((byte *)pvert - g_pStart);
+			g_pData = (byte *)ALIGN(g_pData);
 
-			vec3_t *pnorm = (vec3_t *)pData;
-			pData += model[i]->numnorms * sizeof(vec3_t);
-			pmodel[i].normindex = ((byte *)pnorm - pStart);
-			pData = (byte *)ALIGN(pData);
+			vec3_t *pnorm = (vec3_t *)g_pData;
+			g_pData += g_submodel[i]->numnorms * sizeof(vec3_t);
+			pmodel[i].normindex = ((byte *)pnorm - g_pStart);
+			g_pData = (byte *)ALIGN(g_pData);
 
-			for (j = 0; j < model[i]->numverts; j++)
+			for (j = 0; j < g_submodel[i]->numverts; j++)
 			{
-				pvert[j] = model[i]->vert[j].org;
+				pvert[j] = g_submodel[i]->vert[j].org;
 			}
 
-			for (j = 0; j < model[i]->numnorms; j++)
+			for (j = 0; j < g_submodel[i]->numnorms; j++)
 			{
-				pnorm[j] = model[i]->normal[normimap[j]].org;
+				pnorm[j] = g_submodel[i]->normal[normimap[j]].org;
 			}
-			printf("vertices  %6d bytes (%d vertices, %d normals)\n", pData - cur, model[i]->numverts, model[i]->numnorms);
-			cur = reinterpret_cast<intptr_t>(pData);
+			printf("vertices  %6d bytes (%d vertices, %d normals)\n", g_pData - cur, g_submodel[i]->numverts, g_submodel[i]->numnorms);
+			cur = reinterpret_cast<intptr_t>(g_pData);
 		}
 		// save mesh info
 		{
 
 			mstudiomesh_t *pmesh;
-			pmesh = (mstudiomesh_t *)pData;
-			pmodel[i].nummesh = model[i]->nummesh;
-			pmodel[i].meshindex = (pData - pStart);
-			pData += pmodel[i].nummesh * sizeof(mstudiomesh_t);
-			pData = (byte *)ALIGN(pData);
+			pmesh = (mstudiomesh_t *)g_pData;
+			pmodel[i].nummesh = g_submodel[i]->nummesh;
+			pmodel[i].meshindex = (g_pData - g_pStart);
+			g_pData += pmodel[i].nummesh * sizeof(mstudiomesh_t);
+			g_pData = (byte *)ALIGN(g_pData);
 
 			int total_tris = 0;
 			int total_strips = 0;
-			for (j = 0; j < model[i]->nummesh; j++)
+			for (j = 0; j < g_submodel[i]->nummesh; j++)
 			{
 				int numCmdBytes;
 				byte *pCmdSrc;
 
-				pmesh[j].numtris = model[i]->pmesh[j]->numtris;
-				pmesh[j].skinref = model[i]->pmesh[j]->skinref;
-				pmesh[j].numnorms = model[i]->pmesh[j]->numnorms;
+				pmesh[j].numtris = g_submodel[i]->pmesh[j]->numtris;
+				pmesh[j].skinref = g_submodel[i]->pmesh[j]->skinref;
+				pmesh[j].numnorms = g_submodel[i]->pmesh[j]->numnorms;
 
-				psrctri = (s_trianglevert_t *)(model[i]->pmesh[j]->triangle);
+				psrctri = (s_trianglevert_t *)(g_submodel[i]->pmesh[j]->triangle);
 				for (k = 0; k < pmesh[j].numtris * 3; k++)
 				{
 					psrctri->normindex = normmap[psrctri->normindex];
 					psrctri++;
 				}
 
-				numCmdBytes = BuildTris(model[i]->pmesh[j]->triangle, model[i]->pmesh[j], &pCmdSrc);
+				numCmdBytes = BuildTris(g_submodel[i]->pmesh[j]->triangle, g_submodel[i]->pmesh[j], &pCmdSrc);
 
-				pmesh[j].triindex = (pData - pStart);
-				memcpy(pData, pCmdSrc, numCmdBytes);
-				pData += numCmdBytes;
-				pData = (byte *)ALIGN(pData);
+				pmesh[j].triindex = (g_pData - g_pStart);
+				memcpy(g_pData, pCmdSrc, numCmdBytes);
+				g_pData += numCmdBytes;
+				g_pData = (byte *)ALIGN(g_pData);
 				total_tris += pmesh[j].numtris;
-				total_strips += numcommandnodes;
+				total_strips += g_numcommandnodes;
 			}
-			printf("mesh      %6d bytes (%d tris, %d strips)\n", pData - cur, total_tris, total_strips);
-			cur = reinterpret_cast<intptr_t>(pData);
+			printf("mesh      %6d bytes (%d tris, %d strips)\n", g_pData - cur, total_tris, total_strips);
+			cur = reinterpret_cast<intptr_t>(g_pData);
 		}
 	}
 }
@@ -488,86 +488,86 @@ void WriteFile(void)
 	FILE *modelouthandle;
 	int total = 0;
 
-	pStart = (byte *)std::calloc(1, FILEBUFFER);
+	g_pStart = (byte *)std::calloc(1, FILEBUFFER);
 
-	StripExtension(outname);
+	StripExtension(g_modelnameCommand);
 
-	for (int i = 1; i < sequencegroupCount; i++)
+	for (int i = 1; i < g_sequencegroupcount; i++)
 	{
 		// write the non-default sequence group data to separate files
 		char groupname[128], localname[128];
 
-		sprintf(groupname, "%s%02d.mdl", outname, i);
+		sprintf(groupname, "%s%02d.mdl", g_modelnameCommand, i);
 
 		printf("writing %s:\n", groupname);
 		modelouthandle = SafeOpenWrite(groupname);
 
-		pseqhdr = (studioseqhdr_t *)pStart;
-		pseqhdr->id = IDSTUDIOSEQHEADER;
-		pseqhdr->version = STUDIO_VERSION;
+		g_pseqhdr = (studioseqhdr_t *)g_pStart;
+		g_pseqhdr->id = IDSTUDIOSEQHEADER;
+		g_pseqhdr->version = STUDIO_VERSION;
 
-		pData = pStart + sizeof(studioseqhdr_t);
+		g_pData = g_pStart + sizeof(studioseqhdr_t);
 
-		pData = WriteAnimations(pData, pStart, i);
+		g_pData = WriteAnimations(g_pData, g_pStart, i);
 
 		ExtractFileBase(groupname, localname);
-		sprintf(sequencegroup[i].name, "models\\%s.mdl", localname);
-		std::strcpy(pseqhdr->name, sequencegroup[i].name);
-		pseqhdr->length = pData - pStart;
+		sprintf(g_sequencegroupCommand[i].name, "models\\%s.mdl", localname);
+		std::strcpy(g_pseqhdr->name, g_sequencegroupCommand[i].name);
+		g_pseqhdr->length = g_pData - g_pStart;
 
-		printf("total     %6d\n", pseqhdr->length);
+		printf("total     %6d\n", g_pseqhdr->length);
 
-		SafeWrite(modelouthandle, pStart, pseqhdr->length);
+		SafeWrite(modelouthandle, g_pStart, g_pseqhdr->length);
 
 		fclose(modelouthandle);
-		std::memset(pStart, 0, pseqhdr->length);
+		std::memset(g_pStart, 0, g_pseqhdr->length);
 	}
 	//
 	// write the model output file
 	//
-	strcat(outname, ".mdl");
+	strcat(g_modelnameCommand, ".mdl");
 
 	printf("---------------------\n");
-	printf("writing %s:\n", outname);
-	modelouthandle = SafeOpenWrite(outname);
+	printf("writing %s:\n", g_modelnameCommand);
+	modelouthandle = SafeOpenWrite(g_modelnameCommand);
 
-	phdr = (studiohdr_t *)pStart;
+	g_phdr = (studiohdr_t *)g_pStart;
 
-	phdr->ident = IDSTUDIOHEADER;
-	phdr->version = STUDIO_VERSION;
-	std::strcpy(phdr->name, outname);
-	phdr->eyeposition = eyeposition;
-	phdr->min = bbox[0];
-	phdr->max = bbox[1];
-	phdr->bbmin = cbox[0];
-	phdr->bbmax = cbox[1];
+	g_phdr->ident = IDSTUDIOHEADER;
+	g_phdr->version = STUDIO_VERSION;
+	std::strcpy(g_phdr->name, g_modelnameCommand);
+	g_phdr->eyeposition = g_eyepositionCommand;
+	g_phdr->min = g_bboxCommand[0];
+	g_phdr->max = g_bboxCommand[1];
+	g_phdr->bbmin = g_cboxCommand[0];
+	g_phdr->bbmax = g_cboxCommand[1];
 
-	phdr->flags = gflags;
+	g_phdr->flags = g_flagsCommand;
 
-	pData = (byte *)phdr + sizeof(studiohdr_t);
+	g_pData = (byte *)g_phdr + sizeof(studiohdr_t);
 
 	WriteBoneInfo();
-	printf("bones     %6d bytes (%d)\n", pData - pStart - total, bonesCount);
-	total = pData - pStart;
+	printf("bones     %6d bytes (%d)\n", g_pData - g_pStart - total, g_bonescount);
+	total = g_pData - g_pStart;
 
-	pData = WriteAnimations(pData, pStart, 0);
+	g_pData = WriteAnimations(g_pData, g_pStart, 0);
 
 	WriteSequenceInfo();
-	printf("sequences %6d bytes (%d frames) [%d:%02d]\n", pData - pStart - total, totalframes, static_cast<int>(totalseconds) / 60, static_cast<int>(totalseconds) % 60);
-	total = pData - pStart;
+	printf("sequences %6d bytes (%d frames) [%d:%02d]\n", g_pData - g_pStart - total, g_totalframes, static_cast<int>(g_totalseconds) / 60, static_cast<int>(g_totalseconds) % 60);
+	total = g_pData - g_pStart;
 
 	WriteModel();
-	printf("models    %6d bytes\n", pData - pStart - total);
-	total = pData - pStart;
+	printf("models    %6d bytes\n", g_pData - g_pStart - total);
+	total = g_pData - g_pStart;
 
 	WriteTextures();
-	printf("textures  %6d bytes\n", pData - pStart - total);
+	printf("textures  %6d bytes\n", g_pData - g_pStart - total);
 
-	phdr->length = pData - pStart;
+	g_phdr->length = g_pData - g_pStart;
 
-	printf("total     %6d\n", phdr->length);
+	printf("total     %6d\n", g_phdr->length);
 
-	SafeWrite(modelouthandle, pStart, phdr->length);
+	SafeWrite(modelouthandle, g_pStart, g_phdr->length);
 
 	fclose(modelouthandle);
 }

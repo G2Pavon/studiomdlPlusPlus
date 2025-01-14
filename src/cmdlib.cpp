@@ -10,8 +10,8 @@
 
 #include "cmdlib.h"
 
-bool archive;
-char archivedir[1024];
+bool g_archive;
+char g_archivedir[1024];
 
 // For abnormal program terminations
 void Error(char *error, ...)
@@ -57,10 +57,10 @@ char *ExpandPathAndArchive(char *path)
 
 	expanded = ExpandPath(path);
 
-	if (archive == true)
+	if (g_archive == true)
 	{
 		char archivename[1024];
-		sprintf(archivename, "%s/%s", archivedir, path);
+		sprintf(archivename, "%s/%s", g_archivedir, path);
 		QCopyFile(expanded, archivename);
 	}
 	return expanded;

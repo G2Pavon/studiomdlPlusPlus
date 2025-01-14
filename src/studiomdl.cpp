@@ -21,49 +21,48 @@
 #define stricmp strcasecmp
 #define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
 
-char inputFilename[1024];
-FILE *inputFile;
-char currentLine[1024];
-int lineCount;
-bool isCdSet;
-char defaultTextures[16][256];
-char sourceTexture[16][256];
-int numTextureReplacements;
-s_bonefixup_t boneFixup[MAXSTUDIOSRCBONES];
+char g_inputfilename[1024];
+FILE *g_inputFile;
+char g_currentline[1024];
+int g_linecount;
+char g_defaulttextures[16][256];
+char g_sourcetexture[16][256];
+int g_numtextureteplacements;
+s_bonefixup_t g_bonefixup[MAXSTUDIOSRCBONES];
 
 // studiomdl.exe args -----------
-int flagReversedTriangles;
-int flagBadNormals;
-int flagFlipTriangles;
-float flagNormalBlendAngle;
-int flagDumpHitboxes;
-int flagIgnoreWarnings;
-bool flagKeepAllBones;
+int g_flagreversedtriangles;
+int g_flagbadnormals;
+int g_flagfliptriangles;
+float g_flagnormalblendangle;
+int g_flagdumphitboxes;
+int g_flagignorewarnings;
+bool g_flagkeepallbones;
 
 // QC Command variables -----------------
-char cdPartialPath[256];							 // $cd
-char cdCommand[256];								 // $cd
-int cdtexturePathCount;								 // $cdtexture <paths> (max paths = 18, idk why)
-char cdtextureCommand[16][256];						 // $cdtexture
-float scaleCommand;									 // $scale
-float scaleBodyAndSequenceOption;					 // $body studio <value> // also for $sequence
-vec3_t originCommand;								 // $origin
-float originCommandRotation;						 // $origin <X> <Y> <Z> <rotation>
-float rotateCommand;								 // $rotate and $sequence <sequence name> <SMD path> {[rotate <zrotation>]} only z axis
-vec3_t sequenceOrigin;								 // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
-float gammaCommand;									 // $$gamma
-s_renamebone_t renameboneCommand[MAXSTUDIOSRCBONES]; // $renamebone
-int renameboneCount;
-s_hitgroup_t hitgroupCommand[MAXSTUDIOSRCBONES]; // $hgroup
-int hitgroupsCount;
-char mirrorboneCommand[MAXSTUDIOSRCBONES][64]; // $mirrorbone
-int mirroredCount;
-s_animation_t *animationSequenceOption[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // $sequence, each sequence can have 16 blends
-int animationCount;
-int texturegroupCommand[32][32][32]; // $texturegroup
-int texturegroupCount;				 // unnecessary? since engine doesn't support multiple texturegroups
-int texturegrouplayers[32];
-int texturegroupreps[32];
+char g_cdPartialPath[256];							   // $cd
+char g_cdCommand[256];								   // $cd
+int g_cdtexturepathcount;							   // $cdtexture <paths> (max paths = 18, idk why)
+char g_cdtextureCommand[16][256];					   // $cdtexture
+float g_scaleCommand;								   // $scale
+float g_scaleBodyAndSequenceOption;					   // $body studio <value> // also for $sequence
+vec3_t g_originCommand;								   // $origin
+float g_originCommandRotation;						   // $origin <X> <Y> <Z> <rotation>
+float g_rotateCommand;								   // $rotate and $sequence <sequence name> <SMD path> {[rotate <zrotation>]} only z axis
+vec3_t g_sequenceOrigin;							   // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
+float g_gammaCommand;								   // $$gamma
+s_renamebone_t g_renameboneCommand[MAXSTUDIOSRCBONES]; // $renamebone
+int g_renamebonecount;
+s_hitgroup_t g_hitgroupCommand[MAXSTUDIOSRCBONES]; // $hgroup
+int g_hitgroupscount;
+char g_mirrorboneCommand[MAXSTUDIOSRCBONES][64]; // $mirrorbone
+int g_mirroredcount;
+s_animation_t *g_animationSequenceOption[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // $sequence, each sequence can have 16 blends
+int g_animationcount;
+int g_texturegroupCommand[32][32][32]; // $texturegroup
+int g_texturegroupCount;			   // unnecessary? since engine doesn't support multiple texturegroups
+int g_texturegrouplayers[32];
+int g_texturegroupreps[32];
 // ---------------------------------------
 
 void clip_rotations(vec3_t rot)
@@ -84,18 +83,18 @@ void ExtractMotion()
 	int blendIndex;
 
 	// extract linear motion
-	for (i = 0; i < sequenceCount; i++)
+	for (i = 0; i < g_sequencecount; i++)
 	{
-		if (sequence[i].numframes > 1)
+		if (g_sequenceCommand[i].numframes > 1)
 		{
 			// assume 0 for now.
 			int typeMotion;
 			vec3_t *ptrPos;
 			vec3_t motion = {0, 0, 0};
-			typeMotion = sequence[i].motiontype;
-			ptrPos = sequence[i].panim[0]->pos[0];
+			typeMotion = g_sequenceCommand[i].motiontype;
+			ptrPos = g_sequenceCommand[i].panim[0]->pos[0];
 
-			k = sequence[i].numframes - 1;
+			k = g_sequenceCommand[i].numframes - 1;
 
 			if (typeMotion & STUDIO_LX)
 				motion[0] = ptrPos[k][0] - ptrPos[0][0];
@@ -104,52 +103,52 @@ void ExtractMotion()
 			if (typeMotion & STUDIO_LZ)
 				motion[2] = ptrPos[k][2] - ptrPos[0][2];
 
-			for (j = 0; j < sequence[i].numframes; j++)
+			for (j = 0; j < g_sequenceCommand[i].numframes; j++)
 			{
 				vec3_t adjustedPosition;
-				for (k = 0; k < sequence[i].panim[0]->numbones; k++)
+				for (k = 0; k < g_sequenceCommand[i].panim[0]->numbones; k++)
 				{
-					if (sequence[i].panim[0]->node[k].parent == -1)
+					if (g_sequenceCommand[i].panim[0]->node[k].parent == -1)
 					{
-						ptrPos = sequence[i].panim[0]->pos[k];
+						ptrPos = g_sequenceCommand[i].panim[0]->pos[k];
 
-						adjustedPosition = motion * (j * 1.0 / (sequence[i].numframes - 1));
-						for (blendIndex = 0; blendIndex < sequence[i].numblends; blendIndex++)
+						adjustedPosition = motion * (j * 1.0 / (g_sequenceCommand[i].numframes - 1));
+						for (blendIndex = 0; blendIndex < g_sequenceCommand[i].numblends; blendIndex++)
 						{
-							sequence[i].panim[blendIndex]->pos[k][j] = sequence[i].panim[blendIndex]->pos[k][j] - adjustedPosition;
+							g_sequenceCommand[i].panim[blendIndex]->pos[k][j] = g_sequenceCommand[i].panim[blendIndex]->pos[k][j] - adjustedPosition;
 						}
 					}
 				}
 			}
 
-			sequence[i].linearmovement = motion;
+			g_sequenceCommand[i].linearmovement = motion;
 		}
 		else
 		{ //
-			sequence[i].linearmovement = sequence[i].linearmovement - sequence[i].linearmovement;
+			g_sequenceCommand[i].linearmovement = g_sequenceCommand[i].linearmovement - g_sequenceCommand[i].linearmovement;
 		}
 	}
 
 	// extract unused motion
-	for (i = 0; i < sequenceCount; i++)
+	for (i = 0; i < g_sequencecount; i++)
 	{
 		int typeUnusedMotion;
-		typeUnusedMotion = sequence[i].motiontype;
-		for (k = 0; k < sequence[i].panim[0]->numbones; k++)
+		typeUnusedMotion = g_sequenceCommand[i].motiontype;
+		for (k = 0; k < g_sequenceCommand[i].panim[0]->numbones; k++)
 		{
-			if (sequence[i].panim[0]->node[k].parent == -1)
+			if (g_sequenceCommand[i].panim[0]->node[k].parent == -1)
 			{
-				for (blendIndex = 0; blendIndex < sequence[i].numblends; blendIndex++)
+				for (blendIndex = 0; blendIndex < g_sequenceCommand[i].numblends; blendIndex++)
 				{
 					float motion[6];
-					motion[0] = sequence[i].panim[blendIndex]->pos[k][0][0];
-					motion[1] = sequence[i].panim[blendIndex]->pos[k][0][1];
-					motion[2] = sequence[i].panim[blendIndex]->pos[k][0][2];
-					motion[3] = sequence[i].panim[blendIndex]->rot[k][0][0];
-					motion[4] = sequence[i].panim[blendIndex]->rot[k][0][1];
-					motion[5] = sequence[i].panim[blendIndex]->rot[k][0][2];
+					motion[0] = g_sequenceCommand[i].panim[blendIndex]->pos[k][0][0];
+					motion[1] = g_sequenceCommand[i].panim[blendIndex]->pos[k][0][1];
+					motion[2] = g_sequenceCommand[i].panim[blendIndex]->pos[k][0][2];
+					motion[3] = g_sequenceCommand[i].panim[blendIndex]->rot[k][0][0];
+					motion[4] = g_sequenceCommand[i].panim[blendIndex]->rot[k][0][1];
+					motion[5] = g_sequenceCommand[i].panim[blendIndex]->rot[k][0][2];
 
-					for (j = 0; j < sequence[i].numframes; j++)
+					for (j = 0; j < g_sequenceCommand[i].numframes; j++)
 					{
 						/*
 						if (typeUnusedMotion & STUDIO_X)
@@ -160,11 +159,11 @@ void ExtractMotion()
 							sequence[i].panim[blendIndex]->pos[k][j][2] = motion[2];
 						*/
 						if (typeUnusedMotion & STUDIO_XR)
-							sequence[i].panim[blendIndex]->rot[k][j][0] = motion[3];
+							g_sequenceCommand[i].panim[blendIndex]->rot[k][j][0] = motion[3];
 						if (typeUnusedMotion & STUDIO_YR)
-							sequence[i].panim[blendIndex]->rot[k][j][1] = motion[4];
+							g_sequenceCommand[i].panim[blendIndex]->rot[k][j][1] = motion[4];
 						if (typeUnusedMotion & STUDIO_ZR)
-							sequence[i].panim[blendIndex]->rot[k][j][2] = motion[5];
+							g_sequenceCommand[i].panim[blendIndex]->rot[k][j][2] = motion[5];
 					}
 				}
 			}
@@ -172,7 +171,7 @@ void ExtractMotion()
 	}
 
 	// extract auto motion
-	for (i = 0; i < sequenceCount; i++)
+	for (i = 0; i < g_sequencecount; i++)
 	{
 		// assume 0 for now.
 		int typeAutoMotion;
@@ -181,11 +180,11 @@ void ExtractMotion()
 		vec3_t motion = {0, 0, 0};
 		vec3_t angles = {0, 0, 0};
 
-		typeAutoMotion = sequence[i].motiontype;
-		for (j = 0; j < sequence[i].numframes; j++)
+		typeAutoMotion = g_sequenceCommand[i].motiontype;
+		for (j = 0; j < g_sequenceCommand[i].numframes; j++)
 		{
-			ptrAutoPos = sequence[i].panim[0]->pos[0];
-			ptrAutoRot = sequence[i].panim[0]->rot[0];
+			ptrAutoPos = g_sequenceCommand[i].panim[0]->pos[0];
+			ptrAutoRot = g_sequenceCommand[i].panim[0]->rot[0];
 
 			if (typeAutoMotion & STUDIO_AX)
 				motion[0] = ptrAutoPos[j][0] - ptrAutoPos[0][0];
@@ -200,8 +199,8 @@ void ExtractMotion()
 			if (typeAutoMotion & STUDIO_AZR)
 				angles[2] = ptrAutoRot[j][2] - ptrAutoRot[0][2];
 
-			sequence[i].automovepos[j] = motion;
-			sequence[i].automoveangle[j] = angles;
+			g_sequenceCommand[i].automovepos[j] = motion;
+			g_sequenceCommand[i].automoveangle[j] = angles;
 		}
 	}
 }
@@ -213,24 +212,24 @@ void OptimizeAnimations()
 	int iError = 0;
 
 	// optimize animations
-	for (int i = 0; i < sequenceCount; i++)
+	for (int i = 0; i < g_sequencecount; i++)
 	{
-		sequence[i].numframes = sequence[i].panim[0]->endframe - sequence[i].panim[0]->startframe + 1;
+		g_sequenceCommand[i].numframes = g_sequenceCommand[i].panim[0]->endframe - g_sequenceCommand[i].panim[0]->startframe + 1;
 
 		// force looping animations to be looping
-		if (sequence[i].flags & STUDIO_LOOPING)
+		if (g_sequenceCommand[i].flags & STUDIO_LOOPING)
 		{
-			for (int j = 0; j < sequence[i].panim[0]->numbones; j++)
+			for (int j = 0; j < g_sequenceCommand[i].panim[0]->numbones; j++)
 			{
-				for (int blends = 0; blends < sequence[i].numblends; blends++)
+				for (int blends = 0; blends < g_sequenceCommand[i].numblends; blends++)
 				{
-					vec3_t *ppos = sequence[i].panim[blends]->pos[j];
-					vec3_t *prot = sequence[i].panim[blends]->rot[j];
+					vec3_t *ppos = g_sequenceCommand[i].panim[blends]->pos[j];
+					vec3_t *prot = g_sequenceCommand[i].panim[blends]->rot[j];
 
-					startFrame = 0;						  // sequence[i].panim[q]->startframe;
-					endFrame = sequence[i].numframes - 1; // sequence[i].panim[q]->endframe;
+					startFrame = 0;								   // sequence[i].panim[q]->startframe;
+					endFrame = g_sequenceCommand[i].numframes - 1; // sequence[i].panim[q]->endframe;
 
-					typeMotion = sequence[i].motiontype;
+					typeMotion = g_sequenceCommand[i].motiontype;
 					if (!(typeMotion & STUDIO_LX))
 						ppos[endFrame][0] = ppos[startFrame][0];
 					if (!(typeMotion & STUDIO_LY))
@@ -245,31 +244,31 @@ void OptimizeAnimations()
 			}
 		}
 
-		for (int j = 0; j < sequence[i].numevents; j++)
+		for (int j = 0; j < g_sequenceCommand[i].numevents; j++)
 		{
-			if (sequence[i].event[j].frame < sequence[i].panim[0]->startframe)
+			if (g_sequenceCommand[i].event[j].frame < g_sequenceCommand[i].panim[0]->startframe)
 			{
-				printf("sequence %s has event (%d) before first frame (%d)\n", sequence[i].name, sequence[i].event[j].frame, sequence[i].panim[0]->startframe);
-				sequence[i].event[j].frame = sequence[i].panim[0]->startframe;
+				printf("sequence %s has event (%d) before first frame (%d)\n", g_sequenceCommand[i].name, g_sequenceCommand[i].event[j].frame, g_sequenceCommand[i].panim[0]->startframe);
+				g_sequenceCommand[i].event[j].frame = g_sequenceCommand[i].panim[0]->startframe;
 				iError++;
 			}
-			if (sequence[i].event[j].frame > sequence[i].panim[0]->endframe)
+			if (g_sequenceCommand[i].event[j].frame > g_sequenceCommand[i].panim[0]->endframe)
 			{
-				printf("sequence %s has event (%d) after last frame (%d)\n", sequence[i].name, sequence[i].event[j].frame, sequence[i].panim[0]->endframe);
-				sequence[i].event[j].frame = sequence[i].panim[0]->endframe;
+				printf("sequence %s has event (%d) after last frame (%d)\n", g_sequenceCommand[i].name, g_sequenceCommand[i].event[j].frame, g_sequenceCommand[i].panim[0]->endframe);
+				g_sequenceCommand[i].event[j].frame = g_sequenceCommand[i].panim[0]->endframe;
 				iError++;
 			}
 		}
 
-		sequence[i].frameoffset = sequence[i].panim[0]->startframe;
+		g_sequenceCommand[i].frameoffset = g_sequenceCommand[i].panim[0]->startframe;
 	}
 }
 
 int findNode(char *name)
 {
-	for (int k = 0; k < bonesCount; k++)
+	for (int k = 0; k < g_bonescount; k++)
 	{
-		if (std::strcmp(bonetable[k].name, name) == 0)
+		if (std::strcmp(g_bonetable[k].name, name) == 0)
 		{
 			return k;
 		}
@@ -283,38 +282,38 @@ void MakeTransitions()
 	int iHit;
 
 	// Add in direct node transitions
-	for (i = 0; i < sequenceCount; i++)
+	for (i = 0; i < g_sequencecount; i++)
 	{
-		if (sequence[i].entrynode != sequence[i].exitnode)
+		if (g_sequenceCommand[i].entrynode != g_sequenceCommand[i].exitnode)
 		{
-			xnode[sequence[i].entrynode - 1][sequence[i].exitnode - 1] = sequence[i].exitnode;
-			if (sequence[i].nodeflags)
+			g_xnode[g_sequenceCommand[i].entrynode - 1][g_sequenceCommand[i].exitnode - 1] = g_sequenceCommand[i].exitnode;
+			if (g_sequenceCommand[i].nodeflags)
 			{
-				xnode[sequence[i].exitnode - 1][sequence[i].entrynode - 1] = sequence[i].entrynode;
+				g_xnode[g_sequenceCommand[i].exitnode - 1][g_sequenceCommand[i].entrynode - 1] = g_sequenceCommand[i].entrynode;
 			}
 		}
-		if (sequence[i].entrynode > numxnodes)
-			numxnodes = sequence[i].entrynode;
+		if (g_sequenceCommand[i].entrynode > g_numxnodes)
+			g_numxnodes = g_sequenceCommand[i].entrynode;
 	}
 
 	// Add multi-stage transitions
 	while (true)
 	{
 		iHit = 0;
-		for (i = 1; i <= numxnodes; i++)
+		for (i = 1; i <= g_numxnodes; i++)
 		{
-			for (j = 1; j <= numxnodes; j++)
+			for (j = 1; j <= g_numxnodes; j++)
 			{
 				// If I can't go there directly
-				if (i != j && xnode[i - 1][j - 1] == 0)
+				if (i != j && g_xnode[i - 1][j - 1] == 0)
 				{
-					for (int k = 1; k < numxnodes; k++)
+					for (int k = 1; k < g_numxnodes; k++)
 					{
 						// But I found someone who knows how that I can get to
-						if (xnode[k - 1][j - 1] > 0 && xnode[i - 1][k - 1] > 0)
+						if (g_xnode[k - 1][j - 1] > 0 && g_xnode[i - 1][k - 1] > 0)
 						{
 							// Then go to them
-							xnode[i - 1][j - 1] = -xnode[i - 1][k - 1];
+							g_xnode[i - 1][j - 1] = -g_xnode[i - 1][k - 1];
 							iHit = 1;
 							break;
 						}
@@ -324,11 +323,11 @@ void MakeTransitions()
 		}
 
 		// Reset previous pass so the links can be used in the next pass
-		for (i = 1; i <= numxnodes; i++)
+		for (i = 1; i <= g_numxnodes; i++)
 		{
-			for (j = 1; j <= numxnodes; j++)
+			for (j = 1; j <= g_numxnodes; j++)
 			{
-				xnode[i - 1][j - 1] = abs(xnode[i - 1][j - 1]);
+				g_xnode[i - 1][j - 1] = abs(g_xnode[i - 1][j - 1]);
 			}
 		}
 
@@ -350,41 +349,41 @@ void SimplifyModel()
 	MakeTransitions();
 
 	// find used bones
-	for (i = 0; i < modelsCount; i++)
+	for (i = 0; i < g_submodelscount; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			model[i]->boneref[k] = flagKeepAllBones;
+			g_submodel[i]->boneref[k] = g_flagkeepallbones;
 		}
-		for (j = 0; j < model[i]->numverts; j++)
+		for (j = 0; j < g_submodel[i]->numverts; j++)
 		{
-			model[i]->boneref[model[i]->vert[j].bone] = 1;
+			g_submodel[i]->boneref[g_submodel[i]->vert[j].bone] = 1;
 		}
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
 			// tag parent bones as used if child has been used
-			if (model[i]->boneref[k])
+			if (g_submodel[i]->boneref[k])
 			{
-				n = model[i]->node[k].parent;
-				while (n != -1 && !model[i]->boneref[n])
+				n = g_submodel[i]->node[k].parent;
+				while (n != -1 && !g_submodel[i]->boneref[n])
 				{
-					model[i]->boneref[n] = 1;
-					n = model[i]->node[n].parent;
+					g_submodel[i]->boneref[n] = 1;
+					n = g_submodel[i]->node[n].parent;
 				}
 			}
 		}
 	}
 
 	// rename model bones if needed
-	for (i = 0; i < modelsCount; i++)
+	for (i = 0; i < g_submodelscount; i++)
 	{
-		for (j = 0; j < model[i]->numbones; j++)
+		for (j = 0; j < g_submodel[i]->numbones; j++)
 		{
-			for (k = 0; k < renameboneCount; k++)
+			for (k = 0; k < g_renamebonecount; k++)
 			{
-				if (!std::strcmp(model[i]->node[j].name, renameboneCommand[k].from))
+				if (!std::strcmp(g_submodel[i]->node[j].name, g_renameboneCommand[k].from))
 				{
-					std::strcpy(model[i]->node[j].name, renameboneCommand[k].to);
+					std::strcpy(g_submodel[i]->node[j].name, g_renameboneCommand[k].to);
 					break;
 				}
 			}
@@ -392,85 +391,85 @@ void SimplifyModel()
 	}
 
 	// union of all used bones
-	bonesCount = 0;
-	for (i = 0; i < modelsCount; i++)
+	g_bonescount = 0;
+	for (i = 0; i < g_submodelscount; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			model[i]->boneimap[k] = -1;
+			g_submodel[i]->boneimap[k] = -1;
 		}
-		for (j = 0; j < model[i]->numbones; j++)
+		for (j = 0; j < g_submodel[i]->numbones; j++)
 		{
-			if (model[i]->boneref[j])
+			if (g_submodel[i]->boneref[j])
 			{
-				k = findNode(model[i]->node[j].name);
+				k = findNode(g_submodel[i]->node[j].name);
 				if (k == -1)
 				{
 					// create new bone
-					k = bonesCount;
-					strcpyn(bonetable[k].name, model[i]->node[j].name);
-					if ((n = model[i]->node[j].parent) != -1)
-						bonetable[k].parent = findNode(model[i]->node[n].name);
+					k = g_bonescount;
+					strcpyn(g_bonetable[k].name, g_submodel[i]->node[j].name);
+					if ((n = g_submodel[i]->node[j].parent) != -1)
+						g_bonetable[k].parent = findNode(g_submodel[i]->node[n].name);
 					else
-						bonetable[k].parent = -1;
-					bonetable[k].bonecontroller = 0;
-					bonetable[k].flags = 0;
+						g_bonetable[k].parent = -1;
+					g_bonetable[k].bonecontroller = 0;
+					g_bonetable[k].flags = 0;
 					// set defaults
 					defaultpos[k] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
 					defaultrot[k] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
 					for (n = 0; n < MAXSTUDIOANIMATIONS; n++)
 					{
-						defaultpos[k][n] = model[i]->skeleton[j].pos;
-						defaultrot[k][n] = model[i]->skeleton[j].rot;
+						defaultpos[k][n] = g_submodel[i]->skeleton[j].pos;
+						defaultrot[k][n] = g_submodel[i]->skeleton[j].rot;
 					}
-					bonetable[k].pos = model[i]->skeleton[j].pos;
-					bonetable[k].rot = model[i]->skeleton[j].rot;
-					bonesCount++;
+					g_bonetable[k].pos = g_submodel[i]->skeleton[j].pos;
+					g_bonetable[k].rot = g_submodel[i]->skeleton[j].rot;
+					g_bonescount++;
 				}
 				else
 				{
 					// double check parent assignments
-					n = model[i]->node[j].parent;
+					n = g_submodel[i]->node[j].parent;
 					if (n != -1)
-						n = findNode(model[i]->node[n].name);
-					m = bonetable[k].parent;
+						n = findNode(g_submodel[i]->node[n].name);
+					m = g_bonetable[k].parent;
 
 					if (n != m)
 					{
 						printf("illegal parent bone replacement in model \"%s\"\n\t\"%s\" has \"%s\", previously was \"%s\"\n",
-							   model[i]->name,
-							   model[i]->node[j].name,
-							   (n != -1) ? bonetable[n].name : "ROOT",
-							   (m != -1) ? bonetable[m].name : "ROOT");
+							   g_submodel[i]->name,
+							   g_submodel[i]->node[j].name,
+							   (n != -1) ? g_bonetable[n].name : "ROOT",
+							   (m != -1) ? g_bonetable[m].name : "ROOT");
 						iError++;
 					}
 				}
-				model[i]->bonemap[j] = k;
-				model[i]->boneimap[k] = j;
+				g_submodel[i]->bonemap[j] = k;
+				g_submodel[i]->boneimap[k] = j;
 			}
 		}
 	}
 
-	if (iError && !(flagIgnoreWarnings))
+	if (iError && !(g_flagignorewarnings))
 	{
 		exit(1);
 	}
 
-	if (bonesCount >= MAXSTUDIOBONES)
+	if (g_bonescount >= MAXSTUDIOBONES)
 	{
-		Error("Too many bones used in model, used %d, max %d\n", bonesCount, MAXSTUDIOBONES);
+		Error("Too many bones used in model, used %d, max %d\n", g_bonescount, MAXSTUDIOBONES);
 	}
 
 	// rename sequence bones if needed
-	for (i = 0; i < sequenceCount; i++)
+	for (i = 0; i < g_sequencecount; i++)
 	{
-		for (j = 0; j < sequence[i].panim[0]->numbones; j++)
+		for (j = 0; j < g_sequenceCommand[i].panim[0]->numbones; j++)
 		{
-			for (k = 0; k < renameboneCount; k++)
+			for (k = 0; k < g_renamebonecount; k++)
 			{
-				if (!std::strcmp(sequence[i].panim[0]->node[j].name, renameboneCommand[k].from))
+				if (!std::strcmp(g_sequenceCommand[i].panim[0]->node[j].name, g_renameboneCommand[k].from))
 				{
-					std::strcpy(sequence[i].panim[0]->node[j].name, renameboneCommand[k].to);
+					std::strcpy(g_sequenceCommand[i].panim[0]->node[j].name, g_renameboneCommand[k].to);
 					break;
 				}
 			}
@@ -478,19 +477,19 @@ void SimplifyModel()
 	}
 
 	// map each sequences bone list to master list
-	for (i = 0; i < sequenceCount; i++)
+	for (i = 0; i < g_sequencecount; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			sequence[i].panim[0]->boneimap[k] = -1;
+			g_sequenceCommand[i].panim[0]->boneimap[k] = -1;
 		}
-		for (j = 0; j < sequence[i].panim[0]->numbones; j++)
+		for (j = 0; j < g_sequenceCommand[i].panim[0]->numbones; j++)
 		{
-			k = findNode(sequence[i].panim[0]->node[j].name);
+			k = findNode(g_sequenceCommand[i].panim[0]->node[j].name);
 
 			if (k == -1)
 			{
-				sequence[i].panim[0]->bonemap[j] = -1;
+				g_sequenceCommand[i].panim[0]->bonemap[j] = -1;
 			}
 			else
 			{
@@ -498,230 +497,230 @@ void SimplifyModel()
 				char *szNode = "ROOT";
 
 				// whoa, check parent connections!
-				if (sequence[i].panim[0]->node[j].parent != -1)
-					szAnim = sequence[i].panim[0]->node[sequence[i].panim[0]->node[j].parent].name;
+				if (g_sequenceCommand[i].panim[0]->node[j].parent != -1)
+					szAnim = g_sequenceCommand[i].panim[0]->node[g_sequenceCommand[i].panim[0]->node[j].parent].name;
 
-				if (bonetable[k].parent != -1)
-					szNode = bonetable[bonetable[k].parent].name;
+				if (g_bonetable[k].parent != -1)
+					szNode = g_bonetable[g_bonetable[k].parent].name;
 
 				if (std::strcmp(szAnim, szNode))
 				{
 					printf("illegal parent bone replacement in sequence \"%s\"\n\t\"%s\" has \"%s\", reference has \"%s\"\n",
-						   sequence[i].name,
-						   sequence[i].panim[0]->node[j].name,
+						   g_sequenceCommand[i].name,
+						   g_sequenceCommand[i].panim[0]->node[j].name,
 						   szAnim,
 						   szNode);
 					iError++;
 				}
-				sequence[i].panim[0]->bonemap[j] = k;
-				sequence[i].panim[0]->boneimap[k] = j;
+				g_sequenceCommand[i].panim[0]->bonemap[j] = k;
+				g_sequenceCommand[i].panim[0]->boneimap[k] = j;
 			}
 		}
 	}
-	if (iError && !(flagIgnoreWarnings))
+	if (iError && !(g_flagignorewarnings))
 	{
 		exit(1);
 	}
 
 	// link bonecontrollers
-	for (i = 0; i < bonecontrollersCount; i++)
+	for (i = 0; i < g_bonecontrollerscount; i++)
 	{
-		for (j = 0; j < bonesCount; j++)
+		for (j = 0; j < g_bonescount; j++)
 		{
-			if (stricmp(bonecontroller[i].name, bonetable[j].name) == 0)
+			if (stricmp(g_bonecontrollerCommand[i].name, g_bonetable[j].name) == 0)
 				break;
 		}
-		if (j >= bonesCount)
+		if (j >= g_bonescount)
 		{
-			Error("unknown bonecontroller link '%s'\n", bonecontroller[i].name);
+			Error("unknown bonecontroller link '%s'\n", g_bonecontrollerCommand[i].name);
 		}
-		bonecontroller[i].bone = j;
+		g_bonecontrollerCommand[i].bone = j;
 	}
 
 	// link attachments
-	for (i = 0; i < attachmentsCount; i++)
+	for (i = 0; i < g_attachmentscount; i++)
 	{
-		for (j = 0; j < bonesCount; j++)
+		for (j = 0; j < g_bonescount; j++)
 		{
-			if (stricmp(attachment[i].bonename, bonetable[j].name) == 0)
+			if (stricmp(g_attachmentCommand[i].bonename, g_bonetable[j].name) == 0)
 				break;
 		}
-		if (j >= bonesCount)
+		if (j >= g_bonescount)
 		{
-			Error("unknown attachment link '%s'\n", attachment[i].bonename);
+			Error("unknown attachment link '%s'\n", g_attachmentCommand[i].bonename);
 		}
-		attachment[i].bone = j;
+		g_attachmentCommand[i].bone = j;
 	}
 
 	// relink model
-	for (i = 0; i < modelsCount; i++)
+	for (i = 0; i < g_submodelscount; i++)
 	{
-		for (j = 0; j < model[i]->numverts; j++)
+		for (j = 0; j < g_submodel[i]->numverts; j++)
 		{
-			model[i]->vert[j].bone = model[i]->bonemap[model[i]->vert[j].bone];
+			g_submodel[i]->vert[j].bone = g_submodel[i]->bonemap[g_submodel[i]->vert[j].bone];
 		}
-		for (j = 0; j < model[i]->numnorms; j++)
+		for (j = 0; j < g_submodel[i]->numnorms; j++)
 		{
-			model[i]->normal[j].bone = model[i]->bonemap[model[i]->normal[j].bone];
+			g_submodel[i]->normal[j].bone = g_submodel[i]->bonemap[g_submodel[i]->normal[j].bone];
 		}
 	}
 
 	// set hitgroups
-	for (k = 0; k < bonesCount; k++)
+	for (k = 0; k < g_bonescount; k++)
 	{
-		bonetable[k].group = -9999;
+		g_bonetable[k].group = -9999;
 	}
-	for (j = 0; j < hitgroupsCount; j++)
+	for (j = 0; j < g_hitgroupscount; j++)
 	{
-		for (k = 0; k < bonesCount; k++)
+		for (k = 0; k < g_bonescount; k++)
 		{
-			if (std::strcmp(bonetable[k].name, hitgroupCommand[j].name) == 0)
+			if (std::strcmp(g_bonetable[k].name, g_hitgroupCommand[j].name) == 0)
 			{
-				bonetable[k].group = hitgroupCommand[j].group;
+				g_bonetable[k].group = g_hitgroupCommand[j].group;
 				break;
 			}
 		}
-		if (k >= bonesCount)
-			Error("cannot find bone %s for hitgroup %d\n", hitgroupCommand[j].name, hitgroupCommand[j].group);
+		if (k >= g_bonescount)
+			Error("cannot find bone %s for hitgroup %d\n", g_hitgroupCommand[j].name, g_hitgroupCommand[j].group);
 	}
-	for (k = 0; k < bonesCount; k++)
+	for (k = 0; k < g_bonescount; k++)
 	{
-		if (bonetable[k].group == -9999)
+		if (g_bonetable[k].group == -9999)
 		{
-			if (bonetable[k].parent != -1)
-				bonetable[k].group = bonetable[bonetable[k].parent].group;
+			if (g_bonetable[k].parent != -1)
+				g_bonetable[k].group = g_bonetable[g_bonetable[k].parent].group;
 			else
-				bonetable[k].group = 0;
+				g_bonetable[k].group = 0;
 		}
 	}
 
-	if (hitboxesCount == 0)
+	if (g_hitboxescount == 0)
 	{
 		// find intersection box volume for each bone
-		for (k = 0; k < bonesCount; k++)
+		for (k = 0; k < g_bonescount; k++)
 		{
 			for (j = 0; j < 3; j++)
 			{
-				bonetable[k].bmin[j] = 0.0;
-				bonetable[k].bmax[j] = 0.0;
+				g_bonetable[k].bmin[j] = 0.0;
+				g_bonetable[k].bmax[j] = 0.0;
 			}
 		}
 		// try all the connect vertices
-		for (i = 0; i < modelsCount; i++)
+		for (i = 0; i < g_submodelscount; i++)
 		{
 			vec3_t p;
-			for (j = 0; j < model[i]->numverts; j++)
+			for (j = 0; j < g_submodel[i]->numverts; j++)
 			{
-				p = model[i]->vert[j].org;
-				k = model[i]->vert[j].bone;
+				p = g_submodel[i]->vert[j].org;
+				k = g_submodel[i]->vert[j].bone;
 
-				if (p[0] < bonetable[k].bmin[0])
-					bonetable[k].bmin[0] = p[0];
-				if (p[1] < bonetable[k].bmin[1])
-					bonetable[k].bmin[1] = p[1];
-				if (p[2] < bonetable[k].bmin[2])
-					bonetable[k].bmin[2] = p[2];
-				if (p[0] > bonetable[k].bmax[0])
-					bonetable[k].bmax[0] = p[0];
-				if (p[1] > bonetable[k].bmax[1])
-					bonetable[k].bmax[1] = p[1];
-				if (p[2] > bonetable[k].bmax[2])
-					bonetable[k].bmax[2] = p[2];
+				if (p[0] < g_bonetable[k].bmin[0])
+					g_bonetable[k].bmin[0] = p[0];
+				if (p[1] < g_bonetable[k].bmin[1])
+					g_bonetable[k].bmin[1] = p[1];
+				if (p[2] < g_bonetable[k].bmin[2])
+					g_bonetable[k].bmin[2] = p[2];
+				if (p[0] > g_bonetable[k].bmax[0])
+					g_bonetable[k].bmax[0] = p[0];
+				if (p[1] > g_bonetable[k].bmax[1])
+					g_bonetable[k].bmax[1] = p[1];
+				if (p[2] > g_bonetable[k].bmax[2])
+					g_bonetable[k].bmax[2] = p[2];
 			}
 		}
 		// add in all your children as well
-		for (k = 0; k < bonesCount; k++)
+		for (k = 0; k < g_bonescount; k++)
 		{
-			if ((j = bonetable[k].parent) != -1)
+			if ((j = g_bonetable[k].parent) != -1)
 			{
-				if (bonetable[k].pos[0] < bonetable[j].bmin[0])
-					bonetable[j].bmin[0] = bonetable[k].pos[0];
-				if (bonetable[k].pos[1] < bonetable[j].bmin[1])
-					bonetable[j].bmin[1] = bonetable[k].pos[1];
-				if (bonetable[k].pos[2] < bonetable[j].bmin[2])
-					bonetable[j].bmin[2] = bonetable[k].pos[2];
-				if (bonetable[k].pos[0] > bonetable[j].bmax[0])
-					bonetable[j].bmax[0] = bonetable[k].pos[0];
-				if (bonetable[k].pos[1] > bonetable[j].bmax[1])
-					bonetable[j].bmax[1] = bonetable[k].pos[1];
-				if (bonetable[k].pos[2] > bonetable[j].bmax[2])
-					bonetable[j].bmax[2] = bonetable[k].pos[2];
+				if (g_bonetable[k].pos[0] < g_bonetable[j].bmin[0])
+					g_bonetable[j].bmin[0] = g_bonetable[k].pos[0];
+				if (g_bonetable[k].pos[1] < g_bonetable[j].bmin[1])
+					g_bonetable[j].bmin[1] = g_bonetable[k].pos[1];
+				if (g_bonetable[k].pos[2] < g_bonetable[j].bmin[2])
+					g_bonetable[j].bmin[2] = g_bonetable[k].pos[2];
+				if (g_bonetable[k].pos[0] > g_bonetable[j].bmax[0])
+					g_bonetable[j].bmax[0] = g_bonetable[k].pos[0];
+				if (g_bonetable[k].pos[1] > g_bonetable[j].bmax[1])
+					g_bonetable[j].bmax[1] = g_bonetable[k].pos[1];
+				if (g_bonetable[k].pos[2] > g_bonetable[j].bmax[2])
+					g_bonetable[j].bmax[2] = g_bonetable[k].pos[2];
 			}
 		}
 
-		for (k = 0; k < bonesCount; k++)
+		for (k = 0; k < g_bonescount; k++)
 		{
-			if (bonetable[k].bmin[0] < bonetable[k].bmax[0] - 1 && bonetable[k].bmin[1] < bonetable[k].bmax[1] - 1 && bonetable[k].bmin[2] < bonetable[k].bmax[2] - 1)
+			if (g_bonetable[k].bmin[0] < g_bonetable[k].bmax[0] - 1 && g_bonetable[k].bmin[1] < g_bonetable[k].bmax[1] - 1 && g_bonetable[k].bmin[2] < g_bonetable[k].bmax[2] - 1)
 			{
-				hitbox[hitboxesCount].bone = k;
-				hitbox[hitboxesCount].group = bonetable[k].group;
-				hitbox[hitboxesCount].bmin = bonetable[k].bmin;
-				hitbox[hitboxesCount].bmax = bonetable[k].bmax;
+				g_hitboxCommand[g_hitboxescount].bone = k;
+				g_hitboxCommand[g_hitboxescount].group = g_bonetable[k].group;
+				g_hitboxCommand[g_hitboxescount].bmin = g_bonetable[k].bmin;
+				g_hitboxCommand[g_hitboxescount].bmax = g_bonetable[k].bmax;
 
-				if (flagDumpHitboxes)
+				if (g_flagdumphitboxes)
 				{
 					printf("$hbox %d \"%s\" %.2f %.2f %.2f  %.2f %.2f %.2f\n",
-						   hitbox[hitboxesCount].group,
-						   bonetable[hitbox[hitboxesCount].bone].name,
-						   hitbox[hitboxesCount].bmin[0], hitbox[hitboxesCount].bmin[1], hitbox[hitboxesCount].bmin[2],
-						   hitbox[hitboxesCount].bmax[0], hitbox[hitboxesCount].bmax[1], hitbox[hitboxesCount].bmax[2]);
+						   g_hitboxCommand[g_hitboxescount].group,
+						   g_bonetable[g_hitboxCommand[g_hitboxescount].bone].name,
+						   g_hitboxCommand[g_hitboxescount].bmin[0], g_hitboxCommand[g_hitboxescount].bmin[1], g_hitboxCommand[g_hitboxescount].bmin[2],
+						   g_hitboxCommand[g_hitboxescount].bmax[0], g_hitboxCommand[g_hitboxescount].bmax[1], g_hitboxCommand[g_hitboxescount].bmax[2]);
 				}
-				hitboxesCount++;
+				g_hitboxescount++;
 			}
 		}
 	}
 	else
 	{
-		for (j = 0; j < hitboxesCount; j++)
+		for (j = 0; j < g_hitboxescount; j++)
 		{
-			for (k = 0; k < bonesCount; k++)
+			for (k = 0; k < g_bonescount; k++)
 			{
-				if (std::strcmp(bonetable[k].name, hitbox[j].name) == 0)
+				if (std::strcmp(g_bonetable[k].name, g_hitboxCommand[j].name) == 0)
 				{
-					hitbox[j].bone = k;
+					g_hitboxCommand[j].bone = k;
 					break;
 				}
 			}
-			if (k >= bonesCount)
-				Error("cannot find bone %s for bbox\n", hitbox[j].name);
+			if (k >= g_bonescount)
+				Error("cannot find bone %s for bbox\n", g_hitboxCommand[j].name);
 		}
 	}
 
 	// relink animations
-	for (i = 0; i < sequenceCount; i++)
+	for (i = 0; i < g_sequencecount; i++)
 	{
 		vec3_t *origpos[MAXSTUDIOSRCBONES] = {0};
 		vec3_t *origrot[MAXSTUDIOSRCBONES] = {0};
 
-		for (q = 0; q < sequence[i].numblends; q++)
+		for (q = 0; q < g_sequenceCommand[i].numblends; q++)
 		{
 			// save pointers to original animations
-			for (j = 0; j < sequence[i].panim[q]->numbones; j++)
+			for (j = 0; j < g_sequenceCommand[i].panim[q]->numbones; j++)
 			{
-				origpos[j] = sequence[i].panim[q]->pos[j];
-				origrot[j] = sequence[i].panim[q]->rot[j];
+				origpos[j] = g_sequenceCommand[i].panim[q]->pos[j];
+				origrot[j] = g_sequenceCommand[i].panim[q]->rot[j];
 			}
 
-			for (j = 0; j < bonesCount; j++)
+			for (j = 0; j < g_bonescount; j++)
 			{
-				if ((k = sequence[i].panim[0]->boneimap[j]) >= 0)
+				if ((k = g_sequenceCommand[i].panim[0]->boneimap[j]) >= 0)
 				{
 					// link to original animations
-					sequence[i].panim[q]->pos[j] = origpos[k];
-					sequence[i].panim[q]->rot[j] = origrot[k];
+					g_sequenceCommand[i].panim[q]->pos[j] = origpos[k];
+					g_sequenceCommand[i].panim[q]->rot[j] = origrot[k];
 				}
 				else
 				{
 					// link to dummy animations
-					sequence[i].panim[q]->pos[j] = defaultpos[j];
-					sequence[i].panim[q]->rot[j] = defaultrot[j];
+					g_sequenceCommand[i].panim[q]->pos[j] = defaultpos[j];
+					g_sequenceCommand[i].panim[q]->rot[j] = defaultrot[j];
 				}
 			}
 		}
 	}
 
 	// find scales for all bones
-	for (j = 0; j < bonesCount; j++)
+	for (j = 0; j < g_bonescount; j++)
 	{
 		for (k = 0; k < 6; k++)
 		{
@@ -738,11 +737,11 @@ void SimplifyModel()
 				maxv = Q_PI / 8.0;
 			}
 
-			for (i = 0; i < sequenceCount; i++)
+			for (i = 0; i < g_sequencecount; i++)
 			{
-				for (q = 0; q < sequence[i].numblends; q++)
+				for (q = 0; q < g_sequenceCommand[i].numblends; q++)
 				{
-					for (n = 0; n < sequence[i].numframes; n++)
+					for (n = 0; n < g_sequenceCommand[i].numframes; n++)
 					{
 						float v;
 						switch (k)
@@ -750,12 +749,12 @@ void SimplifyModel()
 						case 0:
 						case 1:
 						case 2:
-							v = (sequence[i].panim[q]->pos[j][n][k] - bonetable[j].pos[k]);
+							v = (g_sequenceCommand[i].panim[q]->pos[j][n][k] - g_bonetable[j].pos[k]);
 							break;
 						case 3:
 						case 4:
 						case 5:
-							v = (sequence[i].panim[q]->rot[j][n][k - 3] - bonetable[j].rot[k - 3]);
+							v = (g_sequenceCommand[i].panim[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
 							if (v >= Q_PI)
 								v -= Q_PI * 2;
 							if (v < -Q_PI)
@@ -789,19 +788,19 @@ void SimplifyModel()
 			case 0:
 			case 1:
 			case 2:
-				bonetable[j].posscale[k] = scale;
+				g_bonetable[j].posscale[k] = scale;
 				break;
 			case 3:
 			case 4:
 			case 5:
-				bonetable[j].rotscale[k - 3] = scale;
+				g_bonetable[j].rotscale[k - 3] = scale;
 				break;
 			}
 		}
 	}
 
 	// find bounding box for each sequence
-	for (i = 0; i < sequenceCount; i++)
+	for (i = 0; i < g_sequencecount; i++)
 	{
 		vec3_t bmin, bmax;
 
@@ -812,40 +811,40 @@ void SimplifyModel()
 			bmax[j] = -9999.0;
 		}
 
-		for (q = 0; q < sequence[i].numblends; q++)
+		for (q = 0; q < g_sequenceCommand[i].numblends; q++)
 		{
-			for (n = 0; n < sequence[i].numframes; n++)
+			for (n = 0; n < g_sequenceCommand[i].numframes; n++)
 			{
 				float bonetransform[MAXSTUDIOBONES][3][4]; // bone transformation matrix
 				float bonematrix[3][4];					   // local transformation matrix
 				vec3_t pos;
 
-				for (j = 0; j < bonesCount; j++)
+				for (j = 0; j < g_bonescount; j++)
 				{
 					// convert to degrees
-					vec3_t angles = sequence[i].panim[q]->rot[j][n] * (180.0 / Q_PI);
+					vec3_t angles = g_sequenceCommand[i].panim[q]->rot[j][n] * (180.0 / Q_PI);
 
 					AngleMatrix(angles, bonematrix);
 
-					bonematrix[0][3] = sequence[i].panim[q]->pos[j][n][0];
-					bonematrix[1][3] = sequence[i].panim[q]->pos[j][n][1];
-					bonematrix[2][3] = sequence[i].panim[q]->pos[j][n][2];
+					bonematrix[0][3] = g_sequenceCommand[i].panim[q]->pos[j][n][0];
+					bonematrix[1][3] = g_sequenceCommand[i].panim[q]->pos[j][n][1];
+					bonematrix[2][3] = g_sequenceCommand[i].panim[q]->pos[j][n][2];
 
-					if (bonetable[j].parent == -1)
+					if (g_bonetable[j].parent == -1)
 					{
 						MatrixCopy(bonematrix, bonetransform[j]);
 					}
 					else
 					{
-						R_ConcatTransforms(bonetransform[bonetable[j].parent], bonematrix, bonetransform[j]);
+						R_ConcatTransforms(bonetransform[g_bonetable[j].parent], bonematrix, bonetransform[j]);
 					}
 				}
 
-				for (k = 0; k < modelsCount; k++)
+				for (k = 0; k < g_submodelscount; k++)
 				{
-					for (j = 0; j < model[k]->numverts; j++)
+					for (j = 0; j < g_submodel[k]->numverts; j++)
 					{
-						VectorTransform(model[k]->vert[j].org, bonetransform[model[k]->vert[j].bone], pos);
+						VectorTransform(g_submodel[k]->vert[j].org, bonetransform[g_submodel[k]->vert[j].bone], pos);
 
 						if (pos[0] < bmin[0])
 							bmin[0] = pos[0];
@@ -864,8 +863,8 @@ void SimplifyModel()
 			}
 		}
 
-		sequence[i].bmin = bmin;
-		sequence[i].bmax = bmax;
+		g_sequenceCommand[i].bmin = bmin;
+		g_sequenceCommand[i].bmax = bmax;
 	}
 
 	// reduce animations
@@ -874,11 +873,11 @@ void SimplifyModel()
 		int changes = 0;
 		int p;
 
-		for (i = 0; i < sequenceCount; i++)
+		for (i = 0; i < g_sequencecount; i++)
 		{
-			for (q = 0; q < sequence[i].numblends; q++)
+			for (q = 0; q < g_sequenceCommand[i].numblends; q++)
 			{
-				for (j = 0; j < bonesCount; j++)
+				for (j = 0; j < g_bonescount; j++)
 				{
 					for (k = 0; k < 6; k++)
 					{
@@ -887,32 +886,32 @@ void SimplifyModel()
 						short value[MAXSTUDIOANIMATIONS];
 						mstudioanimvalue_t data[MAXSTUDIOANIMATIONS];
 
-						for (n = 0; n < sequence[i].numframes; n++)
+						for (n = 0; n < g_sequenceCommand[i].numframes; n++)
 						{
 							switch (k)
 							{
 							case 0:
 							case 1:
 							case 2:
-								value[n] = (sequence[i].panim[q]->pos[j][n][k] - bonetable[j].pos[k]) / bonetable[j].posscale[k];
+								value[n] = (g_sequenceCommand[i].panim[q]->pos[j][n][k] - g_bonetable[j].pos[k]) / g_bonetable[j].posscale[k];
 								break;
 							case 3:
 							case 4:
 							case 5:
-								v = (sequence[i].panim[q]->rot[j][n][k - 3] - bonetable[j].rot[k - 3]);
+								v = (g_sequenceCommand[i].panim[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
 								if (v >= Q_PI)
 									v -= Q_PI * 2;
 								if (v < -Q_PI)
 									v += Q_PI * 2;
 
-								value[n] = v / bonetable[j].rotscale[k - 3];
+								value[n] = v / g_bonetable[j].rotscale[k - 3];
 								break;
 							}
 						}
 						if (n == 0)
-							Error("no animation frames: \"%s\"\n", sequence[i].name);
+							Error("no animation frames: \"%s\"\n", g_sequenceCommand[i].name);
 
-						sequence[i].panim[q]->numanim[j][k] = 0;
+						g_sequenceCommand[i].panim[q]->numanim[j][k] = 0;
 
 						std::memset(data, 0, sizeof(data));
 						pcount = data;
@@ -962,15 +961,15 @@ void SimplifyModel()
 							pcount->num.total++;
 						}
 
-						sequence[i].panim[q]->numanim[j][k] = pvalue - data;
-						if (sequence[i].panim[q]->numanim[j][k] == 2 && value[0] == 0)
+						g_sequenceCommand[i].panim[q]->numanim[j][k] = pvalue - data;
+						if (g_sequenceCommand[i].panim[q]->numanim[j][k] == 2 && value[0] == 0)
 						{
-							sequence[i].panim[q]->numanim[j][k] = 0;
+							g_sequenceCommand[i].panim[q]->numanim[j][k] = 0;
 						}
 						else
 						{
-							sequence[i].panim[q]->anim[j][k] = (mstudioanimvalue_t *)std::calloc(pvalue - data, sizeof(mstudioanimvalue_t));
-							std::memcpy(sequence[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(mstudioanimvalue_t));
+							g_sequenceCommand[i].panim[q]->anim[j][k] = (mstudioanimvalue_t *)std::calloc(pvalue - data, sizeof(mstudioanimvalue_t));
+							std::memcpy(g_sequenceCommand[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(mstudioanimvalue_t));
 						}
 					}
 				}
@@ -1044,25 +1043,25 @@ char *stristr(const char *string, const char *string2)
 int FindTextureIndex(char *texturename)
 {
 	int i;
-	for (i = 0; i < texturesCount; i++)
+	for (i = 0; i < g_texturescount; i++)
 	{
-		if (stricmp(texture[i].name, texturename) == 0)
+		if (stricmp(g_texture[i].name, texturename) == 0)
 		{
 			return i;
 		}
 	}
 
-	strcpyn(texture[i].name, texturename);
+	strcpyn(g_texture[i].name, texturename);
 
 	// XDM: allow such names as "tex_chrome_bright" - chrome and full brightness effects
 	if (stristr(texturename, "chrome") != NULL)
-		texture[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_CHROME;
+		g_texture[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_CHROME;
 	else if (stristr(texturename, "bright") != NULL)
-		texture[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_FULLBRIGHT;
+		g_texture[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_FULLBRIGHT;
 	else
-		texture[i].flags = 0;
+		g_texture[i].flags = 0;
 
-	texturesCount++;
+	g_texturescount++;
 	return i;
 }
 
@@ -1117,7 +1116,7 @@ int FindVertexNormalIndex(s_model_t *pmodel, s_normal_t *pnormal)
 	int i;
 	for (i = 0; i < pmodel->numnorms; i++)
 	{
-		if (pmodel->normal[i].org.dot(pnormal->org) > flagNormalBlendAngle && pmodel->normal[i].bone == pnormal->bone && pmodel->normal[i].skinref == pnormal->skinref)
+		if (pmodel->normal[i].org.dot(pnormal->org) > g_flagnormalblendangle && pmodel->normal[i].bone == pnormal->bone && pmodel->normal[i].skinref == pnormal->skinref)
 		{
 			return i;
 		}
@@ -1161,16 +1160,16 @@ int FindVertexIndex(s_model_t *pmodel, s_vertex_t *pv)
 
 void AdjustVertexToQcOrigin(vec3_t org)
 {
-	org[0] = (org[0] - sequenceOrigin[0]);
-	org[1] = (org[1] - sequenceOrigin[1]);
-	org[2] = (org[2] - sequenceOrigin[2]);
+	org[0] = (org[0] - g_sequenceOrigin[0]);
+	org[1] = (org[1] - g_sequenceOrigin[1]);
+	org[2] = (org[2] - g_sequenceOrigin[2]);
 }
 
 void ScaleVertexByQcScale(vec3_t org)
 {
-	org[0] = org[0] * scaleBodyAndSequenceOption;
-	org[1] = org[1] * scaleBodyAndSequenceOption;
-	org[2] = org[2] * scaleBodyAndSequenceOption;
+	org[0] = org[0] * g_scaleBodyAndSequenceOption;
+	org[1] = org[1] * g_scaleBodyAndSequenceOption;
+	org[2] = org[2] * g_scaleBodyAndSequenceOption;
 }
 
 // Called for the base frame
@@ -1286,12 +1285,12 @@ void ResizeTexture(s_texture_t *ptexture)
 
 	// TODO: process the texture and flag it if fullbright or transparent are used.
 	// TODO: only save as many palette entries as are actually used.
-	if (gammaCommand != 1.8)
+	if (g_gammaCommand != 1.8)
 	// gamma correct the monster textures to a gamma of 1.8
 	{
 		float g;
 		byte *psrc = (byte *)ptexture->ppal;
-		g = gammaCommand / 1.8;
+		g = g_gammaCommand / 1.8;
 		for (i = 0; i < 768; i++)
 		{
 			pdest[i] = pow(psrc[i] / 255.0, g) * 255;
@@ -1310,15 +1309,15 @@ void Grab_Skin(s_texture_t *ptexture)
 {
 	char textureFilePath[1024];
 
-	sprintf(textureFilePath, "%s/%s", cdPartialPath, ptexture->name);
+	sprintf(textureFilePath, "%s/%s", g_cdPartialPath, ptexture->name);
 	ExpandPathAndArchive(textureFilePath);
 
-	if (cdtexturePathCount)
+	if (g_cdtexturepathcount)
 	{
 		int time1 = -1;
-		for (int i = 0; i < cdtexturePathCount; i++)
+		for (int i = 0; i < g_cdtexturepathcount; i++)
 		{
-			sprintf(textureFilePath, "%s/%s", cdtextureCommand[i], ptexture->name);
+			sprintf(textureFilePath, "%s/%s", g_cdtextureCommand[i], ptexture->name);
 			time1 = FileTime(textureFilePath);
 			if (time1 != -1)
 			{
@@ -1330,7 +1329,7 @@ void Grab_Skin(s_texture_t *ptexture)
 	}
 	else
 	{
-		sprintf(textureFilePath, "%s/%s", cdCommand, ptexture->name);
+		sprintf(textureFilePath, "%s/%s", g_cdCommand, ptexture->name);
 	}
 
 	if (stricmp(".bmp", &textureFilePath[strlen(textureFilePath) - 4]) == 0)
@@ -1347,53 +1346,53 @@ void SetSkinValues()
 {
 	int i, j;
 
-	for (i = 0; i < texturesCount; i++)
+	for (i = 0; i < g_texturescount; i++)
 	{
-		Grab_Skin(&texture[i]);
+		Grab_Skin(&g_texture[i]);
 
-		texture[i].max_s = -9999999;
-		texture[i].min_s = 9999999;
-		texture[i].max_t = -9999999;
-		texture[i].min_t = 9999999;
+		g_texture[i].max_s = -9999999;
+		g_texture[i].min_s = 9999999;
+		g_texture[i].max_t = -9999999;
+		g_texture[i].min_t = 9999999;
 	}
 
-	for (i = 0; i < modelsCount; i++)
+	for (i = 0; i < g_submodelscount; i++)
 	{
-		for (j = 0; j < model[i]->nummesh; j++)
+		for (j = 0; j < g_submodel[i]->nummesh; j++)
 		{
-			TextureCoordRanges(model[i]->pmesh[j], &texture[model[i]->pmesh[j]->skinref]);
+			TextureCoordRanges(g_submodel[i]->pmesh[j], &g_texture[g_submodel[i]->pmesh[j]->skinref]);
 		}
 	}
 
-	for (i = 0; i < texturesCount; i++)
+	for (i = 0; i < g_texturescount; i++)
 	{
-		if (texture[i].max_s < texture[i].min_s)
+		if (g_texture[i].max_s < g_texture[i].min_s)
 		{
 			// must be a replacement texture
-			if (texture[i].flags & STUDIO_NF_CHROME)
+			if (g_texture[i].flags & STUDIO_NF_CHROME)
 			{
-				texture[i].max_s = 63;
-				texture[i].min_s = 0;
-				texture[i].max_t = 63;
-				texture[i].min_t = 0;
+				g_texture[i].max_s = 63;
+				g_texture[i].min_s = 0;
+				g_texture[i].max_t = 63;
+				g_texture[i].min_t = 0;
 			}
 			else
 			{
-				texture[i].max_s = texture[texture[i].parent].max_s;
-				texture[i].min_s = texture[texture[i].parent].min_s;
-				texture[i].max_t = texture[texture[i].parent].max_t;
-				texture[i].min_t = texture[texture[i].parent].min_t;
+				g_texture[i].max_s = g_texture[g_texture[i].parent].max_s;
+				g_texture[i].min_s = g_texture[g_texture[i].parent].min_s;
+				g_texture[i].max_t = g_texture[g_texture[i].parent].max_t;
+				g_texture[i].min_t = g_texture[g_texture[i].parent].min_t;
 			}
 		}
 
-		ResizeTexture(&texture[i]);
+		ResizeTexture(&g_texture[i]);
 	}
 
-	for (i = 0; i < modelsCount; i++)
+	for (i = 0; i < g_submodelscount; i++)
 	{
-		for (j = 0; j < model[i]->nummesh; j++)
+		for (j = 0; j < g_submodel[i]->nummesh; j++)
 		{
-			ResetTextureCoordRanges(model[i]->pmesh[j], &texture[model[i]->pmesh[j]->skinref]);
+			ResetTextureCoordRanges(g_submodel[i]->pmesh[j], &g_texture[g_submodel[i]->pmesh[j]->skinref]);
 		}
 	}
 
@@ -1402,24 +1401,24 @@ void SetSkinValues()
 	{
 		for (j = 0; j < MAXSTUDIOSKINS; j++)
 		{
-			skinref[i][j] = j;
+			g_skinref[i][j] = j;
 		}
 	}
-	for (i = 0; i < texturegrouplayers[0]; i++)
+	for (i = 0; i < g_texturegrouplayers[0]; i++)
 	{
-		for (j = 0; j < texturegroupreps[0]; j++)
+		for (j = 0; j < g_texturegroupreps[0]; j++)
 		{
-			skinref[i][texturegroupCommand[0][0][j]] = texturegroupCommand[0][i][j];
+			g_skinref[i][g_texturegroupCommand[0][0][j]] = g_texturegroupCommand[0][i][j];
 		}
 	}
 	if (i != 0)
 	{
-		skinfamiliesCount = i;
+		g_skinfamiliescount = i;
 	}
 	else
 	{
-		skinfamiliesCount = 1;
-		skinrefCount = texturesCount;
+		g_skinfamiliescount = 1;
+		g_skinrefcount = g_texturescount;
 	}
 }
 
@@ -1441,9 +1440,9 @@ void Build_Reference(s_model_t *pmodel)
 		{
 			// scale the done pos.
 			// calc rotational matrices
-			AngleMatrix(boneAngle, boneFixup[i].m);
-			AngleIMatrix(boneAngle, boneFixup[i].im);
-			boneFixup[i].worldorg = pmodel->skeleton[i].pos;
+			AngleMatrix(boneAngle, g_bonefixup[i].m);
+			AngleIMatrix(boneAngle, g_bonefixup[i].im);
+			g_bonefixup[i].worldorg = pmodel->skeleton[i].pos;
 		}
 		else
 		{
@@ -1452,13 +1451,13 @@ void Build_Reference(s_model_t *pmodel)
 			// calc compound rotational matrices
 			// FIXME : Hey, it's orthogical so inv(A) == transpose(A)
 			AngleMatrix(boneAngle, rotationMatrix);
-			R_ConcatTransforms(boneFixup[parent].m, rotationMatrix, boneFixup[i].m);
+			R_ConcatTransforms(g_bonefixup[parent].m, rotationMatrix, g_bonefixup[i].m);
 			AngleIMatrix(boneAngle, rotationMatrix);
-			R_ConcatTransforms(rotationMatrix, boneFixup[parent].im, boneFixup[i].im);
+			R_ConcatTransforms(rotationMatrix, g_bonefixup[parent].im, g_bonefixup[i].im);
 
 			// calc true world coord.
-			VectorTransform(pmodel->skeleton[i].pos, boneFixup[parent].m, truePos);
-			boneFixup[i].worldorg = truePos + boneFixup[parent].worldorg;
+			VectorTransform(pmodel->skeleton[i].pos, g_bonefixup[parent].m, truePos);
+			g_bonefixup[i].worldorg = truePos + g_bonefixup[parent].worldorg;
 		}
 	}
 }
@@ -1478,7 +1477,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 	// load the base triangles
 	while (true)
 	{
-		if (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
+		if (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
 		{
 			s_mesh_t *pmesh;
 			char triangleMaterial[64];
@@ -1488,29 +1487,29 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 			vec3_t triangleVertices[3];
 			vec3_t triangleNormals[3];
 
-			lineCount++;
+			g_linecount++;
 
 			// check for end
-			if (std::strcmp("end\n", currentLine) == 0)
+			if (std::strcmp("end\n", g_currentline) == 0)
 				return;
 
 			// strip off trailing smag
-			std::strcpy(triangleMaterial, currentLine);
+			std::strcpy(triangleMaterial, g_currentline);
 			for (i = strlen(triangleMaterial) - 1; i >= 0 && !isgraph(triangleMaterial[i]); i--)
 				;
 			triangleMaterial[i + 1] = '\0';
 
 			// funky texture overrides
-			for (i = 0; i < numTextureReplacements; i++)
+			for (i = 0; i < g_numtextureteplacements; i++)
 			{
-				if (sourceTexture[i][0] == '\0')
+				if (g_sourcetexture[i][0] == '\0')
 				{
-					std::strcpy(triangleMaterial, defaultTextures[i]);
+					std::strcpy(triangleMaterial, g_defaulttextures[i]);
 					break;
 				}
-				if (stricmp(triangleMaterial, sourceTexture[i]) == 0)
+				if (stricmp(triangleMaterial, g_sourcetexture[i]) == 0)
 				{
-					std::strcpy(triangleMaterial, defaultTextures[i]);
+					std::strcpy(triangleMaterial, g_defaulttextures[i]);
 					break;
 				}
 			}
@@ -1518,10 +1517,10 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 			if (triangleMaterial[0] == '\0')
 			{
 				// weird model problem, skip them
-				fgets(currentLine, sizeof(currentLine), inputFile);
-				fgets(currentLine, sizeof(currentLine), inputFile);
-				fgets(currentLine, sizeof(currentLine), inputFile);
-				lineCount += 3;
+				fgets(g_currentline, sizeof(g_currentline), g_inputFile);
+				fgets(g_currentline, sizeof(g_currentline), g_inputFile);
+				fgets(g_currentline, sizeof(g_currentline), g_inputFile);
+				g_linecount += 3;
 				continue;
 			}
 
@@ -1529,19 +1528,19 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 
 			for (int j = 0; j < 3; j++)
 			{
-				if (flagFlipTriangles)
+				if (g_flagfliptriangles)
 					// quake wants them in the reverse order
 					ptriangleVert = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + 2 - j;
 				else
 					ptriangleVert = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + j;
 
-				if (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
+				if (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
 				{
 					s_vertex_t triangleVertex;
 					s_normal_t triangleNormal;
 
-					lineCount++;
-					if (sscanf(currentLine, "%d %f %f %f %f %f %f %f %f",
+					g_linecount++;
+					if (sscanf(g_currentline, "%d %f %f %f %f %f %f %f %f",
 							   &parentBone,
 							   &triangleVertex.org[0], &triangleVertex.org[1], &triangleVertex.org[2],
 							   &triangleNormal.org[0], &triangleNormal.org[1], &triangleNormal.org[2],
@@ -1550,7 +1549,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 						if (parentBone < 0 || parentBone >= pmodel->numbones)
 						{
 							fprintf(stderr, "bogus bone index\n");
-							fprintf(stderr, "%d %s :\n%s", lineCount, inputFilename, currentLine);
+							fprintf(stderr, "%d %s :\n%s", g_linecount, g_inputfilename, g_currentline);
 							exit(1);
 						}
 
@@ -1569,12 +1568,12 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 
 						// move vertex position to object space.
 						vec3_t tmp;
-						tmp = triangleVertex.org - boneFixup[triangleVertex.bone].worldorg;
-						VectorTransform(tmp, boneFixup[triangleVertex.bone].im, triangleVertex.org);
+						tmp = triangleVertex.org - g_bonefixup[triangleVertex.bone].worldorg;
+						VectorTransform(tmp, g_bonefixup[triangleVertex.bone].im, triangleVertex.org);
 
 						// move normal to object space.
 						tmp = triangleNormal.org;
-						VectorTransform(tmp, boneFixup[triangleVertex.bone].im, triangleNormal.org);
+						VectorTransform(tmp, g_bonefixup[triangleVertex.bone].im, triangleNormal.org);
 						triangleNormal.org.normalize();
 
 						ptriangleVert->normindex = FindVertexNormalIndex(pmodel, &triangleNormal);
@@ -1585,12 +1584,12 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 					}
 					else
 					{
-						Error("%s: error on line %d: %s", inputFilename, lineCount, currentLine);
+						Error("%s: error on line %d: %s", g_inputfilename, g_linecount, g_currentline);
 					}
 				}
 			}
 
-			if (flagReversedTriangles || flagBadNormals)
+			if (g_flagreversedtriangles || g_flagbadnormals)
 			{
 				// check triangle direction
 
@@ -1598,7 +1597,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 				{
 					badNormalsCount++;
 
-					if (flagBadNormals)
+					if (g_flagbadnormals)
 					{
 						// steal the triangle and make it white
 						s_trianglevert_t *ptriv2;
@@ -1625,7 +1624,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 					z = surfaceNormal.dot(triangleNormals[2]);
 					if (x < 0.0 || y < 0.0 || z < 0.0)
 					{
-						if (flagReversedTriangles)
+						if (g_flagreversedtriangles)
 						{
 							// steal the triangle and make it white
 							s_trianglevert_t *ptriv2;
@@ -1671,10 +1670,10 @@ void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
 	char cmd[1024];
 	int node;
 
-	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
+	while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
 	{
-		lineCount++;
-		if (sscanf(currentLine, "%d %f %f %f %f %f %f", &node, &posX, &posY, &posZ, &rotX, &rotY, &rotZ) == 7)
+		g_linecount++;
+		if (sscanf(g_currentline, "%d %f %f %f %f %f %f", &node, &posX, &posY, &posZ, &rotX, &rotY, &rotZ) == 7)
 		{
 			pbones[node].pos[0] = posX;
 			pbones[node].pos[1] = posY;
@@ -1691,7 +1690,7 @@ void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
 
 			clip_rotations(pbones[node].rot);
 		}
-		else if (sscanf(currentLine, "%s %d", cmd, &node)) // Delete this
+		else if (sscanf(g_currentline, "%s %d", cmd, &node)) // Delete this
 		{
 			if (std::strcmp(cmd, "time") == 0)
 			{
@@ -1712,19 +1711,19 @@ int Grab_SMDNodes(s_node_t *pnodes)
 	int parent;
 	int numBones = 0;
 
-	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
+	while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
 	{
-		lineCount++;
-		if (sscanf(currentLine, "%d \"%[^\"]\" %d", &index, boneName, &parent) == 3)
+		g_linecount++;
+		if (sscanf(g_currentline, "%d \"%[^\"]\" %d", &index, boneName, &parent) == 3)
 		{
 
 			strcpyn(pnodes[index].name, boneName);
 			pnodes[index].parent = parent;
 			numBones = index;
 			// check for mirrored bones;
-			for (int i = 0; i < mirroredCount; i++)
+			for (int i = 0; i < g_mirroredcount; i++)
 			{
-				if (std::strcmp(boneName, mirrorboneCommand[i]) == 0)
+				if (std::strcmp(boneName, g_mirrorboneCommand[i]) == 0)
 					pnodes[index].mirrored = 1;
 			}
 			if ((!pnodes[index].mirrored) && parent != -1)
@@ -1737,7 +1736,7 @@ int Grab_SMDNodes(s_node_t *pnodes)
 			return numBones + 1;
 		}
 	}
-	Error("Unexpected EOF at line %d\n", lineCount);
+	Error("Unexpected EOF at line %d\n", g_linecount);
 	return 0;
 }
 
@@ -1747,23 +1746,23 @@ void ParseSMD(s_model_t *pmodel)
 	char cmd[1024];
 	int option;
 
-	sprintf(inputFilename, "%s/%s.smd", cdCommand, pmodel->name);
-	time1 = FileTime(inputFilename);
+	sprintf(g_inputfilename, "%s/%s.smd", g_cdCommand, pmodel->name);
+	time1 = FileTime(g_inputfilename);
 	if (time1 == -1)
-		Error("%s doesn't exist", inputFilename);
+		Error("%s doesn't exist", g_inputfilename);
 
-	printf("grabbing %s\n", inputFilename);
+	printf("grabbing %s\n", g_inputfilename);
 
-	if ((inputFile = fopen(inputFilename, "r")) == 0)
+	if ((g_inputFile = fopen(g_inputfilename, "r")) == 0)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", inputFilename);
+		fprintf(stderr, "reader: could not open file '%s'\n", g_inputfilename);
 	}
-	lineCount = 0;
+	g_linecount = 0;
 
-	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
+	while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
 	{
-		lineCount++;
-		sscanf(currentLine, "%s %d", cmd, &option);
+		g_linecount++;
+		sscanf(g_currentline, "%s %d", cmd, &option);
 		if (std::strcmp(cmd, "version") == 0)
 		{
 			if (option != 1)
@@ -1788,7 +1787,7 @@ void ParseSMD(s_model_t *pmodel)
 			printf("unknown studio command\n");
 		}
 	}
-	fclose(inputFile);
+	fclose(g_inputFile);
 }
 
 void Cmd_Eyeposition()
@@ -1796,25 +1795,25 @@ void Cmd_Eyeposition()
 	// rotate points into frame of reference so model points down the positive x
 	// axis
 	GetToken(false);
-	eyeposition[1] = atof(token);
+	g_eyepositionCommand[1] = atof(g_token);
 
 	GetToken(false);
-	eyeposition[0] = -atof(token);
+	g_eyepositionCommand[0] = -atof(g_token);
 
 	GetToken(false);
-	eyeposition[2] = atof(token);
+	g_eyepositionCommand[2] = atof(g_token);
 }
 
 void Cmd_Flags()
 {
 	GetToken(false);
-	gflags = atoi(token);
+	g_flagsCommand = atoi(g_token);
 }
 
 void Cmd_Modelname()
 {
 	GetToken(false);
-	strcpyn(outname, token);
+	strcpyn(g_modelnameCommand, g_token);
 }
 
 void Cmd_Body_OptionStudio()
@@ -1822,46 +1821,46 @@ void Cmd_Body_OptionStudio()
 	if (!GetToken(false))
 		return;
 
-	model[modelsCount] = (s_model_t *)std::calloc(1, sizeof(s_model_t));
-	bodypart[bodygroupCount].pmodel[bodypart[bodygroupCount].nummodels] = model[modelsCount];
+	g_submodel[g_submodelscount] = (s_model_t *)std::calloc(1, sizeof(s_model_t));
+	g_bodypart[g_bodygroupcount].pmodel[g_bodypart[g_bodygroupcount].nummodels] = g_submodel[g_submodelscount];
 
-	strcpyn(model[modelsCount]->name, token);
+	strcpyn(g_submodel[g_submodelscount]->name, g_token);
 
-	flagFlipTriangles = 1;
+	g_flagfliptriangles = 1;
 
-	scaleBodyAndSequenceOption = scaleCommand;
+	g_scaleBodyAndSequenceOption = g_scaleCommand;
 
 	while (TokenAvailable())
 	{
 		GetToken(false);
-		if (stricmp("reverse", token) == 0)
+		if (stricmp("reverse", g_token) == 0)
 		{
-			flagFlipTriangles = 0;
+			g_flagfliptriangles = 0;
 		}
-		else if (stricmp("scale", token) == 0)
+		else if (stricmp("scale", g_token) == 0)
 		{
 			GetToken(false);
-			scaleBodyAndSequenceOption = atof(token);
+			g_scaleBodyAndSequenceOption = atof(g_token);
 		}
 	}
 
-	ParseSMD(model[modelsCount]);
+	ParseSMD(g_submodel[g_submodelscount]);
 
-	bodypart[bodygroupCount].nummodels++;
-	modelsCount++;
+	g_bodypart[g_bodygroupcount].nummodels++;
+	g_submodelscount++;
 
-	scaleBodyAndSequenceOption = scaleCommand;
+	g_scaleBodyAndSequenceOption = g_scaleCommand;
 }
 
 int Cmd_Body_OptionBlank()
 {
-	model[modelsCount] = (s_model_t *)(1, sizeof(s_model_t));
-	bodypart[bodygroupCount].pmodel[bodypart[bodygroupCount].nummodels] = model[modelsCount];
+	g_submodel[g_submodelscount] = (s_model_t *)(1, sizeof(s_model_t));
+	g_bodypart[g_bodygroupcount].pmodel[g_bodypart[g_bodygroupcount].nummodels] = g_submodel[g_submodelscount];
 
-	strcpyn(model[modelsCount]->name, "blank");
+	strcpyn(g_submodel[g_submodelscount]->name, "blank");
 
-	bodypart[bodygroupCount].nummodels++;
-	modelsCount++;
+	g_bodypart[g_bodygroupcount].nummodels++;
+	g_submodelscount++;
 	return 0;
 }
 
@@ -1870,42 +1869,42 @@ void Cmd_Bodygroup()
 	if (!GetToken(false))
 		return;
 
-	if (bodygroupCount == 0)
+	if (g_bodygroupcount == 0)
 	{
-		bodypart[bodygroupCount].base = 1;
+		g_bodypart[g_bodygroupcount].base = 1;
 	}
 	else
 	{
-		bodypart[bodygroupCount].base = bodypart[bodygroupCount - 1].base * bodypart[bodygroupCount - 1].nummodels;
+		g_bodypart[g_bodygroupcount].base = g_bodypart[g_bodygroupcount - 1].base * g_bodypart[g_bodygroupcount - 1].nummodels;
 	}
-	strcpyn(bodypart[bodygroupCount].name, token);
+	strcpyn(g_bodypart[g_bodygroupcount].name, g_token);
 
 	while (true)
 	{
 		int is_started = 0;
 		GetToken(true);
-		if (endofscript)
+		if (g_endofscript)
 			return;
 
-		if (token[0] == '{')
+		if (g_token[0] == '{')
 		{
 			is_started = 1;
 		}
-		else if (token[0] == '}')
+		else if (g_token[0] == '}')
 		{
 			break;
 		}
-		else if (stricmp("studio", token) == 0)
+		else if (stricmp("studio", g_token) == 0)
 		{
 			Cmd_Body_OptionStudio();
 		}
-		else if (stricmp("blank", token) == 0)
+		else if (stricmp("blank", g_token) == 0)
 		{
 			Cmd_Body_OptionBlank();
 		}
 	}
 
-	bodygroupCount++;
+	g_bodygroupcount++;
 	return;
 }
 
@@ -1914,19 +1913,19 @@ void Cmd_Body()
 	if (!GetToken(false))
 		return;
 
-	if (bodygroupCount == 0)
+	if (g_bodygroupcount == 0)
 	{
-		bodypart[bodygroupCount].base = 1;
+		g_bodypart[g_bodygroupcount].base = 1;
 	}
 	else
 	{
-		bodypart[bodygroupCount].base = bodypart[bodygroupCount - 1].base * bodypart[bodygroupCount - 1].nummodels;
+		g_bodypart[g_bodygroupcount].base = g_bodypart[g_bodygroupcount - 1].base * g_bodypart[g_bodygroupcount - 1].nummodels;
 	}
-	strcpyn(bodypart[bodygroupCount].name, token);
+	strcpyn(g_bodypart[g_bodygroupcount].name, g_token);
 
 	Cmd_Body_OptionStudio();
 
-	bodygroupCount++;
+	g_bodygroupcount++;
 }
 
 void Grab_OptionAnimation(s_animation_t *panim)
@@ -1946,13 +1945,13 @@ void Grab_OptionAnimation(s_animation_t *panim)
 		panim->rot[index] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
 	}
 
-	cz = cos(rotateCommand);
-	sz = sin(rotateCommand);
+	cz = cos(g_rotateCommand);
+	sz = sin(g_rotateCommand);
 
-	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
+	while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
 	{
-		lineCount++;
-		if (sscanf(currentLine, "%d %f %f %f %f %f %f", &index, &pos[0], &pos[1], &pos[2], &rot[0], &rot[1], &rot[2]) == 7)
+		g_linecount++;
+		if (sscanf(g_currentline, "%d %f %f %f %f %f %f", &index, &pos[0], &pos[1], &pos[2], &rot[0], &rot[1], &rot[2]) == 7)
 		{
 			if (t >= panim->startframe && t <= panim->endframe)
 			{
@@ -1963,7 +1962,7 @@ void Grab_OptionAnimation(s_animation_t *panim)
 					panim->pos[index][t][1] = sz * pos[0] + cz * pos[1];
 					panim->pos[index][t][2] = pos[2];
 					// rotate model
-					rot[2] += rotateCommand;
+					rot[2] += g_rotateCommand;
 				}
 				else
 				{
@@ -1984,7 +1983,7 @@ void Grab_OptionAnimation(s_animation_t *panim)
 				panim->rot[index][t] = rot;
 			}
 		}
-		else if (sscanf(currentLine, "%s %d", cmd, &index))
+		else if (sscanf(g_currentline, "%s %d", cmd, &index))
 		{
 			if (std::strcmp(cmd, "time") == 0)
 			{
@@ -1998,12 +1997,12 @@ void Grab_OptionAnimation(s_animation_t *panim)
 			}
 			else
 			{
-				Error("Error(%d) : %s", lineCount, currentLine);
+				Error("Error(%d) : %s", g_linecount, g_currentline);
 			}
 		}
 		else
 		{
-			Error("Error(%d) : %s", lineCount, currentLine);
+			Error("Error(%d) : %s", g_linecount, g_currentline);
 		}
 	}
 	Error("unexpected EOF: %s\n", panim->name);
@@ -2042,24 +2041,24 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 
 	strcpyn(panim->name, name);
 
-	sprintf(inputFilename, "%s/%s.smd", cdCommand, panim->name);
-	time1 = FileTime(inputFilename);
+	sprintf(g_inputfilename, "%s/%s.smd", g_cdCommand, panim->name);
+	time1 = FileTime(g_inputfilename);
 	if (time1 == -1)
-		Error("%s doesn't exist", inputFilename);
+		Error("%s doesn't exist", g_inputfilename);
 
-	printf("grabbing %s\n", inputFilename);
+	printf("grabbing %s\n", g_inputfilename);
 
-	if ((inputFile = fopen(inputFilename, "r")) == 0)
+	if ((g_inputFile = fopen(g_inputfilename, "r")) == 0)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", inputFilename);
+		fprintf(stderr, "reader: could not open file '%s'\n", g_inputfilename);
 		Error(0);
 	}
-	lineCount = 0;
+	g_linecount = 0;
 
-	while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
+	while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
 	{
-		lineCount++;
-		sscanf(currentLine, "%s %d", cmd, &option);
+		g_linecount++;
+		sscanf(g_currentline, "%s %d", cmd, &option);
 		if (std::strcmp(cmd, "version") == 0)
 		{
 			if (option != 1)
@@ -2079,15 +2078,15 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 		else
 		{
 			printf("unknown studio command : %s\n", cmd);
-			while (fgets(currentLine, sizeof(currentLine), inputFile) != NULL)
+			while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
 			{
-				lineCount++;
-				if (strncmp(currentLine, "end", 3) == 0)
+				g_linecount++;
+				if (strncmp(g_currentline, "end", 3) == 0)
 					break;
 			}
 		}
 	}
-	fclose(inputFile);
+	fclose(g_inputFile);
 }
 
 int Cmd_Sequence_OptionDeform(s_sequence_t *psequence) // delete this
@@ -2106,11 +2105,11 @@ int Cmd_Sequence_OptionEvent(s_sequence_t *psequence)
 	}
 
 	GetToken(false);
-	event = atoi(token);
+	event = atoi(g_token);
 	psequence->event[psequence->numevents].event = event;
 
 	GetToken(false);
-	psequence->event[psequence->numevents].frame = atoi(token);
+	psequence->event[psequence->numevents].frame = atoi(g_token);
 
 	psequence->numevents++;
 
@@ -2118,10 +2117,10 @@ int Cmd_Sequence_OptionEvent(s_sequence_t *psequence)
 	if (TokenAvailable())
 	{
 		GetToken(false);
-		if (token[0] == '}') // opps, hit the end
+		if (g_token[0] == '}') // opps, hit the end
 			return 1;
 		// found an option
-		std::strcpy(psequence->event[psequence->numevents - 1].options, token);
+		std::strcpy(psequence->event[psequence->numevents - 1].options, g_token);
 	}
 
 	return 0;
@@ -2131,7 +2130,7 @@ int Cmd_Sequence_OptionFps(s_sequence_t *psequence)
 {
 	GetToken(false);
 
-	psequence->fps = atof(token);
+	psequence->fps = atof(g_token);
 
 	return 0;
 }
@@ -2145,13 +2144,13 @@ int Cmd_Sequence_OptionAddPivot(s_sequence_t *psequence)
 	}
 
 	GetToken(false);
-	psequence->pivot[psequence->numpivots].index = atoi(token);
+	psequence->pivot[psequence->numpivots].index = atoi(g_token);
 
 	GetToken(false);
-	psequence->pivot[psequence->numpivots].start = atoi(token);
+	psequence->pivot[psequence->numpivots].start = atoi(g_token);
 
 	GetToken(false);
-	psequence->pivot[psequence->numpivots].end = atoi(token);
+	psequence->pivot[psequence->numpivots].end = atoi(g_token);
 
 	psequence->numpivots++;
 
@@ -2161,65 +2160,65 @@ int Cmd_Sequence_OptionAddPivot(s_sequence_t *psequence)
 void Cmd_Origin()
 {
 	GetToken(false);
-	originCommand[0] = atof(token);
+	g_originCommand[0] = atof(g_token);
 
 	GetToken(false);
-	originCommand[1] = atof(token);
+	g_originCommand[1] = atof(g_token);
 
 	GetToken(false);
-	originCommand[2] = atof(token);
+	g_originCommand[2] = atof(g_token);
 
 	if (TokenAvailable())
 	{
 		GetToken(false);
-		originCommandRotation = (atof(token) + 90) * (Q_PI / 180.0);
+		g_originCommandRotation = (atof(g_token) + 90) * (Q_PI / 180.0);
 	}
 }
 
 void Cmd_Sequence_OptionOrigin()
 {
 	GetToken(false);
-	sequenceOrigin[0] = atof(token);
+	g_sequenceOrigin[0] = atof(g_token);
 
 	GetToken(false);
-	sequenceOrigin[1] = atof(token);
+	g_sequenceOrigin[1] = atof(g_token);
 
 	GetToken(false);
-	sequenceOrigin[2] = atof(token);
+	g_sequenceOrigin[2] = atof(g_token);
 }
 
 void Cmd_Sequence_OptionRotate()
 {
 	GetToken(false);
-	rotateCommand = (atof(token) + 90) * (Q_PI / 180.0);
+	g_rotateCommand = (atof(g_token) + 90) * (Q_PI / 180.0);
 }
 
 void Cmd_ScaleUp()
 {
 
 	GetToken(false);
-	scaleCommand = scaleBodyAndSequenceOption = atof(token);
+	g_scaleCommand = g_scaleBodyAndSequenceOption = atof(g_token);
 }
 
 void Cmd_Rotate() // XDM
 {
 	if (!GetToken(false))
 		return;
-	rotateCommand = (atof(token) + 90) * (Q_PI / 180.0);
+	g_rotateCommand = (atof(g_token) + 90) * (Q_PI / 180.0);
 }
 
 void Cmd_Sequence_OptionScaleUp()
 {
 
 	GetToken(false);
-	scaleBodyAndSequenceOption = atof(token);
+	g_scaleBodyAndSequenceOption = atof(g_token);
 }
 
 int Cmd_SequenceGroup()
 {
 	GetToken(false);
-	strcpyn(sequencegroup[sequencegroupCount].label, token);
-	sequencegroupCount++;
+	strcpyn(g_sequencegroupCommand[g_sequencegroupcount].label, g_token);
+	g_sequencegroupcount++;
 
 	return 0;
 }
@@ -2251,16 +2250,16 @@ int Cmd_Sequence()
 	if (!GetToken(false))
 		return 0;
 
-	strcpyn(sequence[sequenceCount].name, token);
+	strcpyn(g_sequenceCommand[g_sequencecount].name, g_token);
 
-	sequenceOrigin = originCommand;
-	scaleBodyAndSequenceOption = scaleCommand;
+	g_sequenceOrigin = g_originCommand;
+	g_scaleBodyAndSequenceOption = g_scaleCommand;
 
-	rotateCommand = originCommandRotation;
-	sequence[sequenceCount].fps = 30.0;
-	sequence[sequenceCount].seqgroup = sequencegroupCount - 1;
-	sequence[sequenceCount].blendstart[0] = 0.0;
-	sequence[sequenceCount].blendend[0] = 1.0;
+	g_rotateCommand = g_originCommandRotation;
+	g_sequenceCommand[g_sequencecount].fps = 30.0;
+	g_sequenceCommand[g_sequencecount].seqgroup = g_sequencegroupcount - 1;
+	g_sequenceCommand[g_sequencecount].blendstart[0] = 0.0;
+	g_sequenceCommand[g_sequencecount].blendend[0] = 1.0;
 
 	while (true)
 	{
@@ -2283,7 +2282,7 @@ int Cmd_Sequence()
 			}
 		}
 
-		if (endofscript)
+		if (g_endofscript)
 		{
 			if (depth != 0)
 			{
@@ -2292,100 +2291,100 @@ int Cmd_Sequence()
 			}
 			return 1;
 		}
-		if (stricmp("{", token) == 0)
+		if (stricmp("{", g_token) == 0)
 		{
 			depth++;
 		}
-		else if (stricmp("}", token) == 0)
+		else if (stricmp("}", g_token) == 0)
 		{
 			depth--;
 		}
-		else if (stricmp("deform", token) == 0)
+		else if (stricmp("deform", g_token) == 0)
 		{
-			Cmd_Sequence_OptionDeform(&sequence[sequenceCount]);
+			Cmd_Sequence_OptionDeform(&g_sequenceCommand[g_sequencecount]);
 		}
-		else if (stricmp("event", token) == 0)
+		else if (stricmp("event", g_token) == 0)
 		{
-			depth -= Cmd_Sequence_OptionEvent(&sequence[sequenceCount]);
+			depth -= Cmd_Sequence_OptionEvent(&g_sequenceCommand[g_sequencecount]);
 		}
-		else if (stricmp("pivot", token) == 0)
+		else if (stricmp("pivot", g_token) == 0)
 		{
-			Cmd_Sequence_OptionAddPivot(&sequence[sequenceCount]);
+			Cmd_Sequence_OptionAddPivot(&g_sequenceCommand[g_sequencecount]);
 		}
-		else if (stricmp("fps", token) == 0)
+		else if (stricmp("fps", g_token) == 0)
 		{
-			Cmd_Sequence_OptionFps(&sequence[sequenceCount]);
+			Cmd_Sequence_OptionFps(&g_sequenceCommand[g_sequencecount]);
 		}
-		else if (stricmp("origin", token) == 0)
+		else if (stricmp("origin", g_token) == 0)
 		{
 			Cmd_Sequence_OptionOrigin();
 		}
-		else if (stricmp("rotate", token) == 0)
+		else if (stricmp("rotate", g_token) == 0)
 		{
 			Cmd_Sequence_OptionRotate();
 		}
-		else if (stricmp("scale", token) == 0)
+		else if (stricmp("scale", g_token) == 0)
 		{
 			Cmd_Sequence_OptionScaleUp();
 		}
-		else if (strnicmp("loop", token, 4) == 0)
+		else if (strnicmp("loop", g_token, 4) == 0)
 		{
-			sequence[sequenceCount].flags |= STUDIO_LOOPING;
+			g_sequenceCommand[g_sequencecount].flags |= STUDIO_LOOPING;
 		}
-		else if (strnicmp("frame", token, 5) == 0)
+		else if (strnicmp("frame", g_token, 5) == 0)
 		{
 			GetToken(false);
-			start = atoi(token);
+			start = atoi(g_token);
 			GetToken(false);
-			end = atoi(token);
+			end = atoi(g_token);
 		}
-		else if (strnicmp("blend", token, 5) == 0)
+		else if (strnicmp("blend", g_token, 5) == 0)
 		{
 			GetToken(false);
-			sequence[sequenceCount].blendtype[0] = lookupControl(token);
+			g_sequenceCommand[g_sequencecount].blendtype[0] = lookupControl(g_token);
 			GetToken(false);
-			sequence[sequenceCount].blendstart[0] = atof(token);
+			g_sequenceCommand[g_sequencecount].blendstart[0] = atof(g_token);
 			GetToken(false);
-			sequence[sequenceCount].blendend[0] = atof(token);
+			g_sequenceCommand[g_sequencecount].blendend[0] = atof(g_token);
 		}
-		else if (strnicmp("node", token, 4) == 0)
+		else if (strnicmp("node", g_token, 4) == 0)
 		{
 			GetToken(false);
-			sequence[sequenceCount].entrynode = sequence[sequenceCount].exitnode = atoi(token);
+			g_sequenceCommand[g_sequencecount].entrynode = g_sequenceCommand[g_sequencecount].exitnode = atoi(g_token);
 		}
-		else if (strnicmp("transition", token, 4) == 0)
+		else if (strnicmp("transition", g_token, 4) == 0)
 		{
 			GetToken(false);
-			sequence[sequenceCount].entrynode = atoi(token);
+			g_sequenceCommand[g_sequencecount].entrynode = atoi(g_token);
 			GetToken(false);
-			sequence[sequenceCount].exitnode = atoi(token);
+			g_sequenceCommand[g_sequencecount].exitnode = atoi(g_token);
 		}
-		else if (strnicmp("rtransition", token, 4) == 0)
+		else if (strnicmp("rtransition", g_token, 4) == 0)
 		{
 			GetToken(false);
-			sequence[sequenceCount].entrynode = atoi(token);
+			g_sequenceCommand[g_sequencecount].entrynode = atoi(g_token);
 			GetToken(false);
-			sequence[sequenceCount].exitnode = atoi(token);
-			sequence[sequenceCount].nodeflags |= 1;
+			g_sequenceCommand[g_sequencecount].exitnode = atoi(g_token);
+			g_sequenceCommand[g_sequencecount].nodeflags |= 1;
 		}
-		else if (lookupControl(token) != -1) // motion flags [motion extraction]
+		else if (lookupControl(g_token) != -1) // motion flags [motion extraction]
 		{
-			sequence[sequenceCount].motiontype |= lookupControl(token);
+			g_sequenceCommand[g_sequencecount].motiontype |= lookupControl(g_token);
 		}
-		else if (stricmp("animation", token) == 0)
+		else if (stricmp("animation", g_token) == 0)
 		{
 			GetToken(false);
-			strcpyn(smdfilename[numblends++], token);
+			strcpyn(smdfilename[numblends++], g_token);
 		}
-		else if ((i = Cmd_Sequence_OptionAction(token)) != 0)
+		else if ((i = Cmd_Sequence_OptionAction(g_token)) != 0)
 		{
-			sequence[sequenceCount].activity = i;
+			g_sequenceCommand[g_sequencecount].activity = i;
 			GetToken(false);
-			sequence[sequenceCount].actweight = atoi(token);
+			g_sequenceCommand[g_sequencecount].actweight = atoi(g_token);
 		}
 		else
 		{
-			strcpyn(smdfilename[numblends++], token);
+			strcpyn(smdfilename[numblends++], g_token);
 		}
 
 		if (depth < 0)
@@ -2402,17 +2401,17 @@ int Cmd_Sequence()
 	}
 	for (i = 0; i < numblends; i++)
 	{
-		animationSequenceOption[animationCount] = (s_animation_t *)malloc(sizeof(s_animation_t));
-		sequence[sequenceCount].panim[i] = animationSequenceOption[animationCount];
-		sequence[sequenceCount].panim[i]->startframe = start;
-		sequence[sequenceCount].panim[i]->endframe = end;
-		sequence[sequenceCount].panim[i]->flags = 0;
-		Cmd_Sequence_OptionAnimation(smdfilename[i], animationSequenceOption[animationCount]);
-		animationCount++;
+		g_animationSequenceOption[g_animationcount] = (s_animation_t *)malloc(sizeof(s_animation_t));
+		g_sequenceCommand[g_sequencecount].panim[i] = g_animationSequenceOption[g_animationcount];
+		g_sequenceCommand[g_sequencecount].panim[i]->startframe = start;
+		g_sequenceCommand[g_sequencecount].panim[i]->endframe = end;
+		g_sequenceCommand[g_sequencecount].panim[i]->flags = 0;
+		Cmd_Sequence_OptionAnimation(smdfilename[i], g_animationSequenceOption[g_animationcount]);
+		g_animationcount++;
 	}
-	sequence[sequenceCount].numblends = numblends;
+	g_sequenceCommand[g_sequencecount].numblends = numblends;
 
-	sequenceCount++;
+	g_sequencecount++;
 
 	return 0;
 }
@@ -2421,36 +2420,36 @@ int Cmd_Controller()
 {
 	if (GetToken(false))
 	{
-		if (!std::strcmp("mouth", token))
+		if (!std::strcmp("mouth", g_token))
 		{
-			bonecontroller[bonecontrollersCount].index = 4;
+			g_bonecontrollerCommand[g_bonecontrollerscount].index = 4;
 		}
 		else
 		{
-			bonecontroller[bonecontrollersCount].index = atoi(token);
+			g_bonecontrollerCommand[g_bonecontrollerscount].index = atoi(g_token);
 		}
 		if (GetToken(false))
 		{
-			strcpyn(bonecontroller[bonecontrollersCount].name, token);
+			strcpyn(g_bonecontrollerCommand[g_bonecontrollerscount].name, g_token);
 			GetToken(false);
-			if ((bonecontroller[bonecontrollersCount].type = lookupControl(token)) == -1)
+			if ((g_bonecontrollerCommand[g_bonecontrollerscount].type = lookupControl(g_token)) == -1)
 			{
-				printf("unknown bonecontroller type '%s'\n", token);
+				printf("unknown bonecontroller type '%s'\n", g_token);
 				return 0;
 			}
 			GetToken(false);
-			bonecontroller[bonecontrollersCount].start = atof(token);
+			g_bonecontrollerCommand[g_bonecontrollerscount].start = atof(g_token);
 			GetToken(false);
-			bonecontroller[bonecontrollersCount].end = atof(token);
+			g_bonecontrollerCommand[g_bonecontrollerscount].end = atof(g_token);
 
-			if (bonecontroller[bonecontrollersCount].type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
+			if (g_bonecontrollerCommand[g_bonecontrollerscount].type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
 			{
-				if ((static_cast<int>(bonecontroller[bonecontrollersCount].start + 360) % 360) == (static_cast<int>(bonecontroller[bonecontrollersCount].end + 360) % 360))
+				if ((static_cast<int>(g_bonecontrollerCommand[g_bonecontrollerscount].start + 360) % 360) == (static_cast<int>(g_bonecontrollerCommand[g_bonecontrollerscount].end + 360) % 360))
 				{
-					bonecontroller[bonecontrollersCount].type |= STUDIO_RLOOP;
+					g_bonecontrollerCommand[g_bonecontrollerscount].type |= STUDIO_RLOOP;
 				}
 			}
-			bonecontrollersCount++;
+			g_bonecontrollerscount++;
 		}
 	}
 	return 1;
@@ -2459,55 +2458,55 @@ int Cmd_Controller()
 void Cmd_BBox()
 {
 	GetToken(false);
-	bbox[0][0] = atof(token);
+	g_bboxCommand[0][0] = atof(g_token);
 
 	GetToken(false);
-	bbox[0][1] = atof(token);
+	g_bboxCommand[0][1] = atof(g_token);
 
 	GetToken(false);
-	bbox[0][2] = atof(token);
+	g_bboxCommand[0][2] = atof(g_token);
 
 	GetToken(false);
-	bbox[1][0] = atof(token);
+	g_bboxCommand[1][0] = atof(g_token);
 
 	GetToken(false);
-	bbox[1][1] = atof(token);
+	g_bboxCommand[1][1] = atof(g_token);
 
 	GetToken(false);
-	bbox[1][2] = atof(token);
+	g_bboxCommand[1][2] = atof(g_token);
 }
 
 void Cmd_CBox()
 {
 	GetToken(false);
-	cbox[0][0] = atof(token);
+	g_cboxCommand[0][0] = atof(g_token);
 
 	GetToken(false);
-	cbox[0][1] = atof(token);
+	g_cboxCommand[0][1] = atof(g_token);
 
 	GetToken(false);
-	cbox[0][2] = atof(token);
+	g_cboxCommand[0][2] = atof(g_token);
 
 	GetToken(false);
-	cbox[1][0] = atof(token);
+	g_cboxCommand[1][0] = atof(g_token);
 
 	GetToken(false);
-	cbox[1][1] = atof(token);
+	g_cboxCommand[1][1] = atof(g_token);
 
 	GetToken(false);
-	cbox[1][2] = atof(token);
+	g_cboxCommand[1][2] = atof(g_token);
 }
 
 void Cmd_Mirror()
 {
 	GetToken(false);
-	strcpyn(mirrorboneCommand[mirroredCount++], token);
+	strcpyn(g_mirrorboneCommand[g_mirroredcount++], g_token);
 }
 
 void Cmd_Gamma()
 {
 	GetToken(false);
-	gammaCommand = atof(token);
+	g_gammaCommand = atof(g_token);
 }
 
 int Cmd_TextureGroup()
@@ -2517,14 +2516,14 @@ int Cmd_TextureGroup()
 	int index = 0;
 	int group = 0;
 
-	if (texturesCount == 0)
+	if (g_texturescount == 0)
 		Error("texturegroups must follow model loading\n");
 
 	if (!GetToken(false))
 		return 0;
 
-	if (skinrefCount == 0)
-		skinrefCount = texturesCount;
+	if (g_skinrefcount == 0)
+		g_skinrefcount = g_texturescount;
 
 	while (true)
 	{
@@ -2533,7 +2532,7 @@ int Cmd_TextureGroup()
 			break;
 		}
 
-		if (endofscript)
+		if (g_endofscript)
 		{
 			if (depth != 0)
 			{
@@ -2541,11 +2540,11 @@ int Cmd_TextureGroup()
 			}
 			return 1;
 		}
-		if (token[0] == '{')
+		if (g_token[0] == '{')
 		{
 			depth++;
 		}
-		else if (token[0] == '}')
+		else if (g_token[0] == '}')
 		{
 			depth--;
 			if (depth == 0)
@@ -2555,17 +2554,17 @@ int Cmd_TextureGroup()
 		}
 		else if (depth == 2)
 		{
-			i = FindTextureIndex(token);
-			texturegroupCommand[texturegroupCount][group][index] = i;
+			i = FindTextureIndex(g_token);
+			g_texturegroupCommand[g_texturegroupCount][group][index] = i;
 			if (group != 0)
-				texture[i].parent = texturegroupCommand[texturegroupCount][0][index];
+				g_texture[i].parent = g_texturegroupCommand[g_texturegroupCount][0][index];
 			index++;
-			texturegroupreps[texturegroupCount] = index;
-			texturegrouplayers[texturegroupCount] = group + 1;
+			g_texturegroupreps[g_texturegroupCount] = index;
+			g_texturegrouplayers[g_texturegroupCount] = group + 1;
 		}
 	}
 
-	texturegroupCount++;
+	g_texturegroupCount++;
 
 	return 0;
 }
@@ -2573,10 +2572,10 @@ int Cmd_TextureGroup()
 int Cmd_Hitgroup()
 {
 	GetToken(false);
-	hitgroupCommand[hitgroupsCount].group = atoi(token);
+	g_hitgroupCommand[g_hitgroupscount].group = atoi(g_token);
 	GetToken(false);
-	strcpyn(hitgroupCommand[hitgroupsCount].name, token);
-	hitgroupsCount++;
+	strcpyn(g_hitgroupCommand[g_hitgroupscount].name, g_token);
+	g_hitgroupscount++;
 
 	return 0;
 }
@@ -2584,23 +2583,23 @@ int Cmd_Hitgroup()
 int Cmd_Hitbox()
 {
 	GetToken(false);
-	hitbox[hitboxesCount].group = atoi(token);
+	g_hitboxCommand[g_hitboxescount].group = atoi(g_token);
 	GetToken(false);
-	strcpyn(hitbox[hitboxesCount].name, token);
+	strcpyn(g_hitboxCommand[g_hitboxescount].name, g_token);
 	GetToken(false);
-	hitbox[hitboxesCount].bmin[0] = atof(token);
+	g_hitboxCommand[g_hitboxescount].bmin[0] = atof(g_token);
 	GetToken(false);
-	hitbox[hitboxesCount].bmin[1] = atof(token);
+	g_hitboxCommand[g_hitboxescount].bmin[1] = atof(g_token);
 	GetToken(false);
-	hitbox[hitboxesCount].bmin[2] = atof(token);
+	g_hitboxCommand[g_hitboxescount].bmin[2] = atof(g_token);
 	GetToken(false);
-	hitbox[hitboxesCount].bmax[0] = atof(token);
+	g_hitboxCommand[g_hitboxescount].bmax[0] = atof(g_token);
 	GetToken(false);
-	hitbox[hitboxesCount].bmax[1] = atof(token);
+	g_hitboxCommand[g_hitboxescount].bmax[1] = atof(g_token);
 	GetToken(false);
-	hitbox[hitboxesCount].bmax[2] = atof(token);
+	g_hitboxCommand[g_hitboxescount].bmax[2] = atof(g_token);
 
-	hitboxesCount++;
+	g_hitboxescount++;
 
 	return 0;
 }
@@ -2609,19 +2608,19 @@ int Cmd_Attachment()
 {
 	// index
 	GetToken(false);
-	attachment[attachmentsCount].index = atoi(token);
+	g_attachmentCommand[g_attachmentscount].index = atoi(g_token);
 
 	// bone name
 	GetToken(false);
-	strcpyn(attachment[attachmentsCount].bonename, token);
+	strcpyn(g_attachmentCommand[g_attachmentscount].bonename, g_token);
 
 	// position
 	GetToken(false);
-	attachment[attachmentsCount].org[0] = atof(token);
+	g_attachmentCommand[g_attachmentscount].org[0] = atof(g_token);
 	GetToken(false);
-	attachment[attachmentsCount].org[1] = atof(token);
+	g_attachmentCommand[g_attachmentscount].org[1] = atof(g_token);
 	GetToken(false);
-	attachment[attachmentsCount].org[2] = atof(token);
+	g_attachmentCommand[g_attachmentscount].org[2] = atof(g_token);
 
 	if (TokenAvailable())
 		GetToken(false);
@@ -2629,7 +2628,7 @@ int Cmd_Attachment()
 	if (TokenAvailable())
 		GetToken(false);
 
-	attachmentsCount++;
+	g_attachmentscount++;
 	return 0;
 }
 
@@ -2637,54 +2636,56 @@ void Cmd_Renamebone()
 {
 	// from
 	GetToken(false);
-	std::strcpy(renameboneCommand[renameboneCount].from, token);
+	std::strcpy(g_renameboneCommand[g_renamebonecount].from, g_token);
 
 	// to
 	GetToken(false);
-	std::strcpy(renameboneCommand[renameboneCount].to, token);
+	std::strcpy(g_renameboneCommand[g_renamebonecount].to, g_token);
 
-	renameboneCount++;
+	g_renamebonecount++;
 }
 
 void Cmd_TexRenderMode()
 {
 	char tex_name[256];
 	GetToken(false);
-	std::strcpy(tex_name, token);
+	std::strcpy(tex_name, g_token);
 
 	GetToken(false);
-	if (!std::strcmp(token, "additive"))
+	if (!std::strcmp(g_token, "additive"))
 	{
-		texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_ADDITIVE;
+		g_texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_ADDITIVE;
 	}
-	else if (!std::strcmp(token, "masked"))
+	else if (!std::strcmp(g_token, "masked"))
 	{
-		texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_TRANSPARENT;
+		g_texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_TRANSPARENT;
 	}
-	else if (!std::strcmp(token, "fullbright"))
+	else if (!std::strcmp(g_token, "fullbright"))
 	{
-		texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
+		g_texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
 	}
-	else if (!std::strcmp(token, "flatshade"))
+	else if (!std::strcmp(g_token, "flatshade"))
 	{
-		texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_FLATSHADE;
+		g_texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_FLATSHADE;
 	}
 	else
-		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);
+		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, g_token);
 }
 
 void ParseQCscript()
 {
+
+	bool iscdalreadyset = false;
 	while (true)
 	{
 		// Look for a line starting with a $ command
 		while (true)
 		{
 			GetToken(true);
-			if (endofscript)
+			if (g_endofscript)
 				return;
 
-			if (token[0] == '$')
+			if (g_token[0] == '$')
 				break;
 
 			// Skip the rest of the line
@@ -2693,112 +2694,112 @@ void ParseQCscript()
 		}
 
 		// Process recognized commands
-		if (!std::strcmp(token, "$modelname"))
+		if (!std::strcmp(g_token, "$modelname"))
 		{
 			Cmd_Modelname();
 		}
-		else if (!std::strcmp(token, "$cd"))
+		else if (!std::strcmp(g_token, "$cd"))
 		{
-			if (isCdSet)
+			if (iscdalreadyset)
 				Error("Two $cd in one model");
-			isCdSet = true;
+			iscdalreadyset = true;
 			GetToken(false);
 
-			std::strcpy(cdPartialPath, token);
-			std::strcpy(cdCommand, ExpandPath(token));
+			std::strcpy(g_cdPartialPath, g_token);
+			std::strcpy(g_cdCommand, ExpandPath(g_token));
 		}
-		else if (!std::strcmp(token, "$cdtexture"))
+		else if (!std::strcmp(g_token, "$cdtexture"))
 		{
 			while (TokenAvailable())
 			{
 				GetToken(false);
-				std::strcpy(cdtextureCommand[cdtexturePathCount], ExpandPath(token));
-				cdtexturePathCount++;
+				std::strcpy(g_cdtextureCommand[g_cdtexturepathcount], ExpandPath(g_token));
+				g_cdtexturepathcount++;
 			}
 		}
-		else if (!std::strcmp(token, "$scale"))
+		else if (!std::strcmp(g_token, "$scale"))
 		{
 			Cmd_ScaleUp();
 		}
-		else if (!stricmp(token, "$rotate")) // XDM
+		else if (!stricmp(g_token, "$rotate")) // XDM
 		{
 			Cmd_Rotate();
 		}
-		else if (!std::strcmp(token, "$controller"))
+		else if (!std::strcmp(g_token, "$controller"))
 		{
 			Cmd_Controller();
 		}
-		else if (!std::strcmp(token, "$body"))
+		else if (!std::strcmp(g_token, "$body"))
 		{
 			Cmd_Body();
 		}
-		else if (!std::strcmp(token, "$bodygroup"))
+		else if (!std::strcmp(g_token, "$bodygroup"))
 		{
 			Cmd_Bodygroup();
 		}
-		else if (!std::strcmp(token, "$sequence"))
+		else if (!std::strcmp(g_token, "$sequence"))
 		{
 			Cmd_Sequence();
 		}
-		else if (!std::strcmp(token, "$sequencegroup"))
+		else if (!std::strcmp(g_token, "$sequencegroup"))
 		{
 			Cmd_SequenceGroup();
 		}
-		else if (!std::strcmp(token, "$eyeposition"))
+		else if (!std::strcmp(g_token, "$eyeposition"))
 		{
 			Cmd_Eyeposition();
 		}
-		else if (!std::strcmp(token, "$origin"))
+		else if (!std::strcmp(g_token, "$origin"))
 		{
 			Cmd_Origin();
 		}
-		else if (!std::strcmp(token, "$bbox"))
+		else if (!std::strcmp(g_token, "$bbox"))
 		{
 			Cmd_BBox();
 		}
-		else if (!std::strcmp(token, "$cbox"))
+		else if (!std::strcmp(g_token, "$cbox"))
 		{
 			Cmd_CBox();
 		}
-		else if (!std::strcmp(token, "$mirrorbone"))
+		else if (!std::strcmp(g_token, "$mirrorbone"))
 		{
 			Cmd_Mirror();
 		}
-		else if (!std::strcmp(token, "$gamma"))
+		else if (!std::strcmp(g_token, "$gamma"))
 		{
 			Cmd_Gamma();
 		}
-		else if (!std::strcmp(token, "$flags"))
+		else if (!std::strcmp(g_token, "$flags"))
 		{
 			Cmd_Flags();
 		}
-		else if (!std::strcmp(token, "$texturegroup"))
+		else if (!std::strcmp(g_token, "$texturegroup"))
 		{
 			Cmd_TextureGroup();
 		}
-		else if (!std::strcmp(token, "$hgroup"))
+		else if (!std::strcmp(g_token, "$hgroup"))
 		{
 			Cmd_Hitgroup();
 		}
-		else if (!std::strcmp(token, "$hbox"))
+		else if (!std::strcmp(g_token, "$hbox"))
 		{
 			Cmd_Hitbox();
 		}
-		else if (!std::strcmp(token, "$attachment"))
+		else if (!std::strcmp(g_token, "$attachment"))
 		{
 			Cmd_Attachment();
 		}
-		else if (!std::strcmp(token, "$renamebone"))
+		else if (!std::strcmp(g_token, "$renamebone"))
 		{
 			Cmd_Renamebone();
 		}
-		else if (!std::strcmp(token, "$texrendermode"))
+		else if (!std::strcmp(g_token, "$texrendermode"))
 		{
 			Cmd_TexRenderMode();
 		}
 		else
 		{
-			Error("bad command %s\n", token);
+			Error("bad command %s\n", g_token);
 		}
 	}
 }
@@ -2808,18 +2809,18 @@ int main(int argc, char **argv)
 	int i;
 	char path[1024];
 
-	scaleCommand = 1.0;
-	originCommandRotation = Q_PI / 2;
+	g_scaleCommand = 1.0;
+	g_originCommandRotation = Q_PI / 2;
 
-	numTextureReplacements = 0;
-	flagReversedTriangles = 0;
-	flagBadNormals = 0;
-	flagFlipTriangles = 1;
-	flagKeepAllBones = false;
+	g_numtextureteplacements = 0;
+	g_flagreversedtriangles = 0;
+	g_flagbadnormals = 0;
+	g_flagfliptriangles = 1;
+	g_flagkeepallbones = false;
 
-	flagNormalBlendAngle = cos(2.0 * (Q_PI / 180.0));
+	g_flagnormalblendangle = cos(2.0 * (Q_PI / 180.0));
 
-	gammaCommand = 1.8;
+	g_gammaCommand = 1.8;
 
 	if (argc == 1)
 		Error("usage: studiomdl <flags>\n [-t texture]\n -r(tag reversed)\n -n(tag bad normals)\n -f(flip all triangles)\n [-a normal_blend_angle]\n -h(dump hboxes)\n -i(ignore warnings) \n b(keep all unused bones)\n file.qc");
@@ -2832,49 +2833,49 @@ int main(int argc, char **argv)
 			{
 			case 't':
 				i++;
-				std::strcpy(defaultTextures[numTextureReplacements], argv[i]);
+				std::strcpy(g_defaulttextures[g_numtextureteplacements], argv[i]);
 				if (i < argc - 2 && argv[i + 1][0] != '-')
 				{
 					i++;
-					std::strcpy(sourceTexture[numTextureReplacements], argv[i]);
-					printf("Replaceing %s with %s\n", sourceTexture[numTextureReplacements], defaultTextures[numTextureReplacements]);
+					std::strcpy(g_sourcetexture[g_numtextureteplacements], argv[i]);
+					printf("Replaceing %s with %s\n", g_sourcetexture[g_numtextureteplacements], g_defaulttextures[g_numtextureteplacements]);
 				}
-				printf("Using default texture: %s\n", defaultTextures);
-				numTextureReplacements++;
+				printf("Using default texture: %s\n", g_defaulttextures);
+				g_numtextureteplacements++;
 				break;
 			case 'r':
-				flagReversedTriangles = 1;
+				g_flagreversedtriangles = 1;
 				break;
 			case 'n':
-				flagBadNormals = 1;
+				g_flagbadnormals = 1;
 				break;
 			case 'f':
-				flagFlipTriangles = 0;
+				g_flagfliptriangles = 0;
 				break;
 			case 'a':
 				i++;
-				flagNormalBlendAngle = cos(atof(argv[i]) * (Q_PI / 180.0));
+				g_flagnormalblendangle = cos(atof(argv[i]) * (Q_PI / 180.0));
 				break;
 			case 'h':
-				flagDumpHitboxes = 1;
+				g_flagdumphitboxes = 1;
 				break;
 			case 'i':
-				flagIgnoreWarnings = 1;
+				g_flagignorewarnings = 1;
 				break;
 			case 'b':
-				flagKeepAllBones = true;
+				g_flagkeepallbones = true;
 				break;
 			}
 		}
 	}
 
-	std::strcpy(sequencegroup[sequencegroupCount].label, "default");
-	sequencegroupCount = 1;
+	std::strcpy(g_sequencegroupCommand[g_sequencegroupcount].label, "default");
+	g_sequencegroupcount = 1;
 	// load the script
 	std::strcpy(path, argv[i]);
 	LoadScriptFile(path);
 	// parse it
-	std::strcpy(outname, argv[i]);
+	std::strcpy(g_modelnameCommand, argv[i]);
 	ParseQCscript();
 	SetSkinValues();
 	SimplifyModel();
