@@ -31,7 +31,6 @@ constexpr int MAXBODYPARTSNAMELENGHT = 64;
 constexpr int MAXBONENAMELENGTH = 32;
 constexpr int MAXSEQUENCENAMELENGTH = 32;
 constexpr int DEGREESOFFREEDOM = 6; // X, Y, Z, rotX, rotY, rotZ
-constexpr int MAXATTACHVECTORS = 3;
 constexpr int MAXSEQUENCEBLEND = 2;
 
 struct studiohdr_t
@@ -196,11 +195,11 @@ struct mstudiopivot_t
 
 struct mstudioattachment_t
 {
-	char name[32];					  // unused in goldsrc
-	int type;						  // unused in goldsrc
-	int bone;						  // index of the bone this is attached
-	vec3_t org;						  // attachment point, offset from bone origin
-	vec3_t vectors[MAXATTACHVECTORS]; // unused in goldsrc
+	char name[32];	   // unused in goldsrc
+	int type;		   // unused in goldsrc
+	int bone;		   // index of the bone this is attached
+	vec3_t org;		   // attachment point, offset from bone origin
+	vec3_t vectors[3]; // unused in goldsrc
 };
 
 struct mstudioanim_t
