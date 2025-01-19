@@ -21,10 +21,10 @@ set(SOURCES
     src/bmpread.cpp
     src/cmdlib.cpp
     src/mathlib.cpp
-    src/scriplib.cpp
+    src/qctokenizer.cpp
     src/studiomdl.cpp
     src/tristrip.cpp
-    src/write.cpp
+    src/writemdl.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

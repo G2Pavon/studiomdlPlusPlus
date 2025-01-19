@@ -1,10 +1,10 @@
 #include <cstring>
 #include <cstdlib>
 
-#include "write.h"
-#include "mathlib.h"
-#include "studio.h"
-#include "studiomdl.h"
+#include "writemdl.hpp"
+#include "mathlib.hpp"
+#include "studio.hpp"
+#include "studiomdl.hpp"
 
 int g_totalframes = 0;
 float g_totalseconds = 0;

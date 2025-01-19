@@ -1,6 +1,6 @@
 #pragma once
 
-#include "studio.h"
+#include "studio.hpp"
 
 struct s_trianglevert_t
 {

@@ -3,8 +3,8 @@
 #include <cstring>
 #include <cstdlib>
 
-#include "cmdlib.h"
-#include "scriplib.h"
+#include "cmdlib.hpp"
+#include "qctokenizer.hpp"
 
 struct script_t
 {

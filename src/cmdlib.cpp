@@ -8,7 +8,7 @@
 
 #define PATHSEPARATOR(c) ((c) == '/')
 
-#include "cmdlib.h"
+#include "cmdlib.hpp"
 
 bool g_archive;
 char g_archivedir[1024];

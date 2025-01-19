@@ -7,15 +7,15 @@
 #include <cmath>
 #include <cctype>
 
-#include "cmdlib.h"
-#include "scriplib.h"
-#include "mathlib.h"
+#include "cmdlib.hpp"
+#include "qctokenizer.hpp"
+#include "mathlib.hpp"
 #define extern // ??
-#include "studio.h"
-#include "studiomdl.h"
-#include "monsters/activity.h"
-#include "monsters/activitymap.h"
-#include "write.h"
+#include "studio.hpp"
+#include "studiomdl.hpp"
+#include "monsters/activity.hpp"
+#include "monsters/activitymap.hpp"
+#include "writemdl.hpp"
 
 #define strnicmp strncasecmp
 #define stricmp strcasecmp

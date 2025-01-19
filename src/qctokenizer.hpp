@@ -1,7 +1,7 @@
-// scriplib.h
+// tokenizer.h
 #pragma once
 
-#include "cmdlib.h"
+#include "cmdlib.hpp"
 
 constexpr int MAXTOKEN = 512;
 

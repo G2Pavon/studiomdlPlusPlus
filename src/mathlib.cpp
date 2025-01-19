@@ -2,8 +2,8 @@
 
 #include <cmath>
 
-#include "cmdlib.h"
-#include "mathlib.h"
+#include "cmdlib.hpp"
+#include "mathlib.hpp"
 
 void MatrixCopy(float in[3][4], float out[3][4])
 {
