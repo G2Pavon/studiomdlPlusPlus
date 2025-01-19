@@ -1,4 +1,4 @@
-// scriplib.c
+// scriplib.cpp
 
 #include <cstring>
 #include <cstdlib>
@@ -18,7 +18,6 @@ script_t g_scriptstack[MAX_INCLUDES];
 script_t *g_script;
 int g_scriptline;
 
-char g_token[MAXTOKEN];
 bool g_endofscript;
 bool g_tokenready;
 
@@ -70,18 +69,19 @@ bool EndOfScript(bool crossline)
 	g_script--;
 	g_scriptline = g_script->line;
 	printf("returning to %s\n", g_script->filename);
-	return GetToken(crossline);
+	char tmp_token[MAXTOKEN];
+	return GetToken(crossline, tmp_token);
 }
 
-bool GetToken(bool crossline)
+bool GetToken(bool crossline, char* token)
 {
 	char *token_p;
 
-	if (g_tokenready) // is a token already waiting?
-	{
-		g_tokenready = false;
-		return true;
-	}
+    if (g_tokenready) // is a token already waiting?
+    {
+        g_tokenready = false;
+        return true;
+    }
 
 	if (g_script->script_p >= g_script->end_p)
 		return EndOfScript(crossline);
@@ -124,7 +124,7 @@ bool GetToken(bool crossline)
 		return EndOfScript(crossline);
 
 	// Copy token
-	token_p = g_token;
+	token_p = token;
 
 	if (*g_script->script_p == '"')
 	{
@@ -135,7 +135,7 @@ bool GetToken(bool crossline)
 			*token_p++ = *g_script->script_p++;
 			if (g_script->script_p == g_script->end_p)
 				break;
-			if (token_p == &g_token[MAXTOKEN])
+			if (token_p == &token[MAXTOKEN])
 				Error("Token too large on line %i\n", g_scriptline);
 		}
 		g_script->script_p++;
@@ -147,20 +147,21 @@ bool GetToken(bool crossline)
 			*token_p++ = *g_script->script_p++;
 			if (g_script->script_p == g_script->end_p)
 				break;
-			if (token_p == &g_token[MAXTOKEN])
+			if (token_p == &token[MAXTOKEN])
 				Error("Token too large on line %i\n", g_scriptline);
 		}
 	}
 
 	*token_p = 0;
 
-	if (!std::strcmp(g_token, "$include"))
-	{
-		GetToken(false);
-		AddScriptToStack(g_token);
-		return GetToken(crossline);
-	}
-
+    if (!std::strcmp(token, "$include"))
+    {
+        char include_token[MAXTOKEN];
+		GetToken(false, include_token);
+		AddScriptToStack(include_token);
+        return GetToken(crossline, token);
+    }
+	
 	return true;
 }
 
