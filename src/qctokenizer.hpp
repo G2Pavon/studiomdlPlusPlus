@@ -5,11 +5,10 @@
 
 constexpr int MAXTOKEN = 512;
 
-extern char *script_p;
-extern int g_scriptline;
-extern bool g_endofscript;
+bool g_endofscript;
+char *script_buffer;
 
 void LoadScriptFile(char *filename);
 
-bool GetToken(bool crossline,char* token); // Modified
+bool GetToken(bool crossline, char* token); // Modified
 bool TokenAvailable(void);

@@ -2797,9 +2797,10 @@ void ParseQCscript()
 		}
 		else
 		{
-			Error("bad command %s\n", token);
+			Error("Incorrect/Unsupported command %s\n", token);
 		}
 	}
+	free(script_buffer);
 }
 
 int main(int argc, char **argv)
