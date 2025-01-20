@@ -12,6 +12,11 @@ int g_scriptline;
 bool g_tokenready;
 char *script_end_p;
 
+bool g_endofscript;
+char* script_buffer;
+
+
+
 void LoadScriptFile(char *filename)
 {
     int size;
