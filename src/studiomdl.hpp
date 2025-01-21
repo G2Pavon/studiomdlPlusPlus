@@ -35,7 +35,7 @@ struct s_bonefixup_t
 
 struct s_bonetable_t
 {
-	char name[32];		// bone name for symbolic links
+	char name[MAXBONENAMELENGTH];		// bone name for symbolic links
 	int parent;			// parent bone
 	int bonecontroller; // -1 == 0
 	int flags;			// X, Y, Z, XR, YR, ZR
@@ -50,13 +50,13 @@ struct s_bonetable_t
 
 struct s_renamebone_t
 {
-	char from[32];
-	char to[32];
+	char from[MAXBONENAMELENGTH];
+	char to[MAXBONENAMELENGTH];
 };
 
 struct s_bbox_t
 {
-	char name[32]; // bone name
+	char name[MAXBONENAMELENGTH]; // bone name
 	int bone;
 	int group; // hitgroup
 	int model;
@@ -67,12 +67,12 @@ struct s_hitgroup_t
 {
 	int models;
 	int group;
-	char name[32]; // bone name
+	char name[MAXBONENAMELENGTH]; // bone name
 };
 
 struct s_bonecontroller_t
 {
-	char name[32];
+	char name[MAXBONENAMELENGTH];
 	int bone;
 	int type;
 	int index;
@@ -82,8 +82,8 @@ struct s_bonecontroller_t
 
 struct s_attachment_t
 {
-	char name[32];
-	char bonename[32];
+	char name[MAXBONENAMELENGTH];
+	char bonename[MAXBONENAMELENGTH];
 	int index;
 	int bone;
 	int type;
@@ -92,14 +92,14 @@ struct s_attachment_t
 
 struct s_node_t
 {
-	char name[64];
+	char name[MAXBONENAMELENGTH]; // before: name[64]
 	int parent;
 	int mirrored;
 };
 
 struct s_animation_t
 {
-	char name[64];
+	char name[MAXBONENAMELENGTH]; // before: name[64]
 	int startframe;
 	int endframe;
 	int flags;
@@ -109,15 +109,15 @@ struct s_animation_t
 	int boneimap[MAXSTUDIOSRCBONES];
 	vec3_t *pos[MAXSTUDIOSRCBONES];
 	vec3_t *rot[MAXSTUDIOSRCBONES];
-	int numanim[MAXSTUDIOSRCBONES][6];
-	mstudioanimvalue_t *anim[MAXSTUDIOSRCBONES][6];
+	int numanim[MAXSTUDIOSRCBONES][DEGREESOFFREEDOM];
+	mstudioanimvalue_t *anim[MAXSTUDIOSRCBONES][DEGREESOFFREEDOM];
 };
 
 struct s_event_t
 {
 	int event;
 	int frame;
-	char options[64];
+	char options[MAXEVENTOPTIONS];
 };
 
 struct s_pivot_t
@@ -133,7 +133,7 @@ struct s_sequence_t
 	int motiontype;
 	vec3_t linearmovement;
 
-	char name[64];
+	char name[MAXSEQUENCENAMELENGTH]; // before: name[64]
 	int flags;
 	float fps;
 	int numframes;
@@ -151,9 +151,9 @@ struct s_sequence_t
 
 	int numblends;
 	s_animation_t *panim[MAXSTUDIOGROUPS];
-	float blendtype[2];
-	float blendstart[2];
-	float blendend[2];
+	float blendtype[MAXSEQUENCEBLEND];
+	float blendstart[MAXSEQUENCEBLEND];
+	float blendend[MAXSEQUENCEBLEND];
 
 	vec3_t automovepos[MAXSTUDIOANIMATIONS];
 	vec3_t automoveangle[MAXSTUDIOANIMATIONS];
