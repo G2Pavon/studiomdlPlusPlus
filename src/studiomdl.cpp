@@ -2226,7 +2226,7 @@ int Cmd_SequenceGroup(std::string& token)
 	return 0;
 }
 
-int Cmd_Sequence_OptionAction(std::string szActivity)
+int Cmd_Sequence_OptionAction(std::string& szActivity)
 {
 	for (int i = 0; activity_map[i].name; i++)
 	{
