@@ -127,6 +127,9 @@ struct vec3_t
     }
 };
 
+float to_radians(float deg);
+float to_degrees(float rad);
+
 void MatrixCopy(float in[3][4], float out[3][4]);
 
 void AngleMatrix(const vec3_t &angles, float matrix[3][4]);

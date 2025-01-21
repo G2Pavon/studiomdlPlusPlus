@@ -21,6 +21,8 @@
 #define stricmp strcasecmp
 #define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
 
+constexpr float ENGINE_ORIENTATION = 90.0f; // Z rotation to match with engine forward direction (x axis)
+
 char g_inputfilename[1024];
 FILE *g_inputFile;
 char g_currentline[1024];
@@ -821,8 +823,11 @@ void SimplifyModel()
 
 				for (j = 0; j < g_bonescount; j++)
 				{
-					// convert to degrees
-					vec3_t angles = g_sequenceCommand[i].panim[q]->rot[j][n] * (180.0 / Q_PI);
+
+					vec3_t angles;
+					angles[0] = to_degrees(g_sequenceCommand[i].panim[q]->rot[j][n][0]);
+					angles[1] = to_degrees(g_sequenceCommand[i].panim[q]->rot[j][n][1]);
+					angles[2] = to_degrees(g_sequenceCommand[i].panim[q]->rot[j][n][2]);
 
 					AngleMatrix(angles, bonematrix);
 
@@ -1431,9 +1436,9 @@ void Build_Reference(s_model_t *pmodel)
 		int parent;
 
 		// convert to degrees
-		boneAngle[0] = pmodel->skeleton[i].rot[0] * (180.0 / Q_PI);
-		boneAngle[1] = pmodel->skeleton[i].rot[1] * (180.0 / Q_PI);
-		boneAngle[2] = pmodel->skeleton[i].rot[2] * (180.0 / Q_PI);
+		boneAngle[0] = to_degrees(pmodel->skeleton[i].rot[0]);
+		boneAngle[1] = to_degrees(pmodel->skeleton[i].rot[1]);
+		boneAngle[2] = to_degrees(pmodel->skeleton[i].rot[2]);
 
 		parent = pmodel->node[i].parent;
 		if (parent == -1)
@@ -2171,7 +2176,7 @@ void Cmd_Origin(char *token)
 	if (TokenAvailable())
 	{
 		GetToken(false, token);
-		g_originCommandRotation = (atof(token) + 90) * (Q_PI / 180.0);
+		g_originCommandRotation = to_radians(atof(token) + ENGINE_ORIENTATION);
 	}
 }
 
@@ -2190,7 +2195,7 @@ void Cmd_Sequence_OptionOrigin(char *token)
 void Cmd_Sequence_OptionRotate(char *token)
 {
 	GetToken(false, token);
-	g_rotateCommand = (atof(token) + 90) * (Q_PI / 180.0);
+	g_rotateCommand = to_radians(atof(token) + ENGINE_ORIENTATION);
 }
 
 void Cmd_ScaleUp(char *token)
@@ -2203,7 +2208,7 @@ void Cmd_Rotate(char *token) // XDM
 {
 	if (!GetToken(false,token))
 		return;
-	g_rotateCommand = (atof(token) + 90) * (Q_PI / 180.0);
+	g_rotateCommand = to_radians(atof(token) + ENGINE_ORIENTATION);
 }
 
 void Cmd_Sequence_OptionScaleUp(char *token)
@@ -2702,7 +2707,7 @@ void ParseQCscript()
 				Error("Two $cd in one model");
 			iscdalreadyset = true;
 			GetToken(false, token);
-
+			
 			std::strcpy(g_cdPartialPath, token);
 			std::strcpy(g_cdCommand, ExpandPath(token));
 		}
@@ -2809,7 +2814,7 @@ int main(int argc, char **argv)
 	char path[1024];
 
 	g_scaleCommand = 1.0;
-	g_originCommandRotation = Q_PI / 2;
+	g_originCommandRotation = to_radians(ENGINE_ORIENTATION);
 
 	g_numtextureteplacements = 0;
 	g_flagreversedtriangles = 0;
@@ -2817,7 +2822,7 @@ int main(int argc, char **argv)
 	g_flagfliptriangles = 1;
 	g_flagkeepallbones = false;
 
-	g_flagnormalblendangle = cos(2.0 * (Q_PI / 180.0));
+	g_flagnormalblendangle = cos(to_radians(2.0));
 
 	g_gammaCommand = 1.8;
 
@@ -2853,7 +2858,7 @@ int main(int argc, char **argv)
 				break;
 			case 'a':
 				i++;
-				g_flagnormalblendangle = cos(atof(argv[i]) * (Q_PI / 180.0));
+				g_flagnormalblendangle = cos(to_radians(atof(argv[i])));
 				break;
 			case 'h':
 				g_flagdumphitboxes = 1;

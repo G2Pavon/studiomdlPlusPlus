@@ -5,6 +5,16 @@
 #include "cmdlib.hpp"
 #include "mathlib.hpp"
 
+float to_radians(float deg)
+{
+	return deg * (Q_PI / 180);
+}
+
+float to_degrees(float rad)
+{
+	return rad * (180 / Q_PI);
+}
+
 void MatrixCopy(float in[3][4], float out[3][4])
 {
 	for (int i = 0; i < 3; i++)
@@ -21,13 +31,13 @@ void AngleMatrix(const vec3_t &angles, float matrix[3][4])
 	float angle;
 	float sr, sp, sy, cr, cp, cy;
 
-	angle = angles.z * (Q_PI * 2 / 360);
+	angle = to_radians(angles.z);
 	sy = sin(angle);
 	cy = cos(angle);
-	angle = angles.y * (Q_PI * 2 / 360);
+	angle = to_radians(angles.y);
 	sp = sin(angle);
 	cp = cos(angle);
-	angle = angles.x * (Q_PI * 2 / 360);
+	angle = to_radians(angles.x);
 	sr = sin(angle);
 	cr = cos(angle);
 
@@ -50,13 +60,13 @@ void AngleIMatrix(const vec3_t &angles, float matrix[3][4])
 	float angle;
 	float sr, sp, sy, cr, cp, cy;
 
-	angle = angles.z * (Q_PI * 2 / 360);
+	angle = to_radians(angles.z);
 	sy = sin(angle);
 	cy = cos(angle);
-	angle = angles.y * (Q_PI * 2 / 360);
+	angle = to_radians(angles.y);
 	sp = sin(angle);
 	cp = cos(angle);
-	angle = angles.x * (Q_PI * 2 / 360);
+	angle = to_radians(angles.x);
 	sr = sin(angle);
 	cr = cos(angle);
 
