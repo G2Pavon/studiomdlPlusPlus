@@ -1,14 +1,12 @@
-// tokenizer.h
 #pragma once
 
 #include "cmdlib.hpp"
+#include <string>
 
-constexpr int MAXTOKEN = 512;
-
-extern bool g_endofscript;
-extern char* script_buffer;
+extern bool end_of_qc_file;
+extern char* qc_script_buffer;
 
 void LoadScriptFile(char *filename);
 
-bool GetToken(bool crossline, char* token);
+bool GetToken(bool crossline, std::string& token);
 bool TokenAvailable(void);

@@ -1,123 +1,113 @@
-// scriplib.cpp
-
 #include <cstring>
 #include <cstdlib>
+#include <string>
 
 #include "cmdlib.hpp"
 #include "qctokenizer.hpp"
 
+char *qc_stream_p;          // Pointer to the current position in the QC file's data stream
+int qc_line_number;         // Current line number in the QC file
+bool token_ready;           // Flag indicating if a token is ready
+char *qc_stream_end_p;      // Pointer to the end of the QC file's data stream
 
-char *script_p;
-int g_scriptline;
-bool g_tokenready;
-char *script_end_p;
-
-bool g_endofscript;
-char* script_buffer;
-
+bool end_of_qc_file;        // Flag indicating if we've reached the end of the QC file
+char* qc_script_buffer;     // Buffer holding the entire QC file data
 
 
 void LoadScriptFile(char *filename)
 {
     int size;
 
-    size = LoadFile(filename, (void **)&script_buffer);
+    size = LoadFile(filename, (void **)&qc_script_buffer);
 
     printf("processing %s\n", filename);
 
-    g_scriptline = 1;
-    script_p = script_buffer;
-    script_end_p = script_buffer + size;
-    g_endofscript = false;
-    g_tokenready = false;
+    qc_line_number = 1;
+    qc_stream_p = qc_script_buffer;
+    qc_stream_end_p = qc_script_buffer + size;
+    end_of_qc_file = false;
+    token_ready = false;
 }
 
-bool GetToken(bool crossline, char* token)
+bool GetToken(bool crossline, std::string& token)
 {
-    char *token_p;
-
-    if (g_tokenready) // is a token already waiting?
+    if (token_ready) // is a token already waiting?
     {
-        g_tokenready = false;
+        token_ready = false;
         return true;
     }
 
-    if (script_p >= script_end_p)
+    if (qc_stream_p >= qc_stream_end_p)
     {
-        g_endofscript = true;
+        end_of_qc_file = true;
         return false; // End of script
     }
 
     // Skip spaces and comments
-    while (*script_p <= 32 || *script_p == ';' || *script_p == '#' || (*script_p == '/' && *(script_p + 1) == '/'))
+    while (*qc_stream_p <= 32 || *qc_stream_p == ';' || *qc_stream_p == '#' || (*qc_stream_p == '/' && *(qc_stream_p + 1) == '/'))
     {
-        if (script_p >= script_end_p)
+        if (qc_stream_p >= qc_stream_end_p)
         {
-            g_endofscript = true;
+            end_of_qc_file = true;
             return false; // End of script
         }
 
-        if (*script_p++ == '\n')
+        if (*qc_stream_p++ == '\n')
         {
             if (!crossline)
-                Error("Line %i is incomplete\n", g_scriptline);
-            g_scriptline++;
+                Error("Line %i is incomplete\n", qc_line_number);
+            qc_line_number++;
         }
 
         // Check for comment (semicolon or line comment)
-        if (*script_p == ';' || *script_p == '#' || (*script_p == '/' && *(script_p + 1) == '/'))
+        if (*qc_stream_p == ';' || *qc_stream_p == '#' || (*qc_stream_p == '/' && *(qc_stream_p + 1) == '/'))
         {
-            while (*script_p != '\n')
+            while (*qc_stream_p != '\n')
             {
-                if (script_p >= script_end_p)
+                if (qc_stream_p >= qc_stream_end_p)
                 {
-                    g_endofscript = true;
+                    end_of_qc_file = true;
                     return false; // End of script
                 }
-                script_p++;
+                qc_stream_p++;
             }
         }
     }
 
-    // Copy token
-    token_p = token;
+    // Clear the string to store the new token
+    token.clear();
 
-    if (*script_p == '"')
+    if (*qc_stream_p == '"')
     {
         // Quoted token
-        script_p++;
-        while (*script_p != '"')
+        qc_stream_p++;
+        while (*qc_stream_p != '"')
         {
-            *token_p++ = *script_p++;
-            if (script_p == script_end_p)
+            token.push_back(*qc_stream_p++); // add characters
+            if (qc_stream_p == qc_stream_end_p)
                 break;
-            if (token_p == &token[MAXTOKEN])
-                Error("Token too large on line %i\n", g_scriptline);
         }
-        script_p++;
+        qc_stream_p++;  // Skip the closing quote
     }
     else // Regular token
     {
-        while (*script_p > 32 && *script_p != ';' && *script_p != '\n') // Added '\n' to delimiters
+        while (*qc_stream_p > 32 && *qc_stream_p != ';' && *qc_stream_p != '\n')  // Added '\n' to delimiters
         {
-            *token_p++ = *script_p++;
-            if (script_p == script_end_p)
+            token.push_back(*qc_stream_p++);  // Add characters to the token string
+            if (qc_stream_p == qc_stream_end_p)
                 break;
-            if (token_p == &token[MAXTOKEN])
-                Error("Token too large on line %i\n", g_scriptline);
         }
     }
 
-    *token_p = 0;
     return true;
 }
 
 // turns true if there is another token on the line
 bool TokenAvailable(void)
 {
-    char *search_p = script_p;
+    char *search_p = qc_stream_p;
 
-    if (search_p >= script_end_p)
+    if (search_p >= qc_stream_end_p)
         return false;
 
     while (*search_p <= 32)
@@ -125,7 +115,7 @@ bool TokenAvailable(void)
         if (*search_p == '\n')
             return false;
         search_p++;
-        if (search_p == script_end_p)
+        if (search_p == qc_stream_end_p)
             return false;
     }
 
