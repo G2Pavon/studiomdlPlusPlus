@@ -35,9 +35,9 @@ int g_flagignorewarnings;
 bool g_flagkeepallbones;
 
 // QC Command variables -----------------
-std::filesystem::path g_cdCommand;							   // $cd
-std::filesystem::path g_cdCommandAbsolute;								   // $cd
-std::filesystem::path g_cdtextureCommand;					   // $cdtexture
+std::filesystem::path g_cdCommand;					   // $cd
+std::filesystem::path g_cdCommandAbsolute;			   // $cd
+std::filesystem::path g_cdtextureCommand;			   // $cdtexture
 float g_scaleCommand;								   // $scale
 float g_scaleBodyAndSequenceOption;					   // $body studio <value> // also for $sequence
 vec3_t g_originCommand;								   // $origin
@@ -68,7 +68,6 @@ char g_defaulttextures[16][256];
 char g_sourcetexture[16][256];
 int g_numtextureteplacements;
 s_bonefixup_t g_bonefixup[MAXSTUDIOSRCBONES];
-
 
 // ---------------------------------------
 void clip_rotations(vec3_t rot)
@@ -1316,8 +1315,8 @@ void ResizeTexture(s_texture_t *ptexture)
 
 void Grab_Skin(s_texture_t *ptexture)
 {
-	std::filesystem::path textureFilePath =  g_cdtextureCommand / ptexture->name;
-    if (!std::filesystem::exists(textureFilePath)) 
+	std::filesystem::path textureFilePath = g_cdtextureCommand / ptexture->name;
+	if (!std::filesystem::exists(textureFilePath))
 	{
 		textureFilePath = g_cdCommandAbsolute / ptexture->name;
 		if (!std::filesystem::exists(textureFilePath))
@@ -1331,7 +1330,7 @@ void Grab_Skin(s_texture_t *ptexture)
 	}
 	else
 	{
-		Error(const_cast<char*>("unknown graphics type: \"%s\"\n"), textureFilePath.string().c_str());
+		Error(const_cast<char *>("unknown graphics type: \"%s\"\n"), textureFilePath.string().c_str());
 	}
 }
 
@@ -1781,7 +1780,7 @@ void ParseSMD(s_model_t *pmodel)
 	fclose(g_smdfile);
 }
 
-void Cmd_Eyeposition(std::string& token)
+void Cmd_Eyeposition(std::string &token)
 {
 	// rotate points into frame of reference so model points down the positive x
 	// axis
@@ -1795,19 +1794,19 @@ void Cmd_Eyeposition(std::string& token)
 	g_eyepositionCommand[2] = std::stof(token);
 }
 
-void Cmd_Flags(std::string& token)
+void Cmd_Flags(std::string &token)
 {
 	GetToken(false, token);
 	g_flagsCommand = std::stoi(token);
 }
 
-void Cmd_Modelname(std::string& token)
+void Cmd_Modelname(std::string &token)
 {
 	GetToken(false, token);
 	strcpyn(g_modelnameCommand, token.c_str());
 }
 
-void Cmd_Body_OptionStudio(std::string& token)
+void Cmd_Body_OptionStudio(std::string &token)
 {
 	if (!GetToken(false, token))
 		return;
@@ -1855,7 +1854,7 @@ int Cmd_Body_OptionBlank()
 	return 0;
 }
 
-void Cmd_Bodygroup(std::string& token)
+void Cmd_Bodygroup(std::string &token)
 {
 	if (!GetToken(false, token))
 		return;
@@ -1899,7 +1898,7 @@ void Cmd_Bodygroup(std::string& token)
 	return;
 }
 
-void Cmd_Body(std::string& token)
+void Cmd_Body(std::string &token)
 {
 	if (!GetToken(false, token))
 		return;
@@ -2031,7 +2030,7 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 
 	strcpyn(panim->name, name);
 
-	g_smdpath = g_cdCommandAbsolute / (std::string(panim->name)+".smd");
+	g_smdpath = g_cdCommandAbsolute / (std::string(panim->name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
 		Error("%s doesn't exist", g_smdpath.c_str());
 
@@ -2083,7 +2082,7 @@ int Cmd_Sequence_OptionDeform(s_sequence_t *psequence) // delete this
 	return 0;
 }
 
-int Cmd_Sequence_OptionEvent(std::string& token, s_sequence_t *psequence)
+int Cmd_Sequence_OptionEvent(std::string &token, s_sequence_t *psequence)
 {
 	int event;
 
@@ -2115,7 +2114,7 @@ int Cmd_Sequence_OptionEvent(std::string& token, s_sequence_t *psequence)
 	return 0;
 }
 
-int Cmd_Sequence_OptionFps(std::string& token,s_sequence_t *psequence)
+int Cmd_Sequence_OptionFps(std::string &token, s_sequence_t *psequence)
 {
 	GetToken(false, token);
 
@@ -2124,7 +2123,7 @@ int Cmd_Sequence_OptionFps(std::string& token,s_sequence_t *psequence)
 	return 0;
 }
 
-int Cmd_Sequence_OptionAddPivot(std::string& token, s_sequence_t *psequence)
+int Cmd_Sequence_OptionAddPivot(std::string &token, s_sequence_t *psequence)
 {
 	if (psequence->numpivots + 1 >= MAXSTUDIOPIVOTS)
 	{
@@ -2146,7 +2145,7 @@ int Cmd_Sequence_OptionAddPivot(std::string& token, s_sequence_t *psequence)
 	return 0;
 }
 
-void Cmd_Origin(std::string& token)
+void Cmd_Origin(std::string &token)
 {
 	GetToken(false, token);
 	g_originCommand[0] = std::stof(token);
@@ -2164,7 +2163,7 @@ void Cmd_Origin(std::string& token)
 	}
 }
 
-void Cmd_Sequence_OptionOrigin(std::string& token)
+void Cmd_Sequence_OptionOrigin(std::string &token)
 {
 	GetToken(false, token);
 	g_sequenceOrigin[0] = std::stof(token);
@@ -2176,32 +2175,32 @@ void Cmd_Sequence_OptionOrigin(std::string& token)
 	g_sequenceOrigin[2] = std::stof(token);
 }
 
-void Cmd_Sequence_OptionRotate(std::string& token)
+void Cmd_Sequence_OptionRotate(std::string &token)
 {
 	GetToken(false, token);
 	g_rotateCommand = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
-void Cmd_ScaleUp(std::string& token)
+void Cmd_ScaleUp(std::string &token)
 {
 	GetToken(false, token);
 	g_scaleCommand = g_scaleBodyAndSequenceOption = std::stof(token);
 }
 
-void Cmd_Rotate(std::string& token) // XDM
+void Cmd_Rotate(std::string &token) // XDM
 {
-	if (!GetToken(false,token))
+	if (!GetToken(false, token))
 		return;
 	g_rotateCommand = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
-void Cmd_Sequence_OptionScaleUp(std::string& token)
+void Cmd_Sequence_OptionScaleUp(std::string &token)
 {
 	GetToken(false, token);
 	g_scaleBodyAndSequenceOption = std::stof(token);
 }
 
-int Cmd_SequenceGroup(std::string& token)
+int Cmd_SequenceGroup(std::string &token)
 {
 	GetToken(false, token);
 	strcpyn(g_sequencegroupCommand[g_sequencegroupcount].label, token.c_str());
@@ -2210,7 +2209,7 @@ int Cmd_SequenceGroup(std::string& token)
 	return 0;
 }
 
-int Cmd_Sequence_OptionAction(std::string& szActivity)
+int Cmd_Sequence_OptionAction(std::string &szActivity)
 {
 	for (int i = 0; activity_map[i].name; i++)
 	{
@@ -2225,7 +2224,7 @@ int Cmd_Sequence_OptionAction(std::string& szActivity)
 	return 0;
 }
 
-int Cmd_Sequence(std::string& token)
+int Cmd_Sequence(std::string &token)
 {
 	int depth = 0;
 	char smdfilename[MAXSTUDIOBLENDS][1024];
@@ -2403,7 +2402,7 @@ int Cmd_Sequence(std::string& token)
 	return 0;
 }
 
-int Cmd_Controller(std::string& token)
+int Cmd_Controller(std::string &token)
 {
 	if (GetToken(false, token))
 	{
@@ -2442,7 +2441,7 @@ int Cmd_Controller(std::string& token)
 	return 1;
 }
 
-void Cmd_BBox(std::string& token)
+void Cmd_BBox(std::string &token)
 {
 	GetToken(false, token);
 	g_bboxCommand[0][0] = std::stof(token);
@@ -2463,7 +2462,7 @@ void Cmd_BBox(std::string& token)
 	g_bboxCommand[1][2] = std::stof(token);
 }
 
-void Cmd_CBox(std::string& token)
+void Cmd_CBox(std::string &token)
 {
 	GetToken(false, token);
 	g_cboxCommand[0][0] = std::stof(token);
@@ -2484,19 +2483,19 @@ void Cmd_CBox(std::string& token)
 	g_cboxCommand[1][2] = std::stof(token);
 }
 
-void Cmd_Mirror(std::string& token)
+void Cmd_Mirror(std::string &token)
 {
 	GetToken(false, token);
 	strcpyn(g_mirrorboneCommand[g_mirroredcount++], token.c_str());
 }
 
-void Cmd_Gamma(std::string& token)
+void Cmd_Gamma(std::string &token)
 {
 	GetToken(false, token);
 	g_gammaCommand = std::stof(token);
 }
 
-int Cmd_TextureGroup(std::string& token)
+int Cmd_TextureGroup(std::string &token)
 {
 	int i;
 	int depth = 0;
@@ -2541,7 +2540,7 @@ int Cmd_TextureGroup(std::string& token)
 		}
 		else if (depth == 2)
 		{
-			i = FindTextureIndex(const_cast<char*>(token.c_str()));
+			i = FindTextureIndex(const_cast<char *>(token.c_str()));
 			g_texturegroupCommand[g_texturegroupCount][group][index] = i;
 			if (group != 0)
 				g_texture[i].parent = g_texturegroupCommand[g_texturegroupCount][0][index];
@@ -2556,7 +2555,7 @@ int Cmd_TextureGroup(std::string& token)
 	return 0;
 }
 
-int Cmd_Hitgroup(std::string& token)
+int Cmd_Hitgroup(std::string &token)
 {
 	GetToken(false, token);
 	g_hitgroupCommand[g_hitgroupscount].group = std::stoi(token);
@@ -2567,7 +2566,7 @@ int Cmd_Hitgroup(std::string& token)
 	return 0;
 }
 
-int Cmd_Hitbox(std::string& token)
+int Cmd_Hitbox(std::string &token)
 {
 	GetToken(false, token);
 	g_hitboxCommand[g_hitboxescount].group = std::stoi(token);
@@ -2591,7 +2590,7 @@ int Cmd_Hitbox(std::string& token)
 	return 0;
 }
 
-int Cmd_Attachment(std::string& token)
+int Cmd_Attachment(std::string &token)
 {
 	// index
 	GetToken(false, token);
@@ -2619,7 +2618,7 @@ int Cmd_Attachment(std::string& token)
 	return 0;
 }
 
-void Cmd_Renamebone(std::string& token)
+void Cmd_Renamebone(std::string &token)
 {
 	// from
 	GetToken(false, token);
@@ -2632,7 +2631,7 @@ void Cmd_Renamebone(std::string& token)
 	g_renamebonecount++;
 }
 
-void Cmd_TexRenderMode(std::string& token)
+void Cmd_TexRenderMode(std::string &token)
 {
 	char tex_name[256];
 	GetToken(false, token);
@@ -2692,7 +2691,7 @@ void ParseQCscript()
 				Error("Two $cd in one model");
 			iscdalreadyset = true;
 			GetToken(false, token);
-			
+
 			g_cdCommand = token;
 			g_cdCommandAbsolute = std::filesystem::absolute(g_cdCommand);
 		}

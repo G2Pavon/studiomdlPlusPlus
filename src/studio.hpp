@@ -51,48 +51,48 @@ constexpr int MAXSEQUENCEBLEND = 2; // Maximum number of blends per sequence (as
  */
 struct StudioHeader
 {
-	int ident;			// [00] The magic number, should be IDSTUDIOHEADER ("IDST").
-	int version;		// [04] The version number, should be STUDIO_VERSION (10).
+	int ident;	 // [00] The magic number, should be IDSTUDIOHEADER ("IDST").
+	int version; // [04] The version number, should be STUDIO_VERSION (10).
 
-	char name[64];		// [08] The model's name.
-	int length;			// [48] The file size in bytes.
+	char name[64]; // [08] The model's name.
+	int length;	   // [48] The file size in bytes.
 
 	vec3_t eyeposition; // [52] The model's eye position (in model space).
 	vec3_t min;			// [64] The model's hull min extent.
 	vec3_t max;			// [76] The model's hull max extent.
 
-	vec3_t bbmin;		// [88] The clipping bounding box min extent.
-	vec3_t bbmax;		// [100] The clipping bounding box max extent.
+	vec3_t bbmin; // [88] The clipping bounding box min extent.
+	vec3_t bbmax; // [100] The clipping bounding box max extent.
 
-	int flags;			// [112] Model flags.
+	int flags; // [112] Model flags.
 
-	int numbones;		// [116] The number of bones.
-	int boneindex;		// [120] The offset to the first bone structure.
+	int numbones;  // [116] The number of bones.
+	int boneindex; // [120] The offset to the first bone structure.
 
-	int numbonecontrollers; // [124] The number of bone controllers.
+	int numbonecontrollers;	 // [124] The number of bone controllers.
 	int bonecontrollerindex; // [128] The offset to the first bone controller structure.
 
-	int numhitboxes;		// [132] The number of hitboxes.
-	int hitboxindex;		// [136] The offset to the first hitbox structure.
+	int numhitboxes; // [132] The number of hitboxes.
+	int hitboxindex; // [136] The offset to the first hitbox structure.
 
-	int numseq;			// [140] The number of animation sequences.
-	int seqindex;		// [144] The offset to the first sequence description structure.
+	int numseq;	  // [140] The number of animation sequences.
+	int seqindex; // [144] The offset to the first sequence description structure.
 
-	int numseqgroups;	// [148] The number of sequence groups.
-	int seqgroupindex;	// [152] The offset to the first sequence group structure.
+	int numseqgroups;  // [148] The number of sequence groups.
+	int seqgroupindex; // [152] The offset to the first sequence group structure.
 
-	int numtextures;	// [156] The number of textures.
-	int textureindex;	// [160] The offset to the first texture structure.
+	int numtextures;	  // [156] The number of textures.
+	int textureindex;	  // [160] The offset to the first texture structure.
 	int texturedataindex; // [164] The offset to the texture pixel data.
 
-	int numskinref;		// [168] The number of replaceable textures.
+	int numskinref;		 // [168] The number of replaceable textures.
 	int numskinfamilies; // [172] The number of skin families.
-	int skinindex;		// [176] The offset to the skin data (a matrix of texture indices).
+	int skinindex;		 // [176] The offset to the skin data (a matrix of texture indices).
 
-	int numbodyparts;	// [180] The number of bodyparts.
-	int bodypartindex;	// [184] The offset to the first bodypart structure.
+	int numbodyparts;  // [180] The number of bodyparts.
+	int bodypartindex; // [184] The offset to the first bodypart structure.
 
-	int numattachments; // [188] The number of attachment points.
+	int numattachments;	 // [188] The number of attachment points.
 	int attachmentindex; // [192] The offset to the first attachment structure.
 
 	int soundtable;		 // [196] Unused.
@@ -100,7 +100,7 @@ struct StudioHeader
 	int soundgroups;	 // [204] Unused.
 	int soundgroupindex; // [208] Unused.
 
-	int numtransitions; // [212] The number of nodes in the sequence transition graph.
+	int numtransitions;	 // [212] The number of nodes in the sequence transition graph.
 	int transitionindex; // [216] The offset to the sequence transition graph data.
 };
 
@@ -111,11 +111,11 @@ struct StudioHeader
  */
 struct StudioSequenceGroupHeader
 {
-	int id;			// The magic number, should be IDSTUDIOSEQHEADER ("IDSQ").
-	int version;	// The version number, should be STUDIO_VERSION (10).
+	int id;		 // The magic number, should be IDSTUDIOSEQHEADER ("IDSQ").
+	int version; // The version number, should be STUDIO_VERSION (10).
 
-	char name[64];	// The model's name.
-	int length;		// The file size in bytes.
+	char name[64]; // The model's name.
+	int length;	   // The file size in bytes.
 };
 
 /**
@@ -140,12 +140,12 @@ struct StudioBone
  */
 struct StudioBoneController
 {
-	int bone;	// [00] The index of the bone this controller affects.
-	int type;	// [04] The motion type (X, Y, Z, XR, YR, ZR, possibly OR'd with STUDIO_RLOOP).
+	int bone;	 // [00] The index of the bone this controller affects.
+	int type;	 // [04] The motion type (X, Y, Z, XR, YR, ZR, possibly OR'd with STUDIO_RLOOP).
 	float start; // [08] The minimum value for the controller.
-	float end;	// [12] The maximum value for the controller.
-	int rest;	// [16] The controller's value at the rest pose.
-	int index;	// [20] The controller's channel/index.
+	float end;	 // [12] The maximum value for the controller.
+	int rest;	 // [16] The controller's value at the rest pose.
+	int index;	 // [20] The controller's channel/index.
 };
 
 /**
@@ -155,10 +155,10 @@ struct StudioBoneController
  */
 struct StudioHitbox
 {
-	int bone;			// [00] The index of the bone this hitbox is attached to.
-	int group;			// [04] The hit group.
-	vec3_t bbmin;		// [08] The minimum extent of the hitbox.
-	vec3_t bbmax;		// [20] The maximum extent of the hitbox.
+	int bone;	  // [00] The index of the bone this hitbox is attached to.
+	int group;	  // [04] The hit group.
+	vec3_t bbmin; // [08] The minimum extent of the hitbox.
+	vec3_t bbmax; // [20] The maximum extent of the hitbox.
 };
 
 /**
@@ -183,43 +183,43 @@ struct StudioSequenceDescription
 {
 	char label[MAXSEQUENCENAMELENGTH]; // [00] The sequence's name.
 
-	float fps;			// [32] The frames per second for this sequence.
-	int flags;			// [36] Sequence flags (e.g., STUDIO_LOOPING).
+	float fps; // [32] The frames per second for this sequence.
+	int flags; // [36] Sequence flags (e.g., STUDIO_LOOPING).
 
-	int activity;		// [40] The activity ID.
-	int actweight;		// [44] The activity's weight (used to choose among sequences with the same activity).
+	int activity;  // [40] The activity ID.
+	int actweight; // [44] The activity's weight (used to choose among sequences with the same activity).
 
-	int numevents;		// [48] The number of animation events.
-	int eventindex;		// [52] The offset to the first animation event.
+	int numevents;	// [48] The number of animation events.
+	int eventindex; // [52] The offset to the first animation event.
 
-	int numframes;		// [56] The number of frames in this sequence.
+	int numframes; // [56] The number of frames in this sequence.
 
-	int numpivots;		// [60] Unused in Goldsrc.
-	int pivotindex;		// [64] Unused in Goldsrc.
+	int numpivots;	// [60] Unused in Goldsrc.
+	int pivotindex; // [64] Unused in Goldsrc.
 
-	int motiontype;		// [68] The motion type.
-	int motionbone;		// [72] The index of the motion bone.
-	vec3_t linearmovement; // [76] The linear movement of the motion bone from the first to the last frame.
-	int automoveposindex;  // [88] Unused in Goldsrc.
-	int automoveangleindex;// [92] Unused in Goldsrc.
+	int motiontype;			// [68] The motion type.
+	int motionbone;			// [72] The index of the motion bone.
+	vec3_t linearmovement;	// [76] The linear movement of the motion bone from the first to the last frame.
+	int automoveposindex;	// [88] Unused in Goldsrc.
+	int automoveangleindex; // [92] Unused in Goldsrc.
 
-	vec3_t bbmin;		// [96] The bounding box min extent for this sequence.
-	vec3_t bbmax;		// [108] The bounding box max extent for this sequence.
+	vec3_t bbmin; // [96] The bounding box min extent for this sequence.
+	vec3_t bbmax; // [108] The bounding box max extent for this sequence.
 
-	int numblends;		// [120] The number of blend controllers (either 1 or 2).
-	int animindex;		// [124] The offset to the animation frame offset data.
+	int numblends; // [120] The number of blend controllers (either 1 or 2).
+	int animindex; // [124] The offset to the animation frame offset data.
 
 	int blendtype[MAXSEQUENCEBLEND];	// [128] The motion types for the blend controllers (X, Y, Z, XR, YR, ZR).
 	float blendstart[MAXSEQUENCEBLEND]; // [136] The starting blend values.
 	float blendend[MAXSEQUENCEBLEND];	// [144] The ending blend values.
-	int blendparent;	// [152] Unused in Goldsrc.
+	int blendparent;					// [152] Unused in Goldsrc.
 
-	int seqgroup;		// [156] The index of the sequence group this sequence belongs to.
+	int seqgroup; // [156] The index of the sequence group this sequence belongs to.
 
-	int entrynode;		// [160] The entry node in the sequence transition graph.
-	int exitnode;		// [164] The exit node in the sequence transition graph.
-	int nodeflags;		// [168] The node flags (0 or 1, indicating unidirectional or bidirectional transitions).
-	int nextseq;		// [172] Unused in Goldsrc.
+	int entrynode; // [160] The entry node in the sequence transition graph.
+	int exitnode;  // [164] The exit node in the sequence transition graph.
+	int nodeflags; // [168] The node flags (0 or 1, indicating unidirectional or bidirectional transitions).
+	int nextseq;   // [172] Unused in Goldsrc.
 };
 
 /**
@@ -229,9 +229,9 @@ struct StudioSequenceDescription
  */
 struct StudioAnimationEvent
 {
-	int frame;						 // [00] The frame at which the event occurs.
-	int event;						 // [04] The event ID.
-	int type;						 // [08] Unused.
+	int frame;					   // [00] The frame at which the event occurs.
+	int event;					   // [04] The event ID.
+	int type;					   // [08] Unused.
 	char options[MAXEVENTOPTIONS]; // [12] Additional event data.
 };
 
@@ -326,8 +326,8 @@ struct StudioModel
 
 	float boundingradius; // [68] Unused.
 
-	int nummesh;		  // [72] The number of meshes in this model.
-	int meshindex;		  // [76] The offset to the first mesh in this model.
+	int nummesh;   // [72] The number of meshes in this model.
+	int meshindex; // [76] The offset to the first mesh in this model.
 
 	int numverts;	   // [80] The number of vertices.
 	int vertinfoindex; // [84] The offset to an array of bone indices, one for each vertex, indicating which bone influences that vertex.
@@ -336,7 +336,7 @@ struct StudioModel
 	int norminfoindex; // [96] The offset to an array of bone indices, one for each normal, indicating which bone influences that normal.
 	int normindex;	   // [100] The offset to the normal data (vec3_t array).
 
-	int numgroups; // [104] Unused.
+	int numgroups;	// [104] Unused.
 	int groupindex; // [108] Unused.
 };
 
@@ -347,11 +347,11 @@ struct StudioModel
  */
 struct StudioMesh
 {
-	int numtris;	// [00] The total number of triverts in this mesh.
-	int triindex;	// [04] The offset to the trivert data.
-	int skinref;	// [08] The index of the texture to use for this mesh.
-	int numnorms;	// [12] Unused.
-	int normindex;	// [16] Unused.
+	int numtris;   // [00] The total number of triverts in this mesh.
+	int triindex;  // [04] The offset to the trivert data.
+	int skinref;   // [08] The index of the texture to use for this mesh.
+	int numnorms;  // [12] Unused.
+	int normindex; // [16] Unused.
 };
 
 // --- Lighting and Motion Flags ---
@@ -362,23 +362,23 @@ struct StudioMesh
 #define STUDIO_NF_CHROME 0x0002
 #define STUDIO_NF_FULLBRIGHT 0x0004
 #define STUDIO_NF_NOMIPS 0x0008 // Not used
-#define STUDIO_NF_ALPHA 0x0010 // Not used
+#define STUDIO_NF_ALPHA 0x0010	// Not used
 #define STUDIO_NF_ADDITIVE 0x0020
 #define STUDIO_NF_MASKED 0x0040
 
 // Motion flags (used in bone controllers and animation data)
-#define STUDIO_X 0x0001	 // X-axis movement
-#define STUDIO_Y 0x0002	 // Y-axis movement
-#define STUDIO_Z 0x0004	 // Z-axis movement
-#define STUDIO_XR 0x0008 // X-axis rotation
-#define STUDIO_YR 0x0010 // Y-axis rotation
-#define STUDIO_ZR 0x0020 // Z-axis rotation
-#define STUDIO_LX 0x0040 // Unused
-#define STUDIO_LY 0x0080 // Unused
-#define STUDIO_LZ 0x0100 // Unused
-#define STUDIO_AX 0x0200 // Unused
-#define STUDIO_AY 0x0400 // Unused
-#define STUDIO_AZ 0x0800 // Unused
+#define STUDIO_X 0x0001	  // X-axis movement
+#define STUDIO_Y 0x0002	  // Y-axis movement
+#define STUDIO_Z 0x0004	  // Z-axis movement
+#define STUDIO_XR 0x0008  // X-axis rotation
+#define STUDIO_YR 0x0010  // Y-axis rotation
+#define STUDIO_ZR 0x0020  // Z-axis rotation
+#define STUDIO_LX 0x0040  // Unused
+#define STUDIO_LY 0x0080  // Unused
+#define STUDIO_LZ 0x0100  // Unused
+#define STUDIO_AX 0x0200  // Unused
+#define STUDIO_AY 0x0400  // Unused
+#define STUDIO_AZ 0x0800  // Unused
 #define STUDIO_AXR 0x1000 // Unused
 #define STUDIO_AYR 0x2000 // Unused
 #define STUDIO_AZR 0x4000 // Unused

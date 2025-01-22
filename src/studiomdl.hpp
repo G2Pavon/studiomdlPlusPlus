@@ -35,10 +35,10 @@ struct s_bonefixup_t
 
 struct s_bonetable_t
 {
-	char name[MAXBONENAMELENGTH];		// bone name for symbolic links
-	int parent;			// parent bone
-	int bonecontroller; // -1 == 0
-	int flags;			// X, Y, Z, XR, YR, ZR
+	char name[MAXBONENAMELENGTH]; // bone name for symbolic links
+	int parent;					  // parent bone
+	int bonecontroller;			  // -1 == 0
+	int flags;					  // X, Y, Z, XR, YR, ZR
 	// short		value[6];	// default DoF values
 	vec3_t pos;		   // default pos
 	vec3_t posscale;   // pos values scale
@@ -318,39 +318,39 @@ void ExtractMotion();
 // End Main functions --------------------
 
 // QC Parser
-void Cmd_Modelname(std::string& token);
-void Cmd_ScaleUp(std::string& token);
-void Cmd_Rotate(std::string& token);
-int Cmd_Controller(std::string& token);
-void Cmd_Body(std::string& token);
-void Cmd_Bodygroup(std::string& token);
-void Cmd_Body_OptionStudio(std::string& token);
+void Cmd_Modelname(std::string &token);
+void Cmd_ScaleUp(std::string &token);
+void Cmd_Rotate(std::string &token);
+int Cmd_Controller(std::string &token);
+void Cmd_Body(std::string &token);
+void Cmd_Bodygroup(std::string &token);
+void Cmd_Body_OptionStudio(std::string &token);
 int Cmd_Body_OptionBlank();
-int Cmd_Sequence(std::string& token);
+int Cmd_Sequence(std::string &token);
 int Cmd_Sequence_OptionDeform(s_sequence_t *psequence); // delete this
-int Cmd_Sequence_OptionEvent(std::string& token, s_sequence_t *psequence);
-int Cmd_Sequence_OptionAddPivot(std::string& token, s_sequence_t *psequence);
-int Cmd_Sequence_OptionFps(std::string& token, s_sequence_t *psequence);
-void Cmd_Sequence_OptionRotate(std::string& token);
-void Cmd_Sequence_OptionScaleUp(std::string& token);
+int Cmd_Sequence_OptionEvent(std::string &token, s_sequence_t *psequence);
+int Cmd_Sequence_OptionAddPivot(std::string &token, s_sequence_t *psequence);
+int Cmd_Sequence_OptionFps(std::string &token, s_sequence_t *psequence);
+void Cmd_Sequence_OptionRotate(std::string &token);
+void Cmd_Sequence_OptionScaleUp(std::string &token);
 void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim);
 void Grab_OptionAnimation(s_animation_t *panim);
 void Shift_OptionAnimation(s_animation_t *panim);
-int Cmd_Sequence_OptionAction(std::string& szActivity);
-int Cmd_SequenceGroup(std::string& token);
-void Cmd_Eyeposition(std::string& token);
-void Cmd_Origin(std::string& token);
-void Cmd_BBox(std::string& token);
-void Cmd_CBox(std::string& token);
-void Cmd_Mirror(std::string& token);
-void Cmd_Gamma(std::string& token);
-void Cmd_Flags(std::string& token);
-int Cmd_TextureGroup(std::string& token);
-int Cmd_Hitgroup(std::string& token);
-int Cmd_Hitbox(std::string& token);
-int Cmd_Attachment(std::string& token);
-void Cmd_Renamebone(std::string& token);
-void Cmd_TexRenderMode(std::string& token);
+int Cmd_Sequence_OptionAction(std::string &szActivity);
+int Cmd_SequenceGroup(std::string &token);
+void Cmd_Eyeposition(std::string &token);
+void Cmd_Origin(std::string &token);
+void Cmd_BBox(std::string &token);
+void Cmd_CBox(std::string &token);
+void Cmd_Mirror(std::string &token);
+void Cmd_Gamma(std::string &token);
+void Cmd_Flags(std::string &token);
+int Cmd_TextureGroup(std::string &token);
+int Cmd_Hitgroup(std::string &token);
+int Cmd_Hitbox(std::string &token);
+int Cmd_Attachment(std::string &token);
+void Cmd_Renamebone(std::string &token);
+void Cmd_TexRenderMode(std::string &token);
 int lookupControl(char *string);
 void ParseQCscript();
 

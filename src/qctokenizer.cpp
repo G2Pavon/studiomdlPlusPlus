@@ -5,14 +5,13 @@
 #include "cmdlib.hpp"
 #include "qctokenizer.hpp"
 
-char *qc_stream_p;          // Pointer to the current position in the QC file's data stream
-int qc_line_number;         // Current line number in the QC file
-bool token_ready;           // Flag indicating if a token is ready
-char *qc_stream_end_p;      // Pointer to the end of the QC file's data stream
+char *qc_stream_p;     // Pointer to the current position in the QC file's data stream
+int qc_line_number;    // Current line number in the QC file
+bool token_ready;      // Flag indicating if a token is ready
+char *qc_stream_end_p; // Pointer to the end of the QC file's data stream
 
-bool end_of_qc_file;        // Flag indicating if we've reached the end of the QC file
-char* qc_script_buffer;     // Buffer holding the entire QC file data
-
+bool end_of_qc_file;    // Flag indicating if we've reached the end of the QC file
+char *qc_script_buffer; // Buffer holding the entire QC file data
 
 void LoadScriptFile(char *filename)
 {
@@ -29,7 +28,7 @@ void LoadScriptFile(char *filename)
     token_ready = false;
 }
 
-bool GetToken(bool crossline, std::string& token)
+bool GetToken(bool crossline, std::string &token)
 {
     if (token_ready) // is a token already waiting?
     {
@@ -87,13 +86,13 @@ bool GetToken(bool crossline, std::string& token)
             if (qc_stream_p == qc_stream_end_p)
                 break;
         }
-        qc_stream_p++;  // Skip the closing quote
+        qc_stream_p++; // Skip the closing quote
     }
     else // Regular token
     {
-        while (*qc_stream_p > 32 && *qc_stream_p != ';' && *qc_stream_p != '\n')  // Added '\n' to delimiters
+        while (*qc_stream_p > 32 && *qc_stream_p != ';' && *qc_stream_p != '\n') // Added '\n' to delimiters
         {
-            token.push_back(*qc_stream_p++);  // Add characters to the token string
+            token.push_back(*qc_stream_p++); // Add characters to the token string
             if (qc_stream_p == qc_stream_end_p)
                 break;
         }
