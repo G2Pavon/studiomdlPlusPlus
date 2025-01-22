@@ -301,78 +301,78 @@ extern int g_skinref[256][MAXSTUDIOSKINS]; // [skin][skinref], returns texture i
 // Main functions -----------------------
 
 // setSkinValues:
-void SetSkinValues();
-void Grab_Skin(s_texture_t *ptexture);
-void Grab_BMP(char *filename, s_texture_t *ptexture);
-void ResizeTexture(s_texture_t *ptexture);
-void ResetTextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture);
-void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture);
+void set_skin_values();
+void grab_skin(s_texture_t *ptexture);
+void grab_bmp(char *filename, s_texture_t *ptexture);
+void resize_texture(s_texture_t *ptexture);
+void reset_texture_coord_ranges(s_mesh_t *pmesh, s_texture_t *ptexture);
+void texture_coord_ranges(s_mesh_t *pmesh, s_texture_t *ptexture);
 
 // SimplifyModel:
-void SimplifyModel();
-void MakeTransitions();
-int findNode(char *name);
-void OptimizeAnimations();
-void ExtractMotion();
+void simplify_model();
+void make_transitions();
+int find_node(char *name);
+void optimize_animations();
+void extract_motion();
 
 // End Main functions --------------------
 
 // QC Parser
-void Cmd_Modelname(std::string &token);
-void Cmd_ScaleUp(std::string &token);
-void Cmd_Rotate(std::string &token);
-int Cmd_Controller(std::string &token);
-void Cmd_Body(std::string &token);
-void Cmd_Bodygroup(std::string &token);
-void Cmd_Body_OptionStudio(std::string &token);
-int Cmd_Body_OptionBlank();
-int Cmd_Sequence(std::string &token);
-int Cmd_Sequence_OptionDeform(s_sequence_t *psequence); // delete this
-int Cmd_Sequence_OptionEvent(std::string &token, s_sequence_t *psequence);
-int Cmd_Sequence_OptionAddPivot(std::string &token, s_sequence_t *psequence);
-int Cmd_Sequence_OptionFps(std::string &token, s_sequence_t *psequence);
-void Cmd_Sequence_OptionRotate(std::string &token);
-void Cmd_Sequence_OptionScaleUp(std::string &token);
-void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim);
-void Grab_OptionAnimation(s_animation_t *panim);
-void Shift_OptionAnimation(s_animation_t *panim);
+void cmd_modelname(std::string &token);
+void cmd_scale(std::string &token);
+void cmd_rotate(std::string &token);
+int cmd_controller(std::string &token);
+void cmd_body(std::string &token);
+void cmd_bodygroup(std::string &token);
+void cmd_body_optionstudio(std::string &token);
+int cmd_body_optionblank();
+int cmd_sequence(std::string &token);
+int cmd_sequence_option_deform(s_sequence_t *psequence); // delete this
+int cmd_sequence_option_event(std::string &token, s_sequence_t *psequence);
+int cmd_sequence_option_addpivot(std::string &token, s_sequence_t *psequence);
+int cmd_sequence_option_fps(std::string &token, s_sequence_t *psequence);
+void cmd_sequence_option_rotate(std::string &token);
+void cmd_sequence_option_scale(std::string &token);
+void cmd_sequence_option_animation(char *name, s_animation_t *panim);
+void grab_option_animation(s_animation_t *panim);
+void shift_option_animation(s_animation_t *panim);
 int Cmd_Sequence_OptionAction(std::string &szActivity);
-int Cmd_SequenceGroup(std::string &token);
-void Cmd_Eyeposition(std::string &token);
-void Cmd_Origin(std::string &token);
-void Cmd_BBox(std::string &token);
-void Cmd_CBox(std::string &token);
-void Cmd_Mirror(std::string &token);
-void Cmd_Gamma(std::string &token);
-void Cmd_Flags(std::string &token);
-int Cmd_TextureGroup(std::string &token);
-int Cmd_Hitgroup(std::string &token);
-int Cmd_Hitbox(std::string &token);
-int Cmd_Attachment(std::string &token);
-void Cmd_Renamebone(std::string &token);
-void Cmd_TexRenderMode(std::string &token);
-int lookupControl(char *string);
-void ParseQCscript();
+int cmd_sequencegroup(std::string &token);
+void cmd_eyeposition(std::string &token);
+void cmd_origin(std::string &token);
+void cmd_bbox(std::string &token);
+void cmd_cbox(std::string &token);
+void cmd_mirror(std::string &token);
+void cmd_gamma(std::string &token);
+void cmd_flags(std::string &token);
+int cmd_texturegroup(std::string &token);
+int cmd_hitgroup(std::string &token);
+int cmd_hitbox(std::string &token);
+int cmd_attachment(std::string &token);
+void cmd_renamebone(std::string &token);
+void cmd_texrendermode(std::string &token);
+int lookup_control(char *string);
+void parse_qc_file();
 
 // SMD Parser
-void ParseSMD(s_model_t *pmodel);
-void Grab_SMDTriangles(s_model_t *pmodel);
-void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones);
-int Grab_SMDNodes(s_node_t *pnodes);
-void Build_Reference(s_model_t *pmodel);
-s_mesh_t *FindMeshByTexture(s_model_t *pmodel, char *texturename);
-s_trianglevert_t *FindMeshTriangleByIndex(s_mesh_t *pmesh, int index);
-int FindVertexNormalIndex(s_model_t *pmodel, s_normal_t *pnormal);
-int FindVertexIndex(s_model_t *pmodel, s_vertex_t *pv);
-void AdjustVertexToQcOrigin(float *org);
-void ScaleVertexByQcScale(float *org);
+void parse_smd(s_model_t *pmodel);
+void grab_smd_triangles(s_model_t *pmodel);
+void grab_smd_skeleton(s_node_t *pnodes, s_bone_t *pbones);
+int grab_smd_nodes(s_node_t *pnodes);
+void build_reference(s_model_t *pmodel);
+s_mesh_t *find_mesh_by_texture(s_model_t *pmodel, char *texturename);
+s_trianglevert_t *find_mesh_triangle_by_index(s_mesh_t *pmesh, int index);
+int finx_vertex_normal_index(s_model_t *pmodel, s_normal_t *pnormal);
+int find_vertex_index(s_model_t *pmodel, s_vertex_t *pv);
+void adjust_vertex_to_origin(float *org);
+void scale_vertex(float *org);
 void clip_rotations(vec3_t rot);
 
 // Common QC and SMD parser
-int FindTextureIndex(char *texturename);
+int find_texture_index(char *texturename);
 
 // Helpers
 char *stristr(const char *string, const char *string2);
 
-extern int BuildTris(s_trianglevert_t (*x)[3], s_mesh_t *y, std::uint8_t **ppdata);
-extern int LoadBMP(const char *szFile, std::uint8_t **ppbBits, std::uint8_t **ppbPalette, int *width, int *height);
+extern int build_tris(s_trianglevert_t (*x)[3], s_mesh_t *y, std::uint8_t **ppdata);
+extern int load_bmp(const char *szFile, std::uint8_t **ppbBits, std::uint8_t **ppbPalette, int *width, int *height);

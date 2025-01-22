@@ -15,7 +15,7 @@ float to_degrees(float rad)
 	return rad * (180 / Q_PI);
 }
 
-void MatrixCopy(float in[3][4], float out[3][4])
+void matrix_copy(float in[3][4], float out[3][4])
 {
 	for (int i = 0; i < 3; i++)
 	{
@@ -26,7 +26,7 @@ void MatrixCopy(float in[3][4], float out[3][4])
 	}
 }
 
-void AngleMatrix(const vec3_t &angles, float matrix[3][4])
+void angle_matrix(const vec3_t &angles, float matrix[3][4])
 {
 	float angle;
 	float sr, sp, sy, cr, cp, cy;
@@ -55,7 +55,7 @@ void AngleMatrix(const vec3_t &angles, float matrix[3][4])
 	matrix[2][3] = 0.0;
 }
 
-void AngleIMatrix(const vec3_t &angles, float matrix[3][4])
+void angle_i_matrix(const vec3_t &angles, float matrix[3][4])
 {
 	float angle;
 	float sr, sp, sy, cr, cp, cy;
@@ -84,7 +84,7 @@ void AngleIMatrix(const vec3_t &angles, float matrix[3][4])
 	matrix[2][3] = 0.0;
 }
 
-void R_ConcatTransforms(const float in1[3][4], const float in2[3][4], float out[3][4])
+void r_concat_transforms(const float in1[3][4], const float in2[3][4], float out[3][4])
 {
 	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] +
 				in1[0][2] * in2[2][0];
@@ -112,7 +112,7 @@ void R_ConcatTransforms(const float in1[3][4], const float in2[3][4], float out[
 				in1[2][2] * in2[2][3] + in1[2][3];
 }
 
-void VectorTransform(const vec3_t &in1, const float in2[3][4], vec3_t &out)
+void vector_transform(const vec3_t &in1, const float in2[3][4], vec3_t &out)
 {
 	vec3_t row0(in2[0][0], in2[0][1], in2[0][2]);
 	vec3_t row1(in2[1][0], in2[1][1], in2[1][2]);

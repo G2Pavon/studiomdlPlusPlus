@@ -82,7 +82,7 @@ void clip_rotations(vec3_t rot)
 	}
 }
 
-void ExtractMotion()
+void extract_motion()
 {
 	int i, j, k;
 	int blendIndex;
@@ -210,7 +210,7 @@ void ExtractMotion()
 	}
 }
 
-void OptimizeAnimations()
+void optimize_animations()
 {
 	int startFrame, endFrame;
 	int typeMotion;
@@ -269,7 +269,7 @@ void OptimizeAnimations()
 	}
 }
 
-int findNode(char *name)
+int find_node(char *name)
 {
 	for (int k = 0; k < g_bonescount; k++)
 	{
@@ -281,7 +281,7 @@ int findNode(char *name)
 	return -1;
 }
 
-void MakeTransitions()
+void make_transitions()
 {
 	int i, j;
 	int iHit;
@@ -341,7 +341,7 @@ void MakeTransitions()
 	}
 }
 
-void SimplifyModel()
+void simplify_model()
 {
 	int i, j, k;
 	int n, m, q;
@@ -349,9 +349,9 @@ void SimplifyModel()
 	vec3_t *defaultrot[MAXSTUDIOSRCBONES] = {0};
 	int iError = 0;
 
-	OptimizeAnimations();
-	ExtractMotion();
-	MakeTransitions();
+	optimize_animations();
+	extract_motion();
+	make_transitions();
 
 	// find used bones
 	for (i = 0; i < g_submodelscount; i++)
@@ -407,14 +407,14 @@ void SimplifyModel()
 		{
 			if (g_submodel[i]->boneref[j])
 			{
-				k = findNode(g_submodel[i]->node[j].name);
+				k = find_node(g_submodel[i]->node[j].name);
 				if (k == -1)
 				{
 					// create new bone
 					k = g_bonescount;
 					strcpyn(g_bonetable[k].name, g_submodel[i]->node[j].name);
 					if ((n = g_submodel[i]->node[j].parent) != -1)
-						g_bonetable[k].parent = findNode(g_submodel[i]->node[n].name);
+						g_bonetable[k].parent = find_node(g_submodel[i]->node[n].name);
 					else
 						g_bonetable[k].parent = -1;
 					g_bonetable[k].bonecontroller = 0;
@@ -436,7 +436,7 @@ void SimplifyModel()
 					// double check parent assignments
 					n = g_submodel[i]->node[j].parent;
 					if (n != -1)
-						n = findNode(g_submodel[i]->node[n].name);
+						n = find_node(g_submodel[i]->node[n].name);
 					m = g_bonetable[k].parent;
 
 					if (n != m)
@@ -462,7 +462,7 @@ void SimplifyModel()
 
 	if (g_bonescount >= MAXSTUDIOBONES)
 	{
-		Error("Too many bones used in model, used %d, max %d\n", g_bonescount, MAXSTUDIOBONES);
+		error("Too many bones used in model, used %d, max %d\n", g_bonescount, MAXSTUDIOBONES);
 	}
 
 	// rename sequence bones if needed
@@ -490,7 +490,7 @@ void SimplifyModel()
 		}
 		for (j = 0; j < g_sequenceCommand[i].panim[0]->numbones; j++)
 		{
-			k = findNode(g_sequenceCommand[i].panim[0]->node[j].name);
+			k = find_node(g_sequenceCommand[i].panim[0]->node[j].name);
 
 			if (k == -1)
 			{
@@ -537,7 +537,7 @@ void SimplifyModel()
 		}
 		if (j >= g_bonescount)
 		{
-			Error("unknown bonecontroller link '%s'\n", g_bonecontrollerCommand[i].name);
+			error("unknown bonecontroller link '%s'\n", g_bonecontrollerCommand[i].name);
 		}
 		g_bonecontrollerCommand[i].bone = j;
 	}
@@ -552,7 +552,7 @@ void SimplifyModel()
 		}
 		if (j >= g_bonescount)
 		{
-			Error("unknown attachment link '%s'\n", g_attachmentCommand[i].bonename);
+			error("unknown attachment link '%s'\n", g_attachmentCommand[i].bonename);
 		}
 		g_attachmentCommand[i].bone = j;
 	}
@@ -586,7 +586,7 @@ void SimplifyModel()
 			}
 		}
 		if (k >= g_bonescount)
-			Error("cannot find bone %s for hitgroup %d\n", g_hitgroupCommand[j].name, g_hitgroupCommand[j].group);
+			error("cannot find bone %s for hitgroup %d\n", g_hitgroupCommand[j].name, g_hitgroupCommand[j].group);
 	}
 	for (k = 0; k < g_bonescount; k++)
 	{
@@ -687,7 +687,7 @@ void SimplifyModel()
 				}
 			}
 			if (k >= g_bonescount)
-				Error("cannot find bone %s for bbox\n", g_hitboxCommand[j].name);
+				error("cannot find bone %s for bbox\n", g_hitboxCommand[j].name);
 		}
 	}
 
@@ -832,7 +832,7 @@ void SimplifyModel()
 					angles[1] = to_degrees(g_sequenceCommand[i].panim[q]->rot[j][n][1]);
 					angles[2] = to_degrees(g_sequenceCommand[i].panim[q]->rot[j][n][2]);
 
-					AngleMatrix(angles, bonematrix);
+					angle_matrix(angles, bonematrix);
 
 					bonematrix[0][3] = g_sequenceCommand[i].panim[q]->pos[j][n][0];
 					bonematrix[1][3] = g_sequenceCommand[i].panim[q]->pos[j][n][1];
@@ -840,11 +840,11 @@ void SimplifyModel()
 
 					if (g_bonetable[j].parent == -1)
 					{
-						MatrixCopy(bonematrix, bonetransform[j]);
+						matrix_copy(bonematrix, bonetransform[j]);
 					}
 					else
 					{
-						R_ConcatTransforms(bonetransform[g_bonetable[j].parent], bonematrix, bonetransform[j]);
+						r_concat_transforms(bonetransform[g_bonetable[j].parent], bonematrix, bonetransform[j]);
 					}
 				}
 
@@ -852,7 +852,7 @@ void SimplifyModel()
 				{
 					for (j = 0; j < g_submodel[k]->numverts; j++)
 					{
-						VectorTransform(g_submodel[k]->vert[j].org, bonetransform[g_submodel[k]->vert[j].bone], pos);
+						vector_transform(g_submodel[k]->vert[j].org, bonetransform[g_submodel[k]->vert[j].bone], pos);
 
 						if (pos[0] < bmin[0])
 							bmin[0] = pos[0];
@@ -917,7 +917,7 @@ void SimplifyModel()
 							}
 						}
 						if (n == 0)
-							Error("no animation frames: \"%s\"\n", g_sequenceCommand[i].name);
+							error("no animation frames: \"%s\"\n", g_sequenceCommand[i].name);
 
 						g_sequenceCommand[i].panim[q]->numanim[j][k] = 0;
 
@@ -986,7 +986,7 @@ void SimplifyModel()
 	}
 }
 
-int lookupControl(const char *string)
+int lookup_control(const char *string)
 {
 	if (stricmp(string, "X") == 0)
 		return STUDIO_X;
@@ -1048,7 +1048,7 @@ char *stristr(const char *string, const char *string2)
 	return (char *)string;
 }
 
-int FindTextureIndex(char *texturename)
+int find_texture_index(char *texturename)
 {
 	int i;
 	for (i = 0; i < g_texturescount; i++)
@@ -1073,11 +1073,11 @@ int FindTextureIndex(char *texturename)
 	return i;
 }
 
-s_mesh_t *FindMeshByTexture(s_model_t *pmodel, char *texturename)
+s_mesh_t *find_mesh_by_texture(s_model_t *pmodel, char *texturename)
 {
 	int i, j;
 
-	j = FindTextureIndex(texturename);
+	j = find_texture_index(texturename);
 
 	for (i = 0; i < pmodel->nummesh; i++)
 	{
@@ -1089,7 +1089,7 @@ s_mesh_t *FindMeshByTexture(s_model_t *pmodel, char *texturename)
 
 	if (i >= MAXSTUDIOMESHES)
 	{
-		Error("too many textures in model: \"%s\"\n", pmodel->name);
+		error("too many textures in model: \"%s\"\n", pmodel->name);
 	}
 
 	pmodel->nummesh = i + 1;
@@ -1099,7 +1099,7 @@ s_mesh_t *FindMeshByTexture(s_model_t *pmodel, char *texturename)
 	return pmodel->pmesh[i];
 }
 
-s_trianglevert_t *FindMeshTriangleByIndex(s_mesh_t *pmesh, int index)
+s_trianglevert_t *find_mesh_triangle_by_index(s_mesh_t *pmesh, int index)
 {
 	if (index >= pmesh->alloctris)
 	{
@@ -1119,7 +1119,7 @@ s_trianglevert_t *FindMeshTriangleByIndex(s_mesh_t *pmesh, int index)
 	return pmesh->triangle[index];
 }
 
-int FindVertexNormalIndex(s_model_t *pmodel, s_normal_t *pnormal)
+int finx_vertex_normal_index(s_model_t *pmodel, s_normal_t *pnormal)
 {
 	int i;
 	for (i = 0; i < pmodel->numnorms; i++)
@@ -1131,7 +1131,7 @@ int FindVertexNormalIndex(s_model_t *pmodel, s_normal_t *pnormal)
 	}
 	if (i >= MAXSTUDIOVERTS)
 	{
-		Error("too many normals in model: \"%s\"\n", pmodel->name);
+		error("too many normals in model: \"%s\"\n", pmodel->name);
 	}
 	pmodel->normal[i].org = pnormal->org;
 	pmodel->normal[i].bone = pnormal->bone;
@@ -1140,7 +1140,7 @@ int FindVertexNormalIndex(s_model_t *pmodel, s_normal_t *pnormal)
 	return i;
 }
 
-int FindVertexIndex(s_model_t *pmodel, s_vertex_t *pv)
+int find_vertex_index(s_model_t *pmodel, s_vertex_t *pv)
 {
 	int i;
 
@@ -1158,7 +1158,7 @@ int FindVertexIndex(s_model_t *pmodel, s_vertex_t *pv)
 	}
 	if (i >= MAXSTUDIOVERTS)
 	{
-		Error("too many vertices in model: \"%s\"\n", pmodel->name);
+		error("too many vertices in model: \"%s\"\n", pmodel->name);
 	}
 	pmodel->vert[i].org = pv->org;
 	pmodel->vert[i].bone = pv->bone;
@@ -1166,7 +1166,7 @@ int FindVertexIndex(s_model_t *pmodel, s_vertex_t *pv)
 	return i;
 }
 
-void AdjustVertexToQcOrigin(vec3_t org)
+void adjust_vertex_to_origin(vec3_t org)
 {
 	org[0] = (org[0] - g_sequenceOrigin[0]);
 	org[1] = (org[1] - g_sequenceOrigin[1]);
@@ -1181,7 +1181,7 @@ void ScaleVertexByQcScale(vec3_t org)
 }
 
 // Called for the base frame
-void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
+void texture_coord_ranges(s_mesh_t *pmesh, s_texture_t *ptexture)
 {
 	int i, j;
 
@@ -1225,7 +1225,7 @@ void TextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
 	ptexture->min_t = 0;
 }
 
-void ResetTextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
+void reset_texture_coord_ranges(s_mesh_t *pmesh, s_texture_t *ptexture)
 {
 	// adjust top, left edge
 	for (int i = 0; i < pmesh->numtris; i++)
@@ -1237,17 +1237,17 @@ void ResetTextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
 	}
 }
 
-void Grab_BMP(const char *filename, s_texture_t *ptexture)
+void grab_bmp(const char *filename, s_texture_t *ptexture)
 {
 	int result;
 
-	if (result = LoadBMP(filename, &ptexture->ppicture, (std::uint8_t **)&ptexture->ppal, &ptexture->srcwidth, &ptexture->srcheight))
+	if (result = load_bmp(filename, &ptexture->ppicture, (std::uint8_t **)&ptexture->ppal, &ptexture->srcwidth, &ptexture->srcheight))
 	{
-		Error("error %d reading BMP image \"%s\"\n", result, filename);
+		error("error %d reading BMP image \"%s\"\n", result, filename);
 	}
 }
 
-void ResizeTexture(s_texture_t *ptexture)
+void resize_texture(s_texture_t *ptexture)
 {
 	int i, t;
 	std::uint8_t *pdest;
@@ -1268,7 +1268,7 @@ void ResizeTexture(s_texture_t *ptexture)
 	if (ptexture->size > 1024 * 1024)
 	{
 		printf("%.0f %.0f %.0f %.0f\n", ptexture->min_s, ptexture->max_s, ptexture->min_t, ptexture->max_t);
-		Error("texture too large\n");
+		error("texture too large\n");
 	}
 	pdest = (std::uint8_t *)malloc(ptexture->size);
 	ptexture->pdata = pdest;
@@ -1313,7 +1313,7 @@ void ResizeTexture(s_texture_t *ptexture)
 	free(ptexture->ppal);
 }
 
-void Grab_Skin(s_texture_t *ptexture)
+void grab_skin(s_texture_t *ptexture)
 {
 	std::filesystem::path textureFilePath = g_cdtextureCommand / ptexture->name;
 	if (!std::filesystem::exists(textureFilePath))
@@ -1321,26 +1321,26 @@ void Grab_Skin(s_texture_t *ptexture)
 		textureFilePath = g_cdCommandAbsolute / ptexture->name;
 		if (!std::filesystem::exists(textureFilePath))
 		{
-			Error("cannot find %s texture in \"%s\" nor \"%s\"\nor those path don't exist\n", ptexture->name, g_cdtextureCommand.c_str(), g_cdCommandAbsolute.c_str());
+			error("cannot find %s texture in \"%s\" nor \"%s\"\nor those path don't exist\n", ptexture->name, g_cdtextureCommand.c_str(), g_cdCommandAbsolute.c_str());
 		}
 	}
 	if (textureFilePath.extension() == ".bmp")
 	{
-		Grab_BMP(textureFilePath.string().c_str(), ptexture);
+		grab_bmp(textureFilePath.string().c_str(), ptexture);
 	}
 	else
 	{
-		Error(const_cast<char *>("unknown graphics type: \"%s\"\n"), textureFilePath.string().c_str());
+		error(const_cast<char *>("unknown graphics type: \"%s\"\n"), textureFilePath.string().c_str());
 	}
 }
 
-void SetSkinValues()
+void set_skin_values()
 {
 	int i, j;
 
 	for (i = 0; i < g_texturescount; i++)
 	{
-		Grab_Skin(&g_texture[i]);
+		grab_skin(&g_texture[i]);
 
 		g_texture[i].max_s = -9999999;
 		g_texture[i].min_s = 9999999;
@@ -1352,7 +1352,7 @@ void SetSkinValues()
 	{
 		for (j = 0; j < g_submodel[i]->nummesh; j++)
 		{
-			TextureCoordRanges(g_submodel[i]->pmesh[j], &g_texture[g_submodel[i]->pmesh[j]->skinref]);
+			texture_coord_ranges(g_submodel[i]->pmesh[j], &g_texture[g_submodel[i]->pmesh[j]->skinref]);
 		}
 	}
 
@@ -1377,14 +1377,14 @@ void SetSkinValues()
 			}
 		}
 
-		ResizeTexture(&g_texture[i]);
+		resize_texture(&g_texture[i]);
 	}
 
 	for (i = 0; i < g_submodelscount; i++)
 	{
 		for (j = 0; j < g_submodel[i]->nummesh; j++)
 		{
-			ResetTextureCoordRanges(g_submodel[i]->pmesh[j], &g_texture[g_submodel[i]->pmesh[j]->skinref]);
+			reset_texture_coord_ranges(g_submodel[i]->pmesh[j], &g_texture[g_submodel[i]->pmesh[j]->skinref]);
 		}
 	}
 
@@ -1414,7 +1414,7 @@ void SetSkinValues()
 	}
 }
 
-void Build_Reference(s_model_t *pmodel)
+void build_reference(s_model_t *pmodel)
 {
 	vec3_t boneAngle{};
 
@@ -1432,8 +1432,8 @@ void Build_Reference(s_model_t *pmodel)
 		{
 			// scale the done pos.
 			// calc rotational matrices
-			AngleMatrix(boneAngle, g_bonefixup[i].m);
-			AngleIMatrix(boneAngle, g_bonefixup[i].im);
+			angle_matrix(boneAngle, g_bonefixup[i].m);
+			angle_i_matrix(boneAngle, g_bonefixup[i].im);
 			g_bonefixup[i].worldorg = pmodel->skeleton[i].pos;
 		}
 		else
@@ -1442,19 +1442,19 @@ void Build_Reference(s_model_t *pmodel)
 			float rotationMatrix[3][4];
 			// calc compound rotational matrices
 			// FIXME : Hey, it's orthogical so inv(A) == transpose(A)
-			AngleMatrix(boneAngle, rotationMatrix);
-			R_ConcatTransforms(g_bonefixup[parent].m, rotationMatrix, g_bonefixup[i].m);
-			AngleIMatrix(boneAngle, rotationMatrix);
-			R_ConcatTransforms(rotationMatrix, g_bonefixup[parent].im, g_bonefixup[i].im);
+			angle_matrix(boneAngle, rotationMatrix);
+			r_concat_transforms(g_bonefixup[parent].m, rotationMatrix, g_bonefixup[i].m);
+			angle_i_matrix(boneAngle, rotationMatrix);
+			r_concat_transforms(rotationMatrix, g_bonefixup[parent].im, g_bonefixup[i].im);
 
 			// calc true world coord.
-			VectorTransform(pmodel->skeleton[i].pos, g_bonefixup[parent].m, truePos);
+			vector_transform(pmodel->skeleton[i].pos, g_bonefixup[parent].m, truePos);
 			g_bonefixup[i].worldorg = truePos + g_bonefixup[parent].worldorg;
 		}
 	}
 }
 
-void Grab_SMDTriangles(s_model_t *pmodel)
+void grab_smd_triangles(s_model_t *pmodel)
 {
 	int i;
 	int trianglesCount = 0;
@@ -1464,7 +1464,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 	vmin[0] = vmin[1] = vmin[2] = 99999;
 	vmax[0] = vmax[1] = vmax[2] = -99999;
 
-	Build_Reference(pmodel);
+	build_reference(pmodel);
 
 	// load the base triangles
 	while (true)
@@ -1516,15 +1516,15 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 				continue;
 			}
 
-			pmesh = FindMeshByTexture(pmodel, triangleMaterial);
+			pmesh = find_mesh_by_texture(pmodel, triangleMaterial);
 
 			for (int j = 0; j < 3; j++)
 			{
 				if (g_flagfliptriangles)
 					// quake wants them in the reverse order
-					ptriangleVert = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + 2 - j;
+					ptriangleVert = find_mesh_triangle_by_index(pmesh, pmesh->numtris) + 2 - j;
 				else
-					ptriangleVert = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + j;
+					ptriangleVert = find_mesh_triangle_by_index(pmesh, pmesh->numtris) + j;
 
 				if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 				{
@@ -1555,28 +1555,28 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 						if (triangleVertex.org[2] < vmin[2])
 							vmin[2] = triangleVertex.org[2];
 
-						AdjustVertexToQcOrigin(triangleVertex.org);
+						adjust_vertex_to_origin(triangleVertex.org);
 						ScaleVertexByQcScale(triangleVertex.org);
 
 						// move vertex position to object space.
 						vec3_t tmp;
 						tmp = triangleVertex.org - g_bonefixup[triangleVertex.bone].worldorg;
-						VectorTransform(tmp, g_bonefixup[triangleVertex.bone].im, triangleVertex.org);
+						vector_transform(tmp, g_bonefixup[triangleVertex.bone].im, triangleVertex.org);
 
 						// move normal to object space.
 						tmp = triangleNormal.org;
-						VectorTransform(tmp, g_bonefixup[triangleVertex.bone].im, triangleNormal.org);
+						vector_transform(tmp, g_bonefixup[triangleVertex.bone].im, triangleNormal.org);
 						triangleNormal.org.normalize();
 
-						ptriangleVert->normindex = FindVertexNormalIndex(pmodel, &triangleNormal);
-						ptriangleVert->vertindex = FindVertexIndex(pmodel, &triangleVertex);
+						ptriangleVert->normindex = finx_vertex_normal_index(pmodel, &triangleNormal);
+						ptriangleVert->vertindex = find_vertex_index(pmodel, &triangleVertex);
 
 						// tag bone as being used
 						// pmodel->bone[bone].ref = 1;
 					}
 					else
 					{
-						Error("%s: error on line %d: %s", g_smdpath, g_smdlinecount, g_currentsmdline);
+						error("%s: error on line %d: %s", g_smdpath, g_smdlinecount, g_currentsmdline);
 					}
 				}
 			}
@@ -1593,8 +1593,8 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 					{
 						// steal the triangle and make it white
 						s_trianglevert_t *ptriv2;
-						pmesh = FindMeshByTexture(pmodel, "..\\white.bmp");
-						ptriv2 = FindMeshTriangleByIndex(pmesh, pmesh->numtris);
+						pmesh = find_mesh_by_texture(pmodel, "..\\white.bmp");
+						ptriv2 = find_mesh_triangle_by_index(pmesh, pmesh->numtris);
 
 						ptriv2[0] = ptriangleVert[0];
 						ptriv2[1] = ptriangleVert[1];
@@ -1626,8 +1626,8 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 								   triangleNormals[1].dot(triangleNormals[2]),
 								   triangleNormals[2].dot(triangleNormals[0]));
 
-							pmesh = FindMeshByTexture(pmodel, "..\\white.bmp");
-							ptriv2 = FindMeshTriangleByIndex(pmesh, pmesh->numtris);
+							pmesh = find_mesh_by_texture(pmodel, "..\\white.bmp");
+							ptriv2 = find_mesh_triangle_by_index(pmesh, pmesh->numtris);
 
 							ptriv2[0] = ptriangleVert[0];
 							ptriv2[1] = ptriangleVert[1];
@@ -1656,7 +1656,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 	}
 }
 
-void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
+void grab_smd_skeleton(s_node_t *pnodes, s_bone_t *pbones)
 {
 	float posX, posY, posZ, rotX, rotY, rotZ;
 	char cmd[1024];
@@ -1696,7 +1696,7 @@ void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
 	}
 }
 
-int Grab_SMDNodes(s_node_t *pnodes)
+int grab_smd_nodes(s_node_t *pnodes)
 {
 	int index;
 	char boneName[1024];
@@ -1728,18 +1728,18 @@ int Grab_SMDNodes(s_node_t *pnodes)
 			return numBones + 1;
 		}
 	}
-	Error("Unexpected EOF at line %d\n", g_smdlinecount);
+	error("Unexpected EOF at line %d\n", g_smdlinecount);
 	return 0;
 }
 
-void ParseSMD(s_model_t *pmodel)
+void parse_smd(s_model_t *pmodel)
 {
 	char cmd[1024];
 	int option;
 
 	g_smdpath = g_cdCommandAbsolute / (std::string(pmodel->name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
-		Error("%s doesn't exist", g_smdpath.c_str());
+		error("%s doesn't exist", g_smdpath.c_str());
 
 	printf("grabbing %s\n", g_smdpath.c_str());
 
@@ -1757,20 +1757,20 @@ void ParseSMD(s_model_t *pmodel)
 		{
 			if (option != 1)
 			{
-				Error("bad version\n");
+				error("bad version\n");
 			}
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			pmodel->numbones = Grab_SMDNodes(pmodel->node);
+			pmodel->numbones = grab_smd_nodes(pmodel->node);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
-			Grab_SMDSkeleton(pmodel->node, pmodel->skeleton);
+			grab_smd_skeleton(pmodel->node, pmodel->skeleton);
 		}
 		else if (std::strcmp(cmd, "triangles") == 0)
 		{
-			Grab_SMDTriangles(pmodel);
+			grab_smd_triangles(pmodel);
 		}
 		else
 		{
@@ -1780,35 +1780,35 @@ void ParseSMD(s_model_t *pmodel)
 	fclose(g_smdfile);
 }
 
-void Cmd_Eyeposition(std::string &token)
+void cmd_eyeposition(std::string &token)
 {
 	// rotate points into frame of reference so model points down the positive x
 	// axis
-	GetToken(false, token);
+	get_token(false, token);
 	g_eyepositionCommand[1] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_eyepositionCommand[0] = -std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_eyepositionCommand[2] = std::stof(token);
 }
 
-void Cmd_Flags(std::string &token)
+void cmd_flags(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_flagsCommand = std::stoi(token);
 }
 
-void Cmd_Modelname(std::string &token)
+void cmd_modelname(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	strcpyn(g_modelnameCommand, token.c_str());
 }
 
-void Cmd_Body_OptionStudio(std::string &token)
+void cmd_body_optionstudio(std::string &token)
 {
-	if (!GetToken(false, token))
+	if (!get_token(false, token))
 		return;
 
 	g_submodel[g_submodelscount] = (s_model_t *)std::calloc(1, sizeof(s_model_t));
@@ -1820,21 +1820,21 @@ void Cmd_Body_OptionStudio(std::string &token)
 
 	g_scaleBodyAndSequenceOption = g_scaleCommand;
 
-	while (TokenAvailable())
+	while (token_available())
 	{
-		GetToken(false, token);
+		get_token(false, token);
 		if (stricmp("reverse", token.c_str()) == 0)
 		{
 			g_flagfliptriangles = 0;
 		}
 		else if (stricmp("scale", token.c_str()) == 0)
 		{
-			GetToken(false, token);
+			get_token(false, token);
 			g_scaleBodyAndSequenceOption = std::stof(token);
 		}
 	}
 
-	ParseSMD(g_submodel[g_submodelscount]);
+	parse_smd(g_submodel[g_submodelscount]);
 
 	g_bodypart[g_bodygroupcount].nummodels++;
 	g_submodelscount++;
@@ -1842,7 +1842,7 @@ void Cmd_Body_OptionStudio(std::string &token)
 	g_scaleBodyAndSequenceOption = g_scaleCommand;
 }
 
-int Cmd_Body_OptionBlank()
+int cmd_body_optionblank()
 {
 	g_submodel[g_submodelscount] = (s_model_t *)(1, sizeof(s_model_t));
 	g_bodypart[g_bodygroupcount].pmodel[g_bodypart[g_bodygroupcount].nummodels] = g_submodel[g_submodelscount];
@@ -1854,9 +1854,9 @@ int Cmd_Body_OptionBlank()
 	return 0;
 }
 
-void Cmd_Bodygroup(std::string &token)
+void cmd_bodygroup(std::string &token)
 {
-	if (!GetToken(false, token))
+	if (!get_token(false, token))
 		return;
 
 	if (g_bodygroupcount == 0)
@@ -1872,7 +1872,7 @@ void Cmd_Bodygroup(std::string &token)
 	while (true)
 	{
 		int is_started = 0;
-		GetToken(true, token);
+		get_token(true, token);
 		if (end_of_qc_file)
 			return;
 
@@ -1886,11 +1886,11 @@ void Cmd_Bodygroup(std::string &token)
 		}
 		else if (stricmp("studio", token.c_str()) == 0)
 		{
-			Cmd_Body_OptionStudio(token);
+			cmd_body_optionstudio(token);
 		}
 		else if (stricmp("blank", token.c_str()) == 0)
 		{
-			Cmd_Body_OptionBlank();
+			cmd_body_optionblank();
 		}
 	}
 
@@ -1898,9 +1898,9 @@ void Cmd_Bodygroup(std::string &token)
 	return;
 }
 
-void Cmd_Body(std::string &token)
+void cmd_body(std::string &token)
 {
-	if (!GetToken(false, token))
+	if (!get_token(false, token))
 		return;
 
 	if (g_bodygroupcount == 0)
@@ -1913,12 +1913,12 @@ void Cmd_Body(std::string &token)
 	}
 	strcpyn(g_bodypart[g_bodygroupcount].name, token.c_str());
 
-	Cmd_Body_OptionStudio(token);
+	cmd_body_optionstudio(token);
 
 	g_bodygroupcount++;
 }
 
-void Grab_OptionAnimation(s_animation_t *panim)
+void grab_option_animation(s_animation_t *panim)
 {
 	vec3_t pos;
 	vec3_t rot;
@@ -1947,7 +1947,7 @@ void Grab_OptionAnimation(s_animation_t *panim)
 			{
 				if (panim->node[index].parent == -1)
 				{
-					AdjustVertexToQcOrigin(pos);
+					adjust_vertex_to_origin(pos);
 					panim->pos[index][t][0] = cz * pos[0] - sz * pos[1];
 					panim->pos[index][t][1] = sz * pos[0] + cz * pos[1];
 					panim->pos[index][t][2] = pos[2];
@@ -1987,18 +1987,18 @@ void Grab_OptionAnimation(s_animation_t *panim)
 			}
 			else
 			{
-				Error("Error(%d) : %s", g_smdlinecount, g_currentsmdline);
+				error("Error(%d) : %s", g_smdlinecount, g_currentsmdline);
 			}
 		}
 		else
 		{
-			Error("Error(%d) : %s", g_smdlinecount, g_currentsmdline);
+			error("Error(%d) : %s", g_smdlinecount, g_currentsmdline);
 		}
 	}
-	Error("unexpected EOF: %s\n", panim->name);
+	error("unexpected EOF: %s\n", panim->name);
 }
 
-void Shift_OptionAnimation(s_animation_t *panim)
+void shift_option_animation(s_animation_t *panim)
 {
 	int size;
 
@@ -2023,7 +2023,7 @@ void Shift_OptionAnimation(s_animation_t *panim)
 	}
 }
 
-void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
+void cmd_sequence_option_animation(char *name, s_animation_t *panim)
 {
 	char cmd[1024];
 	int option;
@@ -2032,14 +2032,14 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 
 	g_smdpath = g_cdCommandAbsolute / (std::string(panim->name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
-		Error("%s doesn't exist", g_smdpath.c_str());
+		error("%s doesn't exist", g_smdpath.c_str());
 
 	printf("grabbing %s\n", g_smdpath.c_str());
 
 	if ((g_smdfile = fopen(g_smdpath.string().c_str(), "r")) == 0)
 	{
 		fprintf(stderr, "reader: could not open file '%s'\n", g_smdpath.c_str());
-		Error(0);
+		error(0);
 	}
 	g_smdlinecount = 0;
 
@@ -2051,17 +2051,17 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 		{
 			if (option != 1)
 			{
-				Error("bad version\n");
+				error("bad version\n");
 			}
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			panim->numbones = Grab_SMDNodes(panim->node);
+			panim->numbones = grab_smd_nodes(panim->node);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
-			Grab_OptionAnimation(panim);
-			Shift_OptionAnimation(panim);
+			grab_option_animation(panim);
+			shift_option_animation(panim);
 		}
 		else
 		{
@@ -2077,12 +2077,12 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 	fclose(g_smdfile);
 }
 
-int Cmd_Sequence_OptionDeform(s_sequence_t *psequence) // delete this
+int cmd_sequence_option_deform(s_sequence_t *psequence) // delete this
 {
 	return 0;
 }
 
-int Cmd_Sequence_OptionEvent(std::string &token, s_sequence_t *psequence)
+int cmd_sequence_option_event(std::string &token, s_sequence_t *psequence)
 {
 	int event;
 
@@ -2092,19 +2092,19 @@ int Cmd_Sequence_OptionEvent(std::string &token, s_sequence_t *psequence)
 		exit(0);
 	}
 
-	GetToken(false, token);
+	get_token(false, token);
 	event = std::stoi(token);
 	psequence->event[psequence->numevents].event = event;
 
-	GetToken(false, token);
+	get_token(false, token);
 	psequence->event[psequence->numevents].frame = std::stoi(token);
 
 	psequence->numevents++;
 
 	// option token
-	if (TokenAvailable())
+	if (token_available())
 	{
-		GetToken(false, token);
+		get_token(false, token);
 		if (token[0] == '}') // opps, hit the end
 			return 1;
 		// found an option
@@ -2114,16 +2114,16 @@ int Cmd_Sequence_OptionEvent(std::string &token, s_sequence_t *psequence)
 	return 0;
 }
 
-int Cmd_Sequence_OptionFps(std::string &token, s_sequence_t *psequence)
+int cmd_sequence_option_fps(std::string &token, s_sequence_t *psequence)
 {
-	GetToken(false, token);
+	get_token(false, token);
 
 	psequence->fps = std::stof(token);
 
 	return 0;
 }
 
-int Cmd_Sequence_OptionAddPivot(std::string &token, s_sequence_t *psequence)
+int cmd_sequence_option_addpivot(std::string &token, s_sequence_t *psequence)
 {
 	if (psequence->numpivots + 1 >= MAXSTUDIOPIVOTS)
 	{
@@ -2131,13 +2131,13 @@ int Cmd_Sequence_OptionAddPivot(std::string &token, s_sequence_t *psequence)
 		exit(0);
 	}
 
-	GetToken(false, token);
+	get_token(false, token);
 	psequence->pivot[psequence->numpivots].index = std::stoi(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	psequence->pivot[psequence->numpivots].start = std::stoi(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	psequence->pivot[psequence->numpivots].end = std::stoi(token);
 
 	psequence->numpivots++;
@@ -2145,64 +2145,64 @@ int Cmd_Sequence_OptionAddPivot(std::string &token, s_sequence_t *psequence)
 	return 0;
 }
 
-void Cmd_Origin(std::string &token)
+void cmd_origin(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_originCommand[0] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_originCommand[1] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_originCommand[2] = std::stof(token);
 
-	if (TokenAvailable())
+	if (token_available())
 	{
-		GetToken(false, token);
+		get_token(false, token);
 		g_originCommandRotation = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 	}
 }
 
 void Cmd_Sequence_OptionOrigin(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_sequenceOrigin[0] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_sequenceOrigin[1] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_sequenceOrigin[2] = std::stof(token);
 }
 
-void Cmd_Sequence_OptionRotate(std::string &token)
+void cmd_sequence_option_rotate(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_rotateCommand = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
-void Cmd_ScaleUp(std::string &token)
+void cmd_scale(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_scaleCommand = g_scaleBodyAndSequenceOption = std::stof(token);
 }
 
-void Cmd_Rotate(std::string &token) // XDM
+void cmd_rotate(std::string &token) // XDM
 {
-	if (!GetToken(false, token))
+	if (!get_token(false, token))
 		return;
 	g_rotateCommand = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
-void Cmd_Sequence_OptionScaleUp(std::string &token)
+void cmd_sequence_option_scale(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_scaleBodyAndSequenceOption = std::stof(token);
 }
 
-int Cmd_SequenceGroup(std::string &token)
+int cmd_sequencegroup(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	strcpyn(g_sequencegroupCommand[g_sequencegroupcount].label, token.c_str());
 	g_sequencegroupcount++;
 
@@ -2224,7 +2224,7 @@ int Cmd_Sequence_OptionAction(std::string &szActivity)
 	return 0;
 }
 
-int Cmd_Sequence(std::string &token)
+int cmd_sequence(std::string &token)
 {
 	int depth = 0;
 	char smdfilename[MAXSTUDIOBLENDS][1024];
@@ -2233,7 +2233,7 @@ int Cmd_Sequence(std::string &token)
 	int start = 0;
 	int end = MAXSTUDIOANIMATIONS - 1;
 
-	if (!GetToken(false, token))
+	if (!get_token(false, token))
 		return 0;
 
 	strcpyn(g_sequenceCommand[g_sequencecount].name, token.c_str());
@@ -2251,20 +2251,20 @@ int Cmd_Sequence(std::string &token)
 	{
 		if (depth > 0)
 		{
-			if (!GetToken(true, token))
+			if (!get_token(true, token))
 			{
 				break;
 			}
 		}
 		else
 		{
-			if (!TokenAvailable())
+			if (!token_available())
 			{
 				break;
 			}
 			else
 			{
-				GetToken(false, token);
+				get_token(false, token);
 			}
 		}
 
@@ -2287,19 +2287,19 @@ int Cmd_Sequence(std::string &token)
 		}
 		else if (stricmp("deform", token.c_str()) == 0)
 		{
-			Cmd_Sequence_OptionDeform(&g_sequenceCommand[g_sequencecount]);
+			cmd_sequence_option_deform(&g_sequenceCommand[g_sequencecount]);
 		}
 		else if (stricmp("event", token.c_str()) == 0)
 		{
-			depth -= Cmd_Sequence_OptionEvent(token, &g_sequenceCommand[g_sequencecount]);
+			depth -= cmd_sequence_option_event(token, &g_sequenceCommand[g_sequencecount]);
 		}
 		else if (stricmp("pivot", token.c_str()) == 0)
 		{
-			Cmd_Sequence_OptionAddPivot(token, &g_sequenceCommand[g_sequencecount]);
+			cmd_sequence_option_addpivot(token, &g_sequenceCommand[g_sequencecount]);
 		}
 		else if (stricmp("fps", token.c_str()) == 0)
 		{
-			Cmd_Sequence_OptionFps(token, &g_sequenceCommand[g_sequencecount]);
+			cmd_sequence_option_fps(token, &g_sequenceCommand[g_sequencecount]);
 		}
 		else if (stricmp("origin", token.c_str()) == 0)
 		{
@@ -2307,11 +2307,11 @@ int Cmd_Sequence(std::string &token)
 		}
 		else if (stricmp("rotate", token.c_str()) == 0)
 		{
-			Cmd_Sequence_OptionRotate(token);
+			cmd_sequence_option_rotate(token);
 		}
 		else if (stricmp("scale", token.c_str()) == 0)
 		{
-			Cmd_Sequence_OptionScaleUp(token);
+			cmd_sequence_option_scale(token);
 		}
 		else if (strnicmp("loop", token.c_str(), 4) == 0)
 		{
@@ -2319,53 +2319,53 @@ int Cmd_Sequence(std::string &token)
 		}
 		else if (strnicmp("frame", token.c_str(), 5) == 0)
 		{
-			GetToken(false, token);
+			get_token(false, token);
 			start = std::stoi(token);
-			GetToken(false, token);
+			get_token(false, token);
 			end = std::stoi(token);
 		}
 		else if (strnicmp("blend", token.c_str(), 5) == 0)
 		{
-			GetToken(false, token);
-			g_sequenceCommand[g_sequencecount].blendtype[0] = lookupControl(token.c_str());
-			GetToken(false, token);
+			get_token(false, token);
+			g_sequenceCommand[g_sequencecount].blendtype[0] = lookup_control(token.c_str());
+			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].blendstart[0] = std::stof(token);
-			GetToken(false, token);
+			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].blendend[0] = std::stof(token);
 		}
 		else if (strnicmp("node", token.c_str(), 4) == 0)
 		{
-			GetToken(false, token);
+			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].entrynode = g_sequenceCommand[g_sequencecount].exitnode = std::stoi(token);
 		}
 		else if (strnicmp("transition", token.c_str(), 4) == 0)
 		{
-			GetToken(false, token);
+			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].entrynode = std::stoi(token);
-			GetToken(false, token);
+			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].exitnode = std::stoi(token);
 		}
 		else if (strnicmp("rtransition", token.c_str(), 4) == 0)
 		{
-			GetToken(false, token);
+			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].entrynode = std::stoi(token);
-			GetToken(false, token);
+			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].exitnode = std::stoi(token);
 			g_sequenceCommand[g_sequencecount].nodeflags |= 1;
 		}
-		else if (lookupControl(token.c_str()) != -1) // motion flags [motion extraction]
+		else if (lookup_control(token.c_str()) != -1) // motion flags [motion extraction]
 		{
-			g_sequenceCommand[g_sequencecount].motiontype |= lookupControl(token.c_str());
+			g_sequenceCommand[g_sequencecount].motiontype |= lookup_control(token.c_str());
 		}
 		else if (stricmp("animation", token.c_str()) == 0)
 		{
-			GetToken(false, token);
+			get_token(false, token);
 			strcpyn(smdfilename[numblends++], token.c_str());
 		}
 		else if ((i = Cmd_Sequence_OptionAction(token)) != 0)
 		{
 			g_sequenceCommand[g_sequencecount].activity = i;
-			GetToken(false, token);
+			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].actweight = std::stoi(token);
 		}
 		else
@@ -2392,7 +2392,7 @@ int Cmd_Sequence(std::string &token)
 		g_sequenceCommand[g_sequencecount].panim[i]->startframe = start;
 		g_sequenceCommand[g_sequencecount].panim[i]->endframe = end;
 		g_sequenceCommand[g_sequencecount].panim[i]->flags = 0;
-		Cmd_Sequence_OptionAnimation(smdfilename[i], g_animationSequenceOption[g_animationcount]);
+		cmd_sequence_option_animation(smdfilename[i], g_animationSequenceOption[g_animationcount]);
 		g_animationcount++;
 	}
 	g_sequenceCommand[g_sequencecount].numblends = numblends;
@@ -2402,9 +2402,9 @@ int Cmd_Sequence(std::string &token)
 	return 0;
 }
 
-int Cmd_Controller(std::string &token)
+int cmd_controller(std::string &token)
 {
-	if (GetToken(false, token))
+	if (get_token(false, token))
 	{
 		if (token == "mouth")
 		{
@@ -2414,18 +2414,18 @@ int Cmd_Controller(std::string &token)
 		{
 			g_bonecontrollerCommand[g_bonecontrollerscount].index = std::stoi(token);
 		}
-		if (GetToken(false, token))
+		if (get_token(false, token))
 		{
 			strcpyn(g_bonecontrollerCommand[g_bonecontrollerscount].name, token.c_str());
-			GetToken(false, token);
-			if ((g_bonecontrollerCommand[g_bonecontrollerscount].type = lookupControl(token.c_str())) == -1)
+			get_token(false, token);
+			if ((g_bonecontrollerCommand[g_bonecontrollerscount].type = lookup_control(token.c_str())) == -1)
 			{
 				printf("unknown bonecontroller type '%s'\n", token);
 				return 0;
 			}
-			GetToken(false, token);
+			get_token(false, token);
 			g_bonecontrollerCommand[g_bonecontrollerscount].start = std::stof(token);
-			GetToken(false, token);
+			get_token(false, token);
 			g_bonecontrollerCommand[g_bonecontrollerscount].end = std::stof(token);
 
 			if (g_bonecontrollerCommand[g_bonecontrollerscount].type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
@@ -2441,61 +2441,61 @@ int Cmd_Controller(std::string &token)
 	return 1;
 }
 
-void Cmd_BBox(std::string &token)
+void cmd_bbox(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_bboxCommand[0][0] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_bboxCommand[0][1] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_bboxCommand[0][2] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_bboxCommand[1][0] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_bboxCommand[1][1] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_bboxCommand[1][2] = std::stof(token);
 }
 
-void Cmd_CBox(std::string &token)
+void cmd_cbox(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_cboxCommand[0][0] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_cboxCommand[0][1] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_cboxCommand[0][2] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_cboxCommand[1][0] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_cboxCommand[1][1] = std::stof(token);
 
-	GetToken(false, token);
+	get_token(false, token);
 	g_cboxCommand[1][2] = std::stof(token);
 }
 
-void Cmd_Mirror(std::string &token)
+void cmd_mirror(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	strcpyn(g_mirrorboneCommand[g_mirroredcount++], token.c_str());
 }
 
-void Cmd_Gamma(std::string &token)
+void cmd_gamma(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_gammaCommand = std::stof(token);
 }
 
-int Cmd_TextureGroup(std::string &token)
+int cmd_texturegroup(std::string &token)
 {
 	int i;
 	int depth = 0;
@@ -2503,9 +2503,9 @@ int Cmd_TextureGroup(std::string &token)
 	int group = 0;
 
 	if (g_texturescount == 0)
-		Error("texturegroups must follow model loading\n");
+		error("texturegroups must follow model loading\n");
 
-	if (!GetToken(false, token))
+	if (!get_token(false, token))
 		return 0;
 
 	if (g_skinrefcount == 0)
@@ -2513,7 +2513,7 @@ int Cmd_TextureGroup(std::string &token)
 
 	while (true)
 	{
-		if (!GetToken(true, token))
+		if (!get_token(true, token))
 		{
 			break;
 		}
@@ -2522,7 +2522,7 @@ int Cmd_TextureGroup(std::string &token)
 		{
 			if (depth != 0)
 			{
-				Error("missing }\n");
+				error("missing }\n");
 			}
 			return 1;
 		}
@@ -2540,7 +2540,7 @@ int Cmd_TextureGroup(std::string &token)
 		}
 		else if (depth == 2)
 		{
-			i = FindTextureIndex(const_cast<char *>(token.c_str()));
+			i = find_texture_index(const_cast<char *>(token.c_str()));
 			g_texturegroupCommand[g_texturegroupCount][group][index] = i;
 			if (group != 0)
 				g_texture[i].parent = g_texturegroupCommand[g_texturegroupCount][0][index];
@@ -2555,34 +2555,34 @@ int Cmd_TextureGroup(std::string &token)
 	return 0;
 }
 
-int Cmd_Hitgroup(std::string &token)
+int cmd_hitgroup(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_hitgroupCommand[g_hitgroupscount].group = std::stoi(token);
-	GetToken(false, token);
+	get_token(false, token);
 	strcpyn(g_hitgroupCommand[g_hitgroupscount].name, token.c_str());
 	g_hitgroupscount++;
 
 	return 0;
 }
 
-int Cmd_Hitbox(std::string &token)
+int cmd_hitbox(std::string &token)
 {
-	GetToken(false, token);
+	get_token(false, token);
 	g_hitboxCommand[g_hitboxescount].group = std::stoi(token);
-	GetToken(false, token);
+	get_token(false, token);
 	strcpyn(g_hitboxCommand[g_hitboxescount].name, token.c_str());
-	GetToken(false, token);
+	get_token(false, token);
 	g_hitboxCommand[g_hitboxescount].bmin[0] = std::stof(token);
-	GetToken(false, token);
+	get_token(false, token);
 	g_hitboxCommand[g_hitboxescount].bmin[1] = std::stof(token);
-	GetToken(false, token);
+	get_token(false, token);
 	g_hitboxCommand[g_hitboxescount].bmin[2] = std::stof(token);
-	GetToken(false, token);
+	get_token(false, token);
 	g_hitboxCommand[g_hitboxescount].bmax[0] = std::stof(token);
-	GetToken(false, token);
+	get_token(false, token);
 	g_hitboxCommand[g_hitboxescount].bmax[1] = std::stof(token);
-	GetToken(false, token);
+	get_token(false, token);
 	g_hitboxCommand[g_hitboxescount].bmax[2] = std::stof(token);
 
 	g_hitboxescount++;
@@ -2590,75 +2590,75 @@ int Cmd_Hitbox(std::string &token)
 	return 0;
 }
 
-int Cmd_Attachment(std::string &token)
+int cmd_attachment(std::string &token)
 {
 	// index
-	GetToken(false, token);
+	get_token(false, token);
 	g_attachmentCommand[g_attachmentscount].index = std::stoi(token);
 
 	// bone name
-	GetToken(false, token);
+	get_token(false, token);
 	strcpyn(g_attachmentCommand[g_attachmentscount].bonename, token.c_str());
 
 	// position
-	GetToken(false, token);
+	get_token(false, token);
 	g_attachmentCommand[g_attachmentscount].org[0] = std::stof(token);
-	GetToken(false, token);
+	get_token(false, token);
 	g_attachmentCommand[g_attachmentscount].org[1] = std::stof(token);
-	GetToken(false, token);
+	get_token(false, token);
 	g_attachmentCommand[g_attachmentscount].org[2] = std::stof(token);
 
-	if (TokenAvailable())
-		GetToken(false, token);
+	if (token_available())
+		get_token(false, token);
 
-	if (TokenAvailable())
-		GetToken(false, token);
+	if (token_available())
+		get_token(false, token);
 
 	g_attachmentscount++;
 	return 0;
 }
 
-void Cmd_Renamebone(std::string &token)
+void cmd_renamebone(std::string &token)
 {
 	// from
-	GetToken(false, token);
+	get_token(false, token);
 	std::strcpy(g_renameboneCommand[g_renamebonecount].from, token.c_str());
 
 	// to
-	GetToken(false, token);
+	get_token(false, token);
 	std::strcpy(g_renameboneCommand[g_renamebonecount].to, token.c_str());
 
 	g_renamebonecount++;
 }
 
-void Cmd_TexRenderMode(std::string &token)
+void cmd_texrendermode(std::string &token)
 {
 	char tex_name[256];
-	GetToken(false, token);
+	get_token(false, token);
 	std::strcpy(tex_name, token.c_str());
 
-	GetToken(false, token);
+	get_token(false, token);
 	if (token == "additive")
 	{
-		g_texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_ADDITIVE;
+		g_texture[find_texture_index(tex_name)].flags |= STUDIO_NF_ADDITIVE;
 	}
 	else if (token == "masked")
 	{
-		g_texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_MASKED;
+		g_texture[find_texture_index(tex_name)].flags |= STUDIO_NF_MASKED;
 	}
 	else if (token == "fullbright")
 	{
-		g_texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
+		g_texture[find_texture_index(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
 	}
 	else if (token == "flatshade")
 	{
-		g_texture[FindTextureIndex(tex_name)].flags |= STUDIO_NF_FLATSHADE;
+		g_texture[find_texture_index(tex_name)].flags |= STUDIO_NF_FLATSHADE;
 	}
 	else
 		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);
 }
 
-void ParseQCscript()
+void parse_qc_file()
 {
 	std::string token;
 	bool iscdalreadyset = false;
@@ -2668,7 +2668,7 @@ void ParseQCscript()
 		// Look for a line starting with a $ command
 		while (true)
 		{
-			GetToken(true, token);
+			get_token(true, token);
 			if (end_of_qc_file)
 				return;
 
@@ -2676,21 +2676,21 @@ void ParseQCscript()
 				break;
 
 			// Skip the rest of the line
-			while (TokenAvailable())
-				GetToken(false, token);
+			while (token_available())
+				get_token(false, token);
 		}
 
 		// Process recognized commands
 		if (token == "$modelname")
 		{
-			Cmd_Modelname(token);
+			cmd_modelname(token);
 		}
 		else if (token == "$cd")
 		{
 			if (iscdalreadyset)
-				Error("Two $cd in one model");
+				error("Two $cd in one model");
 			iscdalreadyset = true;
-			GetToken(false, token);
+			get_token(false, token);
 
 			g_cdCommand = token;
 			g_cdCommandAbsolute = std::filesystem::absolute(g_cdCommand);
@@ -2698,94 +2698,94 @@ void ParseQCscript()
 		else if (token == "$cdtexture")
 		{
 			if (iscdtexturealreadyset)
-				Error("Two $cdtexture in one model");
+				error("Two $cdtexture in one model");
 			iscdtexturealreadyset = true;
-			GetToken(false, token);
+			get_token(false, token);
 			g_cdtextureCommand = token;
 		}
 		else if (token == "$scale")
 		{
-			Cmd_ScaleUp(token);
+			cmd_scale(token);
 		}
 		else if (!stricmp(token.c_str(), "$rotate")) // XDM
 		{
-			Cmd_Rotate(token);
+			cmd_rotate(token);
 		}
 		else if (token == "$controller")
 		{
-			Cmd_Controller(token);
+			cmd_controller(token);
 		}
 		else if (token == "$body")
 		{
-			Cmd_Body(token);
+			cmd_body(token);
 		}
 		else if (token == "$bodygroup")
 		{
-			Cmd_Bodygroup(token);
+			cmd_bodygroup(token);
 		}
 		else if (token == "$sequence")
 		{
-			Cmd_Sequence(token);
+			cmd_sequence(token);
 		}
 		else if (token == "$sequencegroup")
 		{
-			Cmd_SequenceGroup(token);
+			cmd_sequencegroup(token);
 		}
 		else if (token == "$eyeposition")
 		{
-			Cmd_Eyeposition(token);
+			cmd_eyeposition(token);
 		}
 		else if (token == "$origin")
 		{
-			Cmd_Origin(token);
+			cmd_origin(token);
 		}
 		else if (token == "$bbox")
 		{
-			Cmd_BBox(token);
+			cmd_bbox(token);
 		}
 		else if (token == "$cbox")
 		{
-			Cmd_CBox(token);
+			cmd_cbox(token);
 		}
 		else if (token == "$mirrorbone")
 		{
-			Cmd_Mirror(token);
+			cmd_mirror(token);
 		}
 		else if (token == "$gamma")
 		{
-			Cmd_Gamma(token);
+			cmd_gamma(token);
 		}
 		else if (token == "$flags")
 		{
-			Cmd_Flags(token);
+			cmd_flags(token);
 		}
 		else if (token == "$texturegroup")
 		{
-			Cmd_TextureGroup(token);
+			cmd_texturegroup(token);
 		}
 		else if (token == "$hgroup")
 		{
-			Cmd_Hitgroup(token);
+			cmd_hitgroup(token);
 		}
 		else if (token == "$hbox")
 		{
-			Cmd_Hitbox(token);
+			cmd_hitbox(token);
 		}
 		else if (token == "$attachment")
 		{
-			Cmd_Attachment(token);
+			cmd_attachment(token);
 		}
 		else if (token == "$renamebone")
 		{
-			Cmd_Renamebone(token);
+			cmd_renamebone(token);
 		}
 		else if (token == "$texrendermode")
 		{
-			Cmd_TexRenderMode(token);
+			cmd_texrendermode(token);
 		}
 		else
 		{
-			Error("Incorrect/Unsupported command %s\n", token);
+			error("Incorrect/Unsupported command %s\n", token);
 		}
 	}
 }
@@ -2809,7 +2809,7 @@ int main(int argc, char **argv)
 	g_gammaCommand = 1.8;
 
 	if (argc == 1)
-		Error("usage: studiomdl <flags>\n [-t texture]\n -r(tag reversed)\n -n(tag bad normals)\n -f(flip all triangles)\n [-a normal_blend_angle]\n -h(dump hboxes)\n -i(ignore warnings) \n b(keep all unused bones)\n file.qc");
+		error("usage: studiomdl <flags>\n [-t texture]\n -r(tag reversed)\n -n(tag bad normals)\n -f(flip all triangles)\n [-a normal_blend_angle]\n -h(dump hboxes)\n -i(ignore warnings) \n b(keep all unused bones)\n file.qc");
 
 	for (i = 1; i < argc - 1; i++)
 	{
@@ -2859,13 +2859,13 @@ int main(int argc, char **argv)
 	g_sequencegroupcount = 1;
 	// load the script
 	std::strcpy(path, argv[i]);
-	LoadScriptFile(path);
+	load_qc_file(path);
 	// parse it
 	std::strcpy(g_modelnameCommand, argv[i]);
-	ParseQCscript();
-	SetSkinValues();
-	SimplifyModel();
-	WriteFile();
+	parse_qc_file();
+	set_skin_values();
+	simplify_model();
+	write_file();
 
 	return 0;
 }

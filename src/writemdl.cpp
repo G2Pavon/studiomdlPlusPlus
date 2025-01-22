@@ -16,7 +16,7 @@ std::uint8_t *g_pStart;
 StudioHeader *g_phdr;
 StudioSequenceGroupHeader *g_pseqhdr;
 
-void WriteBoneInfo()
+void write_bone_info()
 {
 	int i, j;
 	StudioBone *pbone;
@@ -132,7 +132,7 @@ void WriteBoneInfo()
 	g_pData += g_hitboxescount * sizeof(StudioHitbox);
 	g_pData = (std::uint8_t *)ALIGN(g_pData);
 }
-void WriteSequenceInfo()
+void write_sequence_info()
 {
 	int i, j;
 
@@ -242,7 +242,7 @@ void WriteSequenceInfo()
 	}
 }
 
-std::uint8_t *WriteAnimations(std::uint8_t *pData, const std::uint8_t *pStart, int group)
+std::uint8_t *write_animations(std::uint8_t *pData, const std::uint8_t *pStart, int group)
 {
 	StudioAnimationFrameOffset *panim;
 	StudioAnimationValue *panimvalue;
@@ -283,7 +283,7 @@ std::uint8_t *WriteAnimations(std::uint8_t *pData, const std::uint8_t *pStart, i
 						}
 					}
 					if (((std::uint8_t *)panimvalue - (std::uint8_t *)panim) > 65535)
-						Error("sequence \"%s\" is greate than 64K\n", g_sequenceCommand[i].name);
+						error("sequence \"%s\" is greate than 64K\n", g_sequenceCommand[i].name);
 					panim++;
 				}
 			}
@@ -296,7 +296,7 @@ std::uint8_t *WriteAnimations(std::uint8_t *pData, const std::uint8_t *pStart, i
 	return pData;
 }
 
-void WriteTextures()
+void write_textures()
 {
 	int i;
 	StudioTexture *ptexture;
@@ -340,7 +340,7 @@ void WriteTextures()
 	g_pData = (std::uint8_t *)ALIGN(g_pData);
 }
 
-void WriteModel()
+void write_model()
 {
 	int i, j, k;
 
@@ -468,7 +468,7 @@ void WriteModel()
 					psrctri++;
 				}
 
-				numCmdBytes = BuildTris(g_submodel[i]->pmesh[j]->triangle, g_submodel[i]->pmesh[j], &pCmdSrc);
+				numCmdBytes = build_tris(g_submodel[i]->pmesh[j]->triangle, g_submodel[i]->pmesh[j], &pCmdSrc);
 
 				pmesh[j].triindex = (g_pData - g_pStart);
 				memcpy(g_pData, pCmdSrc, numCmdBytes);
@@ -483,14 +483,14 @@ void WriteModel()
 	}
 }
 
-void WriteFile(void)
+void write_file(void)
 {
 	FILE *modelouthandle;
 	int total = 0;
 
 	g_pStart = (std::uint8_t *)std::calloc(1, FILEBUFFER);
 
-	StripExtension(g_modelnameCommand);
+	strip_extension(g_modelnameCommand);
 
 	for (int i = 1; i < g_sequencegroupcount; i++)
 	{
@@ -500,7 +500,7 @@ void WriteFile(void)
 		sprintf(groupname, "%s%02d.mdl", g_modelnameCommand, i);
 
 		printf("writing %s:\n", groupname);
-		modelouthandle = SafeOpenWrite(groupname);
+		modelouthandle = safe_open_write(groupname);
 
 		g_pseqhdr = (StudioSequenceGroupHeader *)g_pStart;
 		g_pseqhdr->id = IDSTUDIOSEQHEADER;
@@ -508,16 +508,16 @@ void WriteFile(void)
 
 		g_pData = g_pStart + sizeof(StudioSequenceGroupHeader);
 
-		g_pData = WriteAnimations(g_pData, g_pStart, i);
+		g_pData = write_animations(g_pData, g_pStart, i);
 
-		ExtractFileBase(groupname, localname);
+		extract_filebase(groupname, localname);
 		sprintf(g_sequencegroupCommand[i].name, "models\\%s.mdl", localname);
 		std::strcpy(g_pseqhdr->name, g_sequencegroupCommand[i].name);
 		g_pseqhdr->length = g_pData - g_pStart;
 
 		printf("total     %6d\n", g_pseqhdr->length);
 
-		SafeWrite(modelouthandle, g_pStart, g_pseqhdr->length);
+		safe_write(modelouthandle, g_pStart, g_pseqhdr->length);
 
 		fclose(modelouthandle);
 		std::memset(g_pStart, 0, g_pseqhdr->length);
@@ -529,7 +529,7 @@ void WriteFile(void)
 
 	printf("---------------------\n");
 	printf("writing %s:\n", g_modelnameCommand);
-	modelouthandle = SafeOpenWrite(g_modelnameCommand);
+	modelouthandle = safe_open_write(g_modelnameCommand);
 
 	g_phdr = (StudioHeader *)g_pStart;
 
@@ -546,28 +546,28 @@ void WriteFile(void)
 
 	g_pData = (std::uint8_t *)g_phdr + sizeof(StudioHeader);
 
-	WriteBoneInfo();
+	write_bone_info();
 	printf("bones     %6d bytes (%d)\n", g_pData - g_pStart - total, g_bonescount);
 	total = g_pData - g_pStart;
 
-	g_pData = WriteAnimations(g_pData, g_pStart, 0);
+	g_pData = write_animations(g_pData, g_pStart, 0);
 
-	WriteSequenceInfo();
+	write_sequence_info();
 	printf("sequences %6d bytes (%d frames) [%d:%02d]\n", g_pData - g_pStart - total, g_totalframes, static_cast<int>(g_totalseconds) / 60, static_cast<int>(g_totalseconds) % 60);
 	total = g_pData - g_pStart;
 
-	WriteModel();
+	write_model();
 	printf("models    %6d bytes\n", g_pData - g_pStart - total);
 	total = g_pData - g_pStart;
 
-	WriteTextures();
+	write_textures();
 	printf("textures  %6d bytes\n", g_pData - g_pStart - total);
 
 	g_phdr->length = g_pData - g_pStart;
 
 	printf("total     %6d\n", g_phdr->length);
 
-	SafeWrite(modelouthandle, g_pStart, g_phdr->length);
+	safe_write(modelouthandle, g_pStart, g_phdr->length);
 
 	fclose(modelouthandle);
 }

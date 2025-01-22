@@ -14,7 +14,7 @@ bool g_archive;
 char g_archivedir[1024];
 
 // For abnormal program terminations
-void Error(char *error, ...)
+void error(char *error, ...)
 {
 	va_list argptr;
 	printf("\n************ ERROR ************\n");
@@ -34,12 +34,12 @@ gamedir will hold qdir + the game directory (id1, id2, etc)*/
 
 char qproject[1024] = {'\0'};
 char qdir[1024] = {'\0'};
-char *ExpandPath(char *path) // FIXME: use filesystem
+char *expand_path(char *path) // FIXME: use filesystem
 {
 	char *psz;
 	static char full[1024];
 	if (!qdir)
-		Error("ExpandPath called without qdir set");
+		error("expand_path called without qdir set");
 	if (path[0] == '/' || path[0] == '\\' || path[1] == ':')
 		return path;
 	psz = strstr(path, qdir);
@@ -51,31 +51,31 @@ char *ExpandPath(char *path) // FIXME: use filesystem
 	return full;
 }
 
-char *ExpandPathAndArchive(char *path)
+char *expand_path_and_archive(char *path)
 {
 	char *expanded;
 
-	expanded = ExpandPath(path);
+	expanded = expand_path(path);
 
 	if (g_archive == true)
 	{
 		char archivename[1024];
 		sprintf(archivename, "%s/%s", g_archivedir, path);
-		QCopyFile(expanded, archivename);
+		q_copy_file(expanded, archivename);
 	}
 	return expanded;
 }
 
-void Q_mkdir(char *path)
+void q_mkdir(char *path)
 {
 	if (mkdir(path, 0777) != -1)
 		return;
 	if (errno != EEXIST)
-		Error("mkdir %s: %s", path, strerror(errno));
+		error("mkdir %s: %s", path, strerror(errno));
 }
 
 // returns -1 if not present
-int FileTime(char *path)
+int file_time(char *path)
 {
 	struct stat buf;
 
@@ -87,7 +87,7 @@ int FileTime(char *path)
 
 //  MISC FUNCTIONS
 
-int filelength(FILE *f)
+int file_length(FILE *f)
 {
 	int pos;
 	int end;
@@ -100,69 +100,69 @@ int filelength(FILE *f)
 	return end;
 }
 
-FILE *SafeOpenWrite(char *filename)
+FILE *safe_open_write(char *filename)
 {
 	FILE *f;
 
 	f = fopen(filename, "wb");
 
 	if (!f)
-		Error("Error opening %s: %s", filename, strerror(errno));
+		error("Error opening %s: %s", filename, strerror(errno));
 
 	return f;
 }
 
-FILE *SafeOpenRead(char *filename)
+FILE *safe_open_read(char *filename)
 {
 	FILE *f;
 
 	f = fopen(filename, "rb");
 
 	if (!f)
-		Error("Error opening %s: %s", filename, strerror(errno));
+		error("Error opening %s: %s", filename, strerror(errno));
 
 	return f;
 }
 
-void SafeRead(FILE *f, void *buffer, int count)
+void safe_read(FILE *f, void *buffer, int count)
 {
 	if (fread(buffer, 1, count, f) != (size_t)count)
-		Error("File read failure");
+		error("File read failure");
 }
 
-void SafeWrite(FILE *f, void *buffer, int count)
+void safe_write(FILE *f, void *buffer, int count)
 {
 	if (fwrite(buffer, 1, count, f) != (size_t)count)
-		Error("File read failure");
+		error("File read failure");
 }
 
-int LoadFile(char *filename, void **bufferptr)
+int load_file(char *filename, void **bufferptr)
 {
 	FILE *f;
 	int length;
 	void *buffer;
 
-	f = SafeOpenRead(filename);
-	length = filelength(f);
+	f = safe_open_read(filename);
+	length = file_length(f);
 	buffer = malloc(length + 1);
 	((char *)buffer)[length] = 0;
-	SafeRead(f, buffer, length);
+	safe_read(f, buffer, length);
 	fclose(f);
 
 	*bufferptr = buffer;
 	return length;
 }
 
-void SaveFile(char *filename, void *buffer, int count)
+void save_file(char *filename, void *buffer, int count)
 {
 	FILE *f;
 
-	f = SafeOpenWrite(filename);
-	SafeWrite(f, buffer, count);
+	f = safe_open_write(filename);
+	safe_write(f, buffer, count);
 	fclose(f);
 }
 
-void StripExtension(char *path)
+void strip_extension(char *path)
 {
 	int length;
 
@@ -177,7 +177,7 @@ void StripExtension(char *path)
 		path[length] = 0;
 }
 
-void ExtractFileBase(char *path, char *dest)
+void extract_filebase(char *path, char *dest)
 {
 	char *src;
 
@@ -196,10 +196,10 @@ void ExtractFileBase(char *path, char *dest)
 
 /*
 ============
-CreatePath
+create_path
 ============
 */
-void CreatePath(char *path)
+void create_path(char *path)
 {
 	char *ofs;
 
@@ -210,20 +210,20 @@ void CreatePath(char *path)
 		if (c == '/' || c == '\\')
 		{ // create the directory
 			*ofs = 0;
-			Q_mkdir(path);
+			q_mkdir(path);
 			*ofs = c;
 		}
 	}
 }
 
 // Used to archive source files
-void QCopyFile(char *from, char *to)
+void q_copy_file(char *from, char *to)
 {
 	void *buffer;
 	int length;
 
-	length = LoadFile(from, &buffer);
-	CreatePath(to);
-	SaveFile(to, buffer, length);
+	length = load_file(from, &buffer);
+	create_path(to);
+	save_file(to, buffer, length);
 	free(buffer);
 }

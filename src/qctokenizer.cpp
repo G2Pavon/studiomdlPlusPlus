@@ -13,11 +13,11 @@ char *qc_stream_end_p; // Pointer to the end of the QC file's data stream
 bool end_of_qc_file;    // Flag indicating if we've reached the end of the QC file
 char *qc_script_buffer; // Buffer holding the entire QC file data
 
-void LoadScriptFile(char *filename)
+void load_qc_file(char *filename)
 {
     int size;
 
-    size = LoadFile(filename, (void **)&qc_script_buffer);
+    size = load_file(filename, (void **)&qc_script_buffer);
 
     printf("processing %s\n", filename);
 
@@ -28,7 +28,7 @@ void LoadScriptFile(char *filename)
     token_ready = false;
 }
 
-bool GetToken(bool crossline, std::string &token)
+bool get_token(bool crossline, std::string &token)
 {
     if (token_ready) // is a token already waiting?
     {
@@ -54,7 +54,7 @@ bool GetToken(bool crossline, std::string &token)
         if (*qc_stream_p++ == '\n')
         {
             if (!crossline)
-                Error("Line %i is incomplete\n", qc_line_number);
+                error("Line %i is incomplete\n", qc_line_number);
             qc_line_number++;
         }
 
@@ -102,7 +102,7 @@ bool GetToken(bool crossline, std::string &token)
 }
 
 // turns true if there is another token on the line
-bool TokenAvailable(void)
+bool token_available(void)
 {
     char *search_p = qc_stream_p;
 

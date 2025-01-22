@@ -52,7 +52,7 @@ struct RGBQUAD
 };
 // for biBitCount is 16/24/32, it may be useless
 
-int LoadBMP(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height)
+int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height)
 {
 	int i, rc = 0;
 	FILE *pfile = NULL;

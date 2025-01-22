@@ -130,10 +130,10 @@ struct vec3_t
 float to_radians(float deg);
 float to_degrees(float rad);
 
-void MatrixCopy(float in[3][4], float out[3][4]);
+void matrix_copy(float in[3][4], float out[3][4]);
 
-void AngleMatrix(const vec3_t &angles, float matrix[3][4]);
-void AngleIMatrix(const vec3_t &angles, float matrix[3][4]);
+void angle_matrix(const vec3_t &angles, float matrix[3][4]);
+void angle_i_matrix(const vec3_t &angles, float matrix[3][4]);
 
-void R_ConcatTransforms(const float in1[3][4], const float in2[3][4], float out[3][4]);
-void VectorTransform(const vec3_t &in1, const float in2[3][4], vec3_t &out);
+void r_concat_transforms(const float in1[3][4], const float in2[3][4], float out[3][4]);
+void vector_transform(const vec3_t &in1, const float in2[3][4], vec3_t &out);
