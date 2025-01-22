@@ -6,6 +6,8 @@
 #include <cstring>
 #include <cmath>
 #include <cctype>
+#include <string>
+#include <filesystem>
 
 #include "cmdlib.hpp"
 #include "qctokenizer.hpp"
@@ -42,8 +44,8 @@ int g_flagignorewarnings;
 bool g_flagkeepallbones;
 
 // QC Command variables -----------------
-char g_cdPartialPath[256];							   // $cd
-char g_cdCommand[256];								   // $cd
+std::filesystem::path g_cdCommand;							   // $cd
+char g_cdCommandAbsolute[256];								   // $cd
 int g_cdtexturepathcount;							   // $cdtexture <paths> (max paths = 18, idk why)
 char g_cdtextureCommand[16][256];					   // $cdtexture
 float g_scaleCommand;								   // $scale
@@ -1234,7 +1236,7 @@ void ResetTextureCoordRanges(s_mesh_t *pmesh, s_texture_t *ptexture)
 	}
 }
 
-void Grab_BMP(char *filename, s_texture_t *ptexture)
+void Grab_BMP(const char *filename, s_texture_t *ptexture)
 {
 	int result;
 
@@ -1312,34 +1314,32 @@ void ResizeTexture(s_texture_t *ptexture)
 
 void Grab_Skin(s_texture_t *ptexture)
 {
-	char textureFilePath[1024];
-
-	sprintf(textureFilePath, "%s/%s", g_cdPartialPath, ptexture->name);
-	ExpandPathAndArchive(textureFilePath);
-
-	if (g_cdtexturepathcount)
+	std::filesystem::path textureFilePath = g_cdCommand / ptexture->name;
+    if (g_cdtexturepathcount) 
 	{
-		int time1 = -1;
-		for (int i = 0; i < g_cdtexturepathcount; i++)
+        for (int i = 0; i < g_cdtexturepathcount; i++) 
 		{
-			sprintf(textureFilePath, "%s/%s", g_cdtextureCommand[i], ptexture->name);
-			time1 = FileTime(textureFilePath);
-			if (time1 != -1)
+            textureFilePath = std::filesystem::path(g_cdtextureCommand[i]) / ptexture->name;
+            if (std::filesystem::exists(textureFilePath)) 	
 			{
-				break;
-			}
-		}
-		if (time1 == -1)
-			Error("%s not found", textureFilePath);
+                break;
+            }
+        }
+
+        if (!std::filesystem::exists(textureFilePath)) 
+		{
+            Error("%s not found", textureFilePath.string().c_str());
+            return;
+        }
 	}
 	else
 	{
-		sprintf(textureFilePath, "%s/%s", g_cdCommand, ptexture->name);
+		textureFilePath = std::filesystem::path(g_cdCommandAbsolute) / ptexture->name;
 	}
 
-	if (stricmp(".bmp", &textureFilePath[strlen(textureFilePath) - 4]) == 0)
+	if (textureFilePath.extension() == ".bmp")
 	{
-		Grab_BMP(textureFilePath, ptexture);
+		Grab_BMP(textureFilePath.string().c_str(), ptexture);
 	}
 	else
 	{
@@ -1751,7 +1751,7 @@ void ParseSMD(s_model_t *pmodel)
 	char cmd[1024];
 	int option;
 
-	sprintf(g_inputfilename, "%s/%s.smd", g_cdCommand, pmodel->name);
+	sprintf(g_inputfilename, "%s/%s.smd", g_cdCommandAbsolute, pmodel->name);
 	time1 = FileTime(g_inputfilename);
 	if (time1 == -1)
 		Error("%s doesn't exist", g_inputfilename);
@@ -2046,7 +2046,7 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 
 	strcpyn(panim->name, name);
 
-	sprintf(g_inputfilename, "%s/%s.smd", g_cdCommand, panim->name);
+	sprintf(g_inputfilename, "%s/%s.smd", g_cdCommandAbsolute, panim->name);
 	time1 = FileTime(g_inputfilename);
 	if (time1 == -1)
 		Error("%s doesn't exist", g_inputfilename);
@@ -2708,8 +2708,8 @@ void ParseQCscript()
 			iscdalreadyset = true;
 			GetToken(false, token);
 			
-			std::strcpy(g_cdPartialPath, token.c_str());
-			std::strcpy(g_cdCommand, ExpandPath(const_cast<char*>(token.c_str())));
+			g_cdCommand = token;
+			std::strcpy(g_cdCommandAbsolute, ExpandPath(const_cast<char*>(token.c_str())));
 		}
 		else if (token == "$cdtexture")
 		{

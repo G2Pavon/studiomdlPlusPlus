@@ -34,7 +34,7 @@ gamedir will hold qdir + the game directory (id1, id2, etc)*/
 
 char qproject[1024] = {'\0'};
 char qdir[1024] = {'\0'};
-char *ExpandPath(char *path)
+char *ExpandPath(char *path) // FIXME: use filesystem
 {
 	char *psz;
 	static char full[1024];
