@@ -46,8 +46,7 @@ bool g_flagkeepallbones;
 // QC Command variables -----------------
 std::filesystem::path g_cdCommand;							   // $cd
 std::filesystem::path g_cdCommandAbsolute;								   // $cd
-int g_cdtexturepathcount;							   // $cdtexture <paths> (max paths = 18, idk why)
-char g_cdtextureCommand[16][256];					   // $cdtexture
+std::filesystem::path g_cdtextureCommand;					   // $cdtexture
 float g_scaleCommand;								   // $scale
 float g_scaleBodyAndSequenceOption;					   // $body studio <value> // also for $sequence
 vec3_t g_originCommand;								   // $origin
@@ -1314,36 +1313,22 @@ void ResizeTexture(s_texture_t *ptexture)
 
 void Grab_Skin(s_texture_t *ptexture)
 {
-	std::filesystem::path textureFilePath = g_cdCommand / ptexture->name;
-    if (g_cdtexturepathcount) 
-	{
-        for (int i = 0; i < g_cdtexturepathcount; i++) 
-		{
-            textureFilePath = std::filesystem::path(g_cdtextureCommand[i]) / ptexture->name;
-            if (std::filesystem::exists(textureFilePath)) 	
-			{
-                break;
-            }
-        }
-
-        if (!std::filesystem::exists(textureFilePath)) 
-		{
-            Error("%s not found", textureFilePath.string().c_str());
-            return;
-        }
-	}
-	else
+	std::filesystem::path textureFilePath =  g_cdtextureCommand / ptexture->name;
+    if (!std::filesystem::exists(textureFilePath)) 
 	{
 		textureFilePath = g_cdCommandAbsolute / ptexture->name;
+		if (!std::filesystem::exists(textureFilePath))
+		{
+			Error("cannot find %s texture in \"%s\" nor \"%s\"\nor those path don't exist\n", ptexture->name, g_cdtextureCommand.c_str(), g_cdCommandAbsolute.c_str());
+		}
 	}
-
 	if (textureFilePath.extension() == ".bmp")
 	{
 		Grab_BMP(textureFilePath.string().c_str(), ptexture);
 	}
 	else
 	{
-		Error("unknown graphics type: \"%s\"\n", textureFilePath);
+		Error(const_cast<char*>("unknown graphics type: \"%s\"\n"), textureFilePath.string().c_str());
 	}
 }
 
@@ -2675,6 +2660,7 @@ void ParseQCscript()
 {
 	std::string token;
 	bool iscdalreadyset = false;
+	bool iscdtexturealreadyset = false;
 	while (true)
 	{
 		// Look for a line starting with a $ command
@@ -2709,12 +2695,11 @@ void ParseQCscript()
 		}
 		else if (token == "$cdtexture")
 		{
-			while (TokenAvailable())
-			{
-				GetToken(false, token);
-				std::strcpy(g_cdtextureCommand[g_cdtexturepathcount], ExpandPath(const_cast<char*>(token.c_str())));
-				g_cdtexturepathcount++;
-			}
+			if (iscdtexturealreadyset)
+				Error("Two $cdtexture in one model");
+			iscdtexturealreadyset = true;
+			GetToken(false, token);
+			g_cdtextureCommand = token;
 		}
 		else if (token == "$scale")
 		{
