@@ -57,12 +57,12 @@ struct StudioHeader
 	char name[64]; // [08] The model's name.
 	int length;	   // [48] The file size in bytes.
 
-	vec3_t eyeposition; // [52] The model's eye position (in model space).
-	vec3_t min;			// [64] The model's hull min extent.
-	vec3_t max;			// [76] The model's hull max extent.
+	Vector3 eyeposition; // [52] The model's eye position (in model space).
+	Vector3 min;		 // [64] The model's hull min extent.
+	Vector3 max;		 // [76] The model's hull max extent.
 
-	vec3_t bbmin; // [88] The clipping bounding box min extent.
-	vec3_t bbmax; // [100] The clipping bounding box max extent.
+	Vector3 bbmin; // [88] The clipping bounding box min extent.
+	Vector3 bbmax; // [100] The clipping bounding box max extent.
 
 	int flags; // [112] Model flags.
 
@@ -155,10 +155,10 @@ struct StudioBoneController
  */
 struct StudioHitbox
 {
-	int bone;	  // [00] The index of the bone this hitbox is attached to.
-	int group;	  // [04] The hit group.
-	vec3_t bbmin; // [08] The minimum extent of the hitbox.
-	vec3_t bbmax; // [20] The maximum extent of the hitbox.
+	int bone;	   // [00] The index of the bone this hitbox is attached to.
+	int group;	   // [04] The hit group.
+	Vector3 bbmin; // [08] The minimum extent of the hitbox.
+	Vector3 bbmax; // [20] The maximum extent of the hitbox.
 };
 
 /**
@@ -199,12 +199,12 @@ struct StudioSequenceDescription
 
 	int motiontype;			// [68] The motion type.
 	int motionbone;			// [72] The index of the motion bone.
-	vec3_t linearmovement;	// [76] The linear movement of the motion bone from the first to the last frame.
+	Vector3 linearmovement; // [76] The linear movement of the motion bone from the first to the last frame.
 	int automoveposindex;	// [88] Unused in Goldsrc.
 	int automoveangleindex; // [92] Unused in Goldsrc.
 
-	vec3_t bbmin; // [96] The bounding box min extent for this sequence.
-	vec3_t bbmax; // [108] The bounding box max extent for this sequence.
+	Vector3 bbmin; // [96] The bounding box min extent for this sequence.
+	Vector3 bbmax; // [108] The bounding box max extent for this sequence.
 
 	int numblends; // [120] The number of blend controllers (either 1 or 2).
 	int animindex; // [124] The offset to the animation frame offset data.
@@ -242,7 +242,7 @@ struct StudioAnimationEvent
  */
 struct StudioPivot
 {
-	vec3_t org; // pivot point
+	Vector3 org; // pivot point
 	int start;
 	int end;
 };
@@ -254,11 +254,11 @@ struct StudioPivot
  */
 struct StudioAttachment
 {
-	char name[32];	   // [00] Unused in Goldsrc.
-	int type;		   // [32] Unused in Goldsrc.
-	int bone;		   // [36] The index of the bone this attachment is connected to.
-	vec3_t org;		   // [40] The attachment point's position relative to the bone's origin.
-	vec3_t vectors[3]; // [52] Unused in Goldsrc.
+	char name[32];		// [00] Unused in Goldsrc.
+	int type;			// [32] Unused in Goldsrc.
+	int bone;			// [36] The index of the bone this attachment is connected to.
+	Vector3 org;		// [40] The attachment point's position relative to the bone's origin.
+	Vector3 vectors[3]; // [52] Unused in Goldsrc.
 };
 
 /**
@@ -331,10 +331,10 @@ struct StudioModel
 
 	int numverts;	   // [80] The number of vertices.
 	int vertinfoindex; // [84] The offset to an array of bone indices, one for each vertex, indicating which bone influences that vertex.
-	int vertindex;	   // [88] The offset to the vertex position data (vec3_t array).
+	int vertindex;	   // [88] The offset to the vertex position data (Vector3 array).
 	int numnorms;	   // [92] The number of normals.
 	int norminfoindex; // [96] The offset to an array of bone indices, one for each normal, indicating which bone influences that normal.
-	int normindex;	   // [100] The offset to the normal data (vec3_t array).
+	int normindex;	   // [100] The offset to the normal data (Vector3 array).
 
 	int numgroups;	// [104] Unused.
 	int groupindex; // [108] Unused.

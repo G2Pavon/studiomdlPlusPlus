@@ -5,12 +5,12 @@
 constexpr double Q_PI = 3.14159265358979323846;
 constexpr float EPSILON = 0.001;
 
-struct vec3_t
+struct Vector3
 {
     float x, y, z;
 
-    vec3_t() : x(0), y(0), z(0) {}
-    vec3_t(float x, float y, float z) : x(x), y(y), z(z) {}
+    Vector3() : x(0), y(0), z(0) {}
+    Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
 
     float &operator[](int i)
     {
@@ -32,31 +32,31 @@ struct vec3_t
             return z;
     }
 
-    vec3_t operator+(const vec3_t &other) const
+    Vector3 operator+(const Vector3 &other) const
     {
-        return vec3_t(x + other.x, y + other.y, z + other.z);
+        return Vector3(x + other.x, y + other.y, z + other.z);
     }
 
-    vec3_t operator-(const vec3_t &other) const
+    Vector3 operator-(const Vector3 &other) const
     {
-        return vec3_t(x - other.x, y - other.y, z - other.z);
+        return Vector3(x - other.x, y - other.y, z - other.z);
     }
 
-    vec3_t operator*(float scalar) const
+    Vector3 operator*(float scalar) const
     {
-        return vec3_t(x * scalar, y * scalar, z * scalar);
+        return Vector3(x * scalar, y * scalar, z * scalar);
     }
 
-    vec3_t operator/(float scalar) const
+    Vector3 operator/(float scalar) const
     {
         if (scalar == 0)
         {
-            return vec3_t();
+            return Vector3();
         }
-        return vec3_t(x / scalar, y / scalar, z / scalar);
+        return Vector3(x / scalar, y / scalar, z / scalar);
     }
 
-    vec3_t &operator+=(const vec3_t &other)
+    Vector3 &operator+=(const Vector3 &other)
     {
         x += other.x;
         y += other.y;
@@ -64,7 +64,7 @@ struct vec3_t
         return *this;
     }
 
-    vec3_t &operator-=(const vec3_t &other)
+    Vector3 &operator-=(const Vector3 &other)
     {
         x -= other.x;
         y -= other.y;
@@ -72,7 +72,7 @@ struct vec3_t
         return *this;
     }
 
-    vec3_t &operator*=(float scalar)
+    Vector3 &operator*=(float scalar)
     {
         x *= scalar;
         y *= scalar;
@@ -80,7 +80,7 @@ struct vec3_t
         return *this;
     }
 
-    vec3_t &operator/=(float scalar)
+    Vector3 &operator/=(float scalar)
     {
         if (scalar == 0)
         {
@@ -92,12 +92,12 @@ struct vec3_t
         return *this;
     }
 
-    bool operator==(const vec3_t &other) const
+    bool operator==(const Vector3 &other) const
     {
         return fabs(x - other.x) <= EPSILON && fabs(y - other.y) <= EPSILON && fabs(z - other.z) <= EPSILON;
     }
 
-    bool operator!=(const vec3_t &other) const
+    bool operator!=(const Vector3 &other) const
     {
         return !(*this == other);
     }
@@ -116,14 +116,14 @@ struct vec3_t
         }
     }
 
-    float dot(const vec3_t &other) const
+    float dot(const Vector3 &other) const
     {
         return x * other.x + y * other.y + z * other.z;
     }
 
-    vec3_t cross(const vec3_t &other) const
+    Vector3 cross(const Vector3 &other) const
     {
-        return vec3_t(y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x);
+        return Vector3(y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x);
     }
 };
 
@@ -132,8 +132,8 @@ float to_degrees(float rad);
 
 void matrix_copy(float in[3][4], float out[3][4]);
 
-void angle_matrix(const vec3_t &angles, float matrix[3][4]);
-void angle_i_matrix(const vec3_t &angles, float matrix[3][4]);
+void angle_matrix(const Vector3 &angles, float matrix[3][4]);
+void angle_i_matrix(const Vector3 &angles, float matrix[3][4]);
 
 void r_concat_transforms(const float in1[3][4], const float in2[3][4], float out[3][4]);
-void vector_transform(const vec3_t &in1, const float in2[3][4], vec3_t &out);
+void vector_transform(const Vector3 &in1, const float in2[3][4], Vector3 &out);

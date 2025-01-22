@@ -40,18 +40,18 @@ std::filesystem::path g_cdCommandAbsolute;			   // $cd
 std::filesystem::path g_cdtextureCommand;			   // $cdtexture
 float g_scaleCommand;								   // $scale
 float g_scaleBodyAndSequenceOption;					   // $body studio <value> // also for $sequence
-vec3_t g_originCommand;								   // $origin
+Vector3 g_originCommand;								   // $origin
 float g_originCommandRotation;						   // $origin <X> <Y> <Z> <rotation>
 float g_rotateCommand;								   // $rotate and $sequence <sequence name> <SMD path> {[rotate <zrotation>]} only z axis
-vec3_t g_sequenceOrigin;							   // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
+Vector3 g_sequenceOrigin;							   // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
 float g_gammaCommand;								   // $$gamma
-s_renamebone_t g_renameboneCommand[MAXSTUDIOSRCBONES]; // $renamebone
+RenameBone g_renameboneCommand[MAXSTUDIOSRCBONES]; // $renamebone
 int g_renamebonecount;
-s_hitgroup_t g_hitgroupCommand[MAXSTUDIOSRCBONES]; // $hgroup
+HitGroup g_hitgroupCommand[MAXSTUDIOSRCBONES]; // $hgroup
 int g_hitgroupscount;
 char g_mirrorboneCommand[MAXSTUDIOSRCBONES][64]; // $mirrorbone
 int g_mirroredcount;
-s_animation_t *g_animationSequenceOption[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // $sequence, each sequence can have 16 blends
+Animation *g_animationSequenceOption[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // $sequence, each sequence can have 16 blends
 int g_animationcount;
 int g_texturegroupCommand[32][32][32]; // $texturegroup
 int g_texturegroupCount;			   // unnecessary? since engine doesn't support multiple texturegroups
@@ -67,10 +67,10 @@ int g_smdlinecount;
 char g_defaulttextures[16][256];
 char g_sourcetexture[16][256];
 int g_numtextureteplacements;
-s_bonefixup_t g_bonefixup[MAXSTUDIOSRCBONES];
+BoneFixUp g_bonefixup[MAXSTUDIOSRCBONES];
 
 // ---------------------------------------
-void clip_rotations(vec3_t rot)
+void clip_rotations(Vector3 rot)
 {
 	// clip everything to : -Q_PI <= x < Q_PI
 	for (int j = 0; j < 3; j++)
@@ -94,8 +94,8 @@ void extract_motion()
 		{
 			// assume 0 for now.
 			int typeMotion;
-			vec3_t *ptrPos;
-			vec3_t motion = {0, 0, 0};
+			Vector3 *ptrPos;
+			Vector3 motion = {0, 0, 0};
 			typeMotion = g_sequenceCommand[i].motiontype;
 			ptrPos = g_sequenceCommand[i].panim[0]->pos[0];
 
@@ -110,7 +110,7 @@ void extract_motion()
 
 			for (j = 0; j < g_sequenceCommand[i].numframes; j++)
 			{
-				vec3_t adjustedPosition;
+				Vector3 adjustedPosition;
 				for (k = 0; k < g_sequenceCommand[i].panim[0]->numbones; k++)
 				{
 					if (g_sequenceCommand[i].panim[0]->node[k].parent == -1)
@@ -180,10 +180,10 @@ void extract_motion()
 	{
 		// assume 0 for now.
 		int typeAutoMotion;
-		vec3_t *ptrAutoPos;
-		vec3_t *ptrAutoRot;
-		vec3_t motion = {0, 0, 0};
-		vec3_t angles = {0, 0, 0};
+		Vector3 *ptrAutoPos;
+		Vector3 *ptrAutoRot;
+		Vector3 motion = {0, 0, 0};
+		Vector3 angles = {0, 0, 0};
 
 		typeAutoMotion = g_sequenceCommand[i].motiontype;
 		for (j = 0; j < g_sequenceCommand[i].numframes; j++)
@@ -228,8 +228,8 @@ void optimize_animations()
 			{
 				for (int blends = 0; blends < g_sequenceCommand[i].numblends; blends++)
 				{
-					vec3_t *ppos = g_sequenceCommand[i].panim[blends]->pos[j];
-					vec3_t *prot = g_sequenceCommand[i].panim[blends]->rot[j];
+					Vector3 *ppos = g_sequenceCommand[i].panim[blends]->pos[j];
+					Vector3 *prot = g_sequenceCommand[i].panim[blends]->rot[j];
 
 					startFrame = 0;								   // sequence[i].panim[q]->startframe;
 					endFrame = g_sequenceCommand[i].numframes - 1; // sequence[i].panim[q]->endframe;
@@ -345,8 +345,8 @@ void simplify_model()
 {
 	int i, j, k;
 	int n, m, q;
-	vec3_t *defaultpos[MAXSTUDIOSRCBONES] = {0};
-	vec3_t *defaultrot[MAXSTUDIOSRCBONES] = {0};
+	Vector3 *defaultpos[MAXSTUDIOSRCBONES] = {0};
+	Vector3 *defaultrot[MAXSTUDIOSRCBONES] = {0};
 	int iError = 0;
 
 	optimize_animations();
@@ -420,8 +420,8 @@ void simplify_model()
 					g_bonetable[k].bonecontroller = 0;
 					g_bonetable[k].flags = 0;
 					// set defaults
-					defaultpos[k] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
-					defaultrot[k] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
+					defaultpos[k] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
+					defaultrot[k] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 					for (n = 0; n < MAXSTUDIOANIMATIONS; n++)
 					{
 						defaultpos[k][n] = g_submodel[i]->skeleton[j].pos;
@@ -613,7 +613,7 @@ void simplify_model()
 		// try all the connect vertices
 		for (i = 0; i < g_submodelscount; i++)
 		{
-			vec3_t p;
+			Vector3 p;
 			for (j = 0; j < g_submodel[i]->numverts; j++)
 			{
 				p = g_submodel[i]->vert[j].org;
@@ -694,8 +694,8 @@ void simplify_model()
 	// relink animations
 	for (i = 0; i < g_sequencecount; i++)
 	{
-		vec3_t *origpos[MAXSTUDIOSRCBONES] = {0};
-		vec3_t *origrot[MAXSTUDIOSRCBONES] = {0};
+		Vector3 *origpos[MAXSTUDIOSRCBONES] = {0};
+		Vector3 *origrot[MAXSTUDIOSRCBONES] = {0};
 
 		for (q = 0; q < g_sequenceCommand[i].numblends; q++)
 		{
@@ -807,7 +807,7 @@ void simplify_model()
 	// find bounding box for each sequence
 	for (i = 0; i < g_sequencecount; i++)
 	{
-		vec3_t bmin, bmax;
+		Vector3 bmin, bmax;
 
 		// find intersection box volume for each bone
 		for (j = 0; j < 3; j++)
@@ -822,12 +822,12 @@ void simplify_model()
 			{
 				float bonetransform[MAXSTUDIOBONES][3][4]; // bone transformation matrix
 				float bonematrix[3][4];					   // local transformation matrix
-				vec3_t pos;
+				Vector3 pos;
 
 				for (j = 0; j < g_bonescount; j++)
 				{
 
-					vec3_t angles;
+					Vector3 angles;
 					angles[0] = to_degrees(g_sequenceCommand[i].panim[q]->rot[j][n][0]);
 					angles[1] = to_degrees(g_sequenceCommand[i].panim[q]->rot[j][n][1]);
 					angles[2] = to_degrees(g_sequenceCommand[i].panim[q]->rot[j][n][2]);
@@ -1073,7 +1073,7 @@ int find_texture_index(char *texturename)
 	return i;
 }
 
-s_mesh_t *find_mesh_by_texture(s_model_t *pmodel, char *texturename)
+Mesh *find_mesh_by_texture(Model *pmodel, char *texturename)
 {
 	int i, j;
 
@@ -1093,13 +1093,13 @@ s_mesh_t *find_mesh_by_texture(s_model_t *pmodel, char *texturename)
 	}
 
 	pmodel->nummesh = i + 1;
-	pmodel->pmesh[i] = (s_mesh_t *)std::calloc(1, sizeof(s_mesh_t));
+	pmodel->pmesh[i] = (Mesh *)std::calloc(1, sizeof(Mesh));
 	pmodel->pmesh[i]->skinref = j;
 
 	return pmodel->pmesh[i];
 }
 
-s_trianglevert_t *find_mesh_triangle_by_index(s_mesh_t *pmesh, int index)
+TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index)
 {
 	if (index >= pmesh->alloctris)
 	{
@@ -1107,19 +1107,19 @@ s_trianglevert_t *find_mesh_triangle_by_index(s_mesh_t *pmesh, int index)
 		pmesh->alloctris = index + 256;
 		if (pmesh->triangle)
 		{
-			pmesh->triangle = static_cast<s_trianglevert_t(*)[3]>(realloc(pmesh->triangle, pmesh->alloctris * sizeof(*pmesh->triangle)));
+			pmesh->triangle = static_cast<TriangleVert(*)[3]>(realloc(pmesh->triangle, pmesh->alloctris * sizeof(*pmesh->triangle)));
 			std::memset(&pmesh->triangle[start], 0, (pmesh->alloctris - start) * sizeof(*pmesh->triangle));
 		}
 		else
 		{
-			pmesh->triangle = static_cast<s_trianglevert_t(*)[3]>(std::calloc(pmesh->alloctris, sizeof(*pmesh->triangle)));
+			pmesh->triangle = static_cast<TriangleVert(*)[3]>(std::calloc(pmesh->alloctris, sizeof(*pmesh->triangle)));
 		}
 	}
 
 	return pmesh->triangle[index];
 }
 
-int finx_vertex_normal_index(s_model_t *pmodel, s_normal_t *pnormal)
+int finx_vertex_normal_index(Model *pmodel, Normal *pnormal)
 {
 	int i;
 	for (i = 0; i < pmodel->numnorms; i++)
@@ -1140,7 +1140,7 @@ int finx_vertex_normal_index(s_model_t *pmodel, s_normal_t *pnormal)
 	return i;
 }
 
-int find_vertex_index(s_model_t *pmodel, s_vertex_t *pv)
+int find_vertex_index(Model *pmodel, Vertex *pv)
 {
 	int i;
 
@@ -1166,14 +1166,14 @@ int find_vertex_index(s_model_t *pmodel, s_vertex_t *pv)
 	return i;
 }
 
-void adjust_vertex_to_origin(vec3_t org)
+void adjust_vertex_to_origin(Vector3 org)
 {
 	org[0] = (org[0] - g_sequenceOrigin[0]);
 	org[1] = (org[1] - g_sequenceOrigin[1]);
 	org[2] = (org[2] - g_sequenceOrigin[2]);
 }
 
-void ScaleVertexByQcScale(vec3_t org)
+void ScaleVertexByQcScale(Vector3 org)
 {
 	org[0] = org[0] * g_scaleBodyAndSequenceOption;
 	org[1] = org[1] * g_scaleBodyAndSequenceOption;
@@ -1181,7 +1181,7 @@ void ScaleVertexByQcScale(vec3_t org)
 }
 
 // Called for the base frame
-void texture_coord_ranges(s_mesh_t *pmesh, s_texture_t *ptexture)
+void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 {
 	int i, j;
 
@@ -1225,7 +1225,7 @@ void texture_coord_ranges(s_mesh_t *pmesh, s_texture_t *ptexture)
 	ptexture->min_t = 0;
 }
 
-void reset_texture_coord_ranges(s_mesh_t *pmesh, s_texture_t *ptexture)
+void reset_texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 {
 	// adjust top, left edge
 	for (int i = 0; i < pmesh->numtris; i++)
@@ -1237,7 +1237,7 @@ void reset_texture_coord_ranges(s_mesh_t *pmesh, s_texture_t *ptexture)
 	}
 }
 
-void grab_bmp(const char *filename, s_texture_t *ptexture)
+void grab_bmp(const char *filename, Texture *ptexture)
 {
 	int result;
 
@@ -1247,7 +1247,7 @@ void grab_bmp(const char *filename, s_texture_t *ptexture)
 	}
 }
 
-void resize_texture(s_texture_t *ptexture)
+void resize_texture(Texture *ptexture)
 {
 	int i, t;
 	std::uint8_t *pdest;
@@ -1306,14 +1306,14 @@ void resize_texture(s_texture_t *ptexture)
 	}
 	else
 	{
-		memcpy(pdest, ptexture->ppal, 256 * sizeof(rgb_t));
+		memcpy(pdest, ptexture->ppal, 256 * sizeof(RGB));
 	}
 
 	free(ptexture->ppicture);
 	free(ptexture->ppal);
 }
 
-void grab_skin(s_texture_t *ptexture)
+void grab_skin(Texture *ptexture)
 {
 	std::filesystem::path textureFilePath = g_cdtextureCommand / ptexture->name;
 	if (!std::filesystem::exists(textureFilePath))
@@ -1414,9 +1414,9 @@ void set_skin_values()
 	}
 }
 
-void build_reference(s_model_t *pmodel)
+void build_reference(Model *pmodel)
 {
-	vec3_t boneAngle{};
+	Vector3 boneAngle{};
 
 	for (int i = 0; i < pmodel->numbones; i++)
 	{
@@ -1438,7 +1438,7 @@ void build_reference(s_model_t *pmodel)
 		}
 		else
 		{
-			vec3_t truePos;
+			Vector3 truePos;
 			float rotationMatrix[3][4];
 			// calc compound rotational matrices
 			// FIXME : Hey, it's orthogical so inv(A) == transpose(A)
@@ -1454,12 +1454,12 @@ void build_reference(s_model_t *pmodel)
 	}
 }
 
-void grab_smd_triangles(s_model_t *pmodel)
+void grab_smd_triangles(Model *pmodel)
 {
 	int i;
 	int trianglesCount = 0;
 	int badNormalsCount = 0;
-	vec3_t vmin, vmax;
+	Vector3 vmin, vmax;
 
 	vmin[0] = vmin[1] = vmin[2] = 99999;
 	vmax[0] = vmax[1] = vmax[2] = -99999;
@@ -1471,13 +1471,13 @@ void grab_smd_triangles(s_model_t *pmodel)
 	{
 		if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 		{
-			s_mesh_t *pmesh;
+			Mesh *pmesh;
 			char triangleMaterial[64];
-			s_trianglevert_t *ptriangleVert;
+			TriangleVert *ptriangleVert;
 			int parentBone;
 
-			vec3_t triangleVertices[3];
-			vec3_t triangleNormals[3];
+			Vector3 triangleVertices[3];
+			Vector3 triangleNormals[3];
 
 			g_smdlinecount++;
 
@@ -1528,8 +1528,8 @@ void grab_smd_triangles(s_model_t *pmodel)
 
 				if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 				{
-					s_vertex_t triangleVertex;
-					s_normal_t triangleNormal;
+					Vertex triangleVertex;
+					Normal triangleNormal;
 
 					g_smdlinecount++;
 					if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f %f %f",
@@ -1559,7 +1559,7 @@ void grab_smd_triangles(s_model_t *pmodel)
 						ScaleVertexByQcScale(triangleVertex.org);
 
 						// move vertex position to object space.
-						vec3_t tmp;
+						Vector3 tmp;
 						tmp = triangleVertex.org - g_bonefixup[triangleVertex.bone].worldorg;
 						vector_transform(tmp, g_bonefixup[triangleVertex.bone].im, triangleVertex.org);
 
@@ -1592,7 +1592,7 @@ void grab_smd_triangles(s_model_t *pmodel)
 					if (g_flagbadnormals)
 					{
 						// steal the triangle and make it white
-						s_trianglevert_t *ptriv2;
+						TriangleVert *ptriv2;
 						pmesh = find_mesh_by_texture(pmodel, "..\\white.bmp");
 						ptriv2 = find_mesh_triangle_by_index(pmesh, pmesh->numtris);
 
@@ -1603,7 +1603,7 @@ void grab_smd_triangles(s_model_t *pmodel)
 				}
 				else
 				{
-					vec3_t triangleEdge1, triangleEdge2, surfaceNormal;
+					Vector3 triangleEdge1, triangleEdge2, surfaceNormal;
 					float x, y, z;
 
 					triangleEdge1 = triangleVertices[1] - triangleVertices[0];
@@ -1619,7 +1619,7 @@ void grab_smd_triangles(s_model_t *pmodel)
 						if (g_flagreversedtriangles)
 						{
 							// steal the triangle and make it white
-							s_trianglevert_t *ptriv2;
+							TriangleVert *ptriv2;
 
 							printf("triangle reversed (%f %f %f)\n",
 								   triangleNormals[0].dot(triangleNormals[1]),
@@ -1656,7 +1656,7 @@ void grab_smd_triangles(s_model_t *pmodel)
 	}
 }
 
-void grab_smd_skeleton(s_node_t *pnodes, s_bone_t *pbones)
+void grab_smd_skeleton(Node *pnodes, Bone *pbones)
 {
 	float posX, posY, posZ, rotX, rotY, rotZ;
 	char cmd[1024];
@@ -1696,7 +1696,7 @@ void grab_smd_skeleton(s_node_t *pnodes, s_bone_t *pbones)
 	}
 }
 
-int grab_smd_nodes(s_node_t *pnodes)
+int grab_smd_nodes(Node *pnodes)
 {
 	int index;
 	char boneName[1024];
@@ -1732,7 +1732,7 @@ int grab_smd_nodes(s_node_t *pnodes)
 	return 0;
 }
 
-void parse_smd(s_model_t *pmodel)
+void parse_smd(Model *pmodel)
 {
 	char cmd[1024];
 	int option;
@@ -1811,7 +1811,7 @@ void cmd_body_optionstudio(std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	g_submodel[g_submodelscount] = (s_model_t *)std::calloc(1, sizeof(s_model_t));
+	g_submodel[g_submodelscount] = (Model *)std::calloc(1, sizeof(Model));
 	g_bodypart[g_bodygroupcount].pmodel[g_bodypart[g_bodygroupcount].nummodels] = g_submodel[g_submodelscount];
 
 	strcpyn(g_submodel[g_submodelscount]->name, token.c_str());
@@ -1844,7 +1844,7 @@ void cmd_body_optionstudio(std::string &token)
 
 int cmd_body_optionblank()
 {
-	g_submodel[g_submodelscount] = (s_model_t *)(1, sizeof(s_model_t));
+	g_submodel[g_submodelscount] = (Model *)(1, sizeof(Model));
 	g_bodypart[g_bodygroupcount].pmodel[g_bodypart[g_bodygroupcount].nummodels] = g_submodel[g_submodelscount];
 
 	strcpyn(g_submodel[g_submodelscount]->name, "blank");
@@ -1918,10 +1918,10 @@ void cmd_body(std::string &token)
 	g_bodygroupcount++;
 }
 
-void grab_option_animation(s_animation_t *panim)
+void grab_option_animation(Animation *panim)
 {
-	vec3_t pos;
-	vec3_t rot;
+	Vector3 pos;
+	Vector3 rot;
 	char cmd[1024];
 	int index;
 	int t = -99999999;
@@ -1931,8 +1931,8 @@ void grab_option_animation(s_animation_t *panim)
 
 	for (index = 0; index < panim->numbones; index++)
 	{
-		panim->pos[index] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
-		panim->rot[index] = (vec3_t *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(vec3_t));
+		panim->pos[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
+		panim->rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 	}
 
 	cz = cos(g_rotateCommand);
@@ -1998,19 +1998,19 @@ void grab_option_animation(s_animation_t *panim)
 	error("unexpected EOF: %s\n", panim->name);
 }
 
-void shift_option_animation(s_animation_t *panim)
+void shift_option_animation(Animation *panim)
 {
 	int size;
 
-	size = (panim->endframe - panim->startframe + 1) * sizeof(vec3_t);
+	size = (panim->endframe - panim->startframe + 1) * sizeof(Vector3);
 	// shift
 	for (int j = 0; j < panim->numbones; j++)
 	{
-		vec3_t *ppos;
-		vec3_t *prot;
+		Vector3 *ppos;
+		Vector3 *prot;
 
-		ppos = (vec3_t *)std::calloc(1, size);
-		prot = (vec3_t *)std::calloc(1, size);
+		ppos = (Vector3 *)std::calloc(1, size);
+		prot = (Vector3 *)std::calloc(1, size);
 
 		std::memcpy(ppos, &panim->pos[j][panim->startframe], size);
 		std::memcpy(prot, &panim->rot[j][panim->startframe], size);
@@ -2023,7 +2023,7 @@ void shift_option_animation(s_animation_t *panim)
 	}
 }
 
-void cmd_sequence_option_animation(char *name, s_animation_t *panim)
+void cmd_sequence_option_animation(char *name, Animation *panim)
 {
 	char cmd[1024];
 	int option;
@@ -2077,12 +2077,12 @@ void cmd_sequence_option_animation(char *name, s_animation_t *panim)
 	fclose(g_smdfile);
 }
 
-int cmd_sequence_option_deform(s_sequence_t *psequence) // delete this
+int cmd_sequence_option_deform(Sequence *psequence) // delete this
 {
 	return 0;
 }
 
-int cmd_sequence_option_event(std::string &token, s_sequence_t *psequence)
+int cmd_sequence_option_event(std::string &token, Sequence *psequence)
 {
 	int event;
 
@@ -2114,7 +2114,7 @@ int cmd_sequence_option_event(std::string &token, s_sequence_t *psequence)
 	return 0;
 }
 
-int cmd_sequence_option_fps(std::string &token, s_sequence_t *psequence)
+int cmd_sequence_option_fps(std::string &token, Sequence *psequence)
 {
 	get_token(false, token);
 
@@ -2123,7 +2123,7 @@ int cmd_sequence_option_fps(std::string &token, s_sequence_t *psequence)
 	return 0;
 }
 
-int cmd_sequence_option_addpivot(std::string &token, s_sequence_t *psequence)
+int cmd_sequence_option_addpivot(std::string &token, Sequence *psequence)
 {
 	if (psequence->numpivots + 1 >= MAXSTUDIOPIVOTS)
 	{
@@ -2387,7 +2387,7 @@ int cmd_sequence(std::string &token)
 	}
 	for (i = 0; i < numblends; i++)
 	{
-		g_animationSequenceOption[g_animationcount] = (s_animation_t *)malloc(sizeof(s_animation_t));
+		g_animationSequenceOption[g_animationcount] = (Animation *)malloc(sizeof(Animation));
 		g_sequenceCommand[g_sequencecount].panim[i] = g_animationSequenceOption[g_animationcount];
 		g_sequenceCommand[g_sequencecount].panim[i]->startframe = start;
 		g_sequenceCommand[g_sequencecount].panim[i]->endframe = end;

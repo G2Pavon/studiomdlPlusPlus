@@ -20,14 +20,14 @@ int g_stripcount;
 int g_neighbortri[MAXSTUDIOTRIANGLES][3];
 int g_neighboredge[MAXSTUDIOTRIANGLES][3];
 
-s_trianglevert_t (*g_triangles)[3];
-s_mesh_t *g_pmesh;
+TriangleVert (*g_triangles)[3];
+Mesh *g_pmesh;
 
 void find_neighbor(int starttri, int startv)
 {
-	s_trianglevert_t m1, m2;
+	TriangleVert m1, m2;
 	int j, k;
-	s_trianglevert_t *last, *check;
+	TriangleVert *last, *check;
 
 	// used[starttri] |= (1 << startv);
 	last = &g_triangles[starttri][0];
@@ -152,7 +152,7 @@ int fan_length(int starttri, int startv)
 // Generate a list of trifans or strips for the model, which holds for all frames
 int g_numcommandnodes;
 
-int build_tris(s_trianglevert_t (*x)[3], s_mesh_t *y, std::uint8_t **ppdata)
+int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 {
 	int i, j, k, m;
 	int len, bestlen, besttype;
@@ -267,7 +267,7 @@ int build_tris(s_trianglevert_t (*x)[3], s_mesh_t *y, std::uint8_t **ppdata)
 
 		for (j = 0; j < bestlen; j++)
 		{
-			s_trianglevert_t *tri;
+			TriangleVert *tri;
 
 			tri = &g_triangles[besttris[j]][bestverts[j]];
 

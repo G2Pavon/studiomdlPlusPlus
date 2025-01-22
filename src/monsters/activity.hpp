@@ -96,7 +96,7 @@ enum Activity
 	ACT_FLINCH_RIGHTLEG,
 };
 
-struct activity_map_t
+struct ActivityMap
 {
 	int type;
 	char *name;

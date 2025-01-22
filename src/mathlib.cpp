@@ -26,7 +26,7 @@ void matrix_copy(float in[3][4], float out[3][4])
 	}
 }
 
-void angle_matrix(const vec3_t &angles, float matrix[3][4])
+void angle_matrix(const Vector3 &angles, float matrix[3][4])
 {
 	float angle;
 	float sr, sp, sy, cr, cp, cy;
@@ -55,7 +55,7 @@ void angle_matrix(const vec3_t &angles, float matrix[3][4])
 	matrix[2][3] = 0.0;
 }
 
-void angle_i_matrix(const vec3_t &angles, float matrix[3][4])
+void angle_i_matrix(const Vector3 &angles, float matrix[3][4])
 {
 	float angle;
 	float sr, sp, sy, cr, cp, cy;
@@ -112,11 +112,11 @@ void r_concat_transforms(const float in1[3][4], const float in2[3][4], float out
 				in1[2][2] * in2[2][3] + in1[2][3];
 }
 
-void vector_transform(const vec3_t &in1, const float in2[3][4], vec3_t &out)
+void vector_transform(const Vector3 &in1, const float in2[3][4], Vector3 &out)
 {
-	vec3_t row0(in2[0][0], in2[0][1], in2[0][2]);
-	vec3_t row1(in2[1][0], in2[1][1], in2[1][2]);
-	vec3_t row2(in2[2][0], in2[2][1], in2[2][2]);
+	Vector3 row0(in2[0][0], in2[0][1], in2[0][2]);
+	Vector3 row1(in2[1][0], in2[1][1], in2[1][2]);
+	Vector3 row2(in2[2][0], in2[2][1], in2[2][2]);
 
 	out.x = in1.dot(row0) + in2[0][3];
 	out.y = in1.dot(row1) + in2[1][3];

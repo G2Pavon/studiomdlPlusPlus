@@ -16,7 +16,7 @@
 
 #define _A(a) {a, #a}
 
-activity_map_t activity_map[] =
+ActivityMap activity_map[] =
     {
         _A(ACT_IDLE),
         _A(ACT_GUARD),

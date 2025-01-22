@@ -348,7 +348,7 @@ void write_model()
 	StudioModel *pmodel;
 	// vec3_t			*bbox;
 	std::uint8_t *pbone;
-	s_trianglevert_t *psrctri;
+	TriangleVert *psrctri;
 	int cur;
 
 	pbodypart = (StudioBodyPart *)g_pData;
@@ -418,13 +418,13 @@ void write_model()
 
 		// save group info
 		{
-			vec3_t *pvert = (vec3_t *)g_pData;
-			g_pData += g_submodel[i]->numverts * sizeof(vec3_t);
+			Vector3 *pvert = (Vector3 *)g_pData;
+			g_pData += g_submodel[i]->numverts * sizeof(Vector3);
 			pmodel[i].vertindex = ((std::uint8_t *)pvert - g_pStart);
 			g_pData = (std::uint8_t *)ALIGN(g_pData);
 
-			vec3_t *pnorm = (vec3_t *)g_pData;
-			g_pData += g_submodel[i]->numnorms * sizeof(vec3_t);
+			Vector3 *pnorm = (Vector3 *)g_pData;
+			g_pData += g_submodel[i]->numnorms * sizeof(Vector3);
 			pmodel[i].normindex = ((std::uint8_t *)pnorm - g_pStart);
 			g_pData = (std::uint8_t *)ALIGN(g_pData);
 
@@ -461,7 +461,7 @@ void write_model()
 				pmesh[j].skinref = g_submodel[i]->pmesh[j]->skinref;
 				pmesh[j].numnorms = g_submodel[i]->pmesh[j]->numnorms;
 
-				psrctri = (s_trianglevert_t *)(g_submodel[i]->pmesh[j]->triangle);
+				psrctri = (TriangleVert *)(g_submodel[i]->pmesh[j]->triangle);
 				for (k = 0; k < pmesh[j].numtris * 3; k++)
 				{
 					psrctri->normindex = normmap[psrctri->normindex];
