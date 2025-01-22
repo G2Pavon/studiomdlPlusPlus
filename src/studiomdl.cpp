@@ -886,10 +886,10 @@ void SimplifyModel()
 				{
 					for (k = 0; k < DEGREESOFFREEDOM; k++)
 					{
-						mstudioanimvalue_t *pcount, *pvalue;
+						StudioAnimationValue *pcount, *pvalue;
 						float v;
 						short value[MAXSTUDIOANIMATIONS];
-						mstudioanimvalue_t data[MAXSTUDIOANIMATIONS];
+						StudioAnimationValue data[MAXSTUDIOANIMATIONS];
 
 						for (n = 0; n < g_sequenceCommand[i].numframes; n++)
 						{
@@ -973,8 +973,8 @@ void SimplifyModel()
 						}
 						else
 						{
-							g_sequenceCommand[i].panim[q]->anim[j][k] = (mstudioanimvalue_t *)std::calloc(pvalue - data, sizeof(mstudioanimvalue_t));
-							std::memcpy(g_sequenceCommand[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(mstudioanimvalue_t));
+							g_sequenceCommand[i].panim[q]->anim[j][k] = (StudioAnimationValue *)std::calloc(pvalue - data, sizeof(StudioAnimationValue));
+							std::memcpy(g_sequenceCommand[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(StudioAnimationValue));
 						}
 					}
 				}

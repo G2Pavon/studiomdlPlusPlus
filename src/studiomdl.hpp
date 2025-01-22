@@ -110,7 +110,7 @@ struct s_animation_t
 	vec3_t *pos[MAXSTUDIOSRCBONES];
 	vec3_t *rot[MAXSTUDIOSRCBONES];
 	int numanim[MAXSTUDIOSRCBONES][DEGREESOFFREEDOM];
-	mstudioanimvalue_t *anim[MAXSTUDIOSRCBONES][DEGREESOFFREEDOM];
+	StudioAnimationValue *anim[MAXSTUDIOSRCBONES][DEGREESOFFREEDOM];
 };
 
 struct s_event_t

@@ -13,19 +13,19 @@ extern int g_numcommandnodes;
 
 std::uint8_t *g_pData;
 std::uint8_t *g_pStart;
-studiohdr_t *g_phdr;
-studioseqhdr_t *g_pseqhdr;
+StudioHeader *g_phdr;
+StudioSequenceGroupHeader *g_pseqhdr;
 
 void WriteBoneInfo()
 {
 	int i, j;
-	mstudiobone_t *pbone;
-	mstudiobonecontroller_t *pbonecontroller;
-	mstudioattachment_t *pattachment;
-	mstudiobbox_t *pbbox;
+	StudioBone *pbone;
+	StudioBoneController *pbonecontroller;
+	StudioAttachment *pattachment;
+	StudioHitbox *pbbox;
 
 	// save bone info
-	pbone = (mstudiobone_t *)g_pData;
+	pbone = (StudioBone *)g_pData;
 	g_phdr->numbones = g_bonescount;
 	g_phdr->boneindex = (g_pData - g_pStart);
 
@@ -47,7 +47,7 @@ void WriteBoneInfo()
 		pbone[i].scale[4] = g_bonetable[i].rotscale[1];
 		pbone[i].scale[5] = g_bonetable[i].rotscale[2];
 	}
-	g_pData += g_bonescount * sizeof(mstudiobone_t);
+	g_pData += g_bonescount * sizeof(StudioBone);
 	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	// map bonecontroller to bones
@@ -89,7 +89,7 @@ void WriteBoneInfo()
 	}
 
 	// save bonecontroller info
-	pbonecontroller = (mstudiobonecontroller_t *)g_pData;
+	pbonecontroller = (StudioBoneController *)g_pData;
 	g_phdr->numbonecontrollers = g_bonecontrollerscount;
 	g_phdr->bonecontrollerindex = (g_pData - g_pStart);
 
@@ -101,11 +101,11 @@ void WriteBoneInfo()
 		pbonecontroller[i].start = g_bonecontrollerCommand[i].start;
 		pbonecontroller[i].end = g_bonecontrollerCommand[i].end;
 	}
-	g_pData += g_bonecontrollerscount * sizeof(mstudiobonecontroller_t);
+	g_pData += g_bonecontrollerscount * sizeof(StudioBoneController);
 	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	// save attachment info
-	pattachment = (mstudioattachment_t *)g_pData;
+	pattachment = (StudioAttachment *)g_pData;
 	g_phdr->numattachments = g_attachmentscount;
 	g_phdr->attachmentindex = (g_pData - g_pStart);
 
@@ -114,11 +114,11 @@ void WriteBoneInfo()
 		pattachment[i].bone = g_attachmentCommand[i].bone;
 		pattachment[i].org = g_attachmentCommand[i].org;
 	}
-	g_pData += g_attachmentscount * sizeof(mstudioattachment_t);
+	g_pData += g_attachmentscount * sizeof(StudioAttachment);
 	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	// save bbox info
-	pbbox = (mstudiobbox_t *)g_pData;
+	pbbox = (StudioHitbox *)g_pData;
 	g_phdr->numhitboxes = g_hitboxescount;
 	g_phdr->hitboxindex = (g_pData - g_pStart);
 
@@ -129,22 +129,22 @@ void WriteBoneInfo()
 		pbbox[i].bbmin = g_hitboxCommand[i].bmin;
 		pbbox[i].bbmax = g_hitboxCommand[i].bmax;
 	}
-	g_pData += g_hitboxescount * sizeof(mstudiobbox_t);
+	g_pData += g_hitboxescount * sizeof(StudioHitbox);
 	g_pData = (std::uint8_t *)ALIGN(g_pData);
 }
 void WriteSequenceInfo()
 {
 	int i, j;
 
-	mstudioseqgroup_t *pseqgroup;
-	mstudioseqdesc_t *pseqdesc;
+	StudioSequenceGroup *pseqgroup;
+	StudioSequenceDescription *pseqdesc;
 	std::uint8_t *ptransition;
 
 	// save sequence info
-	pseqdesc = (mstudioseqdesc_t *)g_pData;
+	pseqdesc = (StudioSequenceDescription *)g_pData;
 	g_phdr->numseq = g_sequencecount;
 	g_phdr->seqindex = (g_pData - g_pStart);
-	g_pData += g_sequencecount * sizeof(mstudioseqdesc_t);
+	g_pData += g_sequencecount * sizeof(StudioSequenceDescription);
 
 	for (i = 0; i < g_sequencecount; i++, pseqdesc++)
 	{
@@ -185,10 +185,10 @@ void WriteSequenceInfo()
 
 		// save events
 		{
-			mstudioevent_t *pevent = (mstudioevent_t *)g_pData; // Declare inside the block
+			StudioAnimationEvent *pevent = (StudioAnimationEvent *)g_pData; // Declare inside the block
 			pseqdesc->numevents = g_sequenceCommand[i].numevents;
 			pseqdesc->eventindex = (g_pData - g_pStart);
-			g_pData += pseqdesc->numevents * sizeof(mstudioevent_t);
+			g_pData += pseqdesc->numevents * sizeof(StudioAnimationEvent);
 			for (j = 0; j < g_sequenceCommand[i].numevents; j++)
 			{
 				pevent[j].frame = g_sequenceCommand[i].event[j].frame - g_sequenceCommand[i].frameoffset;
@@ -200,10 +200,10 @@ void WriteSequenceInfo()
 
 		// save pivots
 		{
-			mstudiopivot_t *ppivot = (mstudiopivot_t *)g_pData; // Declare inside the block
+			StudioPivot *ppivot = (StudioPivot *)g_pData; // Declare inside the block
 			pseqdesc->numpivots = g_sequenceCommand[i].numpivots;
 			pseqdesc->pivotindex = (g_pData - g_pStart);
-			g_pData += pseqdesc->numpivots * sizeof(mstudiopivot_t);
+			g_pData += pseqdesc->numpivots * sizeof(StudioPivot);
 			for (j = 0; j < g_sequenceCommand[i].numpivots; j++)
 			{
 				ppivot[j].org = g_sequenceCommand[i].pivot[j].org;
@@ -215,10 +215,10 @@ void WriteSequenceInfo()
 	}
 
 	// save sequence group info
-	pseqgroup = (mstudioseqgroup_t *)g_pData;
+	pseqgroup = (StudioSequenceGroup *)g_pData;
 	g_phdr->numseqgroups = g_sequencegroupcount;
 	g_phdr->seqgroupindex = (g_pData - g_pStart);
-	g_pData += g_phdr->numseqgroups * sizeof(mstudioseqgroup_t);
+	g_pData += g_phdr->numseqgroups * sizeof(StudioSequenceGroup);
 	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	for (i = 0; i < g_sequencegroupcount; i++)
@@ -244,8 +244,8 @@ void WriteSequenceInfo()
 
 std::uint8_t *WriteAnimations(std::uint8_t *pData, const std::uint8_t *pStart, int group)
 {
-	mstudioanim_t *panim;
-	mstudioanimvalue_t *panimvalue;
+	StudioAnimationFrameOffset *panim;
+	StudioAnimationValue *panimvalue;
 
 	// hack for seqgroup 0
 	// pseqgroup->data = (pData - pStart);
@@ -255,12 +255,12 @@ std::uint8_t *WriteAnimations(std::uint8_t *pData, const std::uint8_t *pStart, i
 		if (g_sequenceCommand[i].seqgroup == group)
 		{
 			// save animations
-			panim = (mstudioanim_t *)pData;
+			panim = (StudioAnimationFrameOffset *)pData;
 			g_sequenceCommand[i].animindex = (pData - pStart);
-			pData += g_sequenceCommand[i].numblends * g_bonescount * sizeof(mstudioanim_t);
+			pData += g_sequenceCommand[i].numblends * g_bonescount * sizeof(StudioAnimationFrameOffset);
 			pData = (std::uint8_t *)ALIGN(pData);
 
-			panimvalue = (mstudioanimvalue_t *)pData;
+			panimvalue = (StudioAnimationValue *)pData;
 			for (int blends = 0; blends < g_sequenceCommand[i].numblends; blends++)
 			{
 				// save animation value info
@@ -299,14 +299,14 @@ std::uint8_t *WriteAnimations(std::uint8_t *pData, const std::uint8_t *pStart, i
 void WriteTextures()
 {
 	int i;
-	mstudiotexture_t *ptexture;
+	StudioTexture *ptexture;
 	short *pref;
 
 	// save bone info
-	ptexture = (mstudiotexture_t *)g_pData;
+	ptexture = (StudioTexture *)g_pData;
 	g_phdr->numtextures = g_texturescount;
 	g_phdr->textureindex = (g_pData - g_pStart);
-	g_pData += g_texturescount * sizeof(mstudiotexture_t);
+	g_pData += g_texturescount * sizeof(StudioTexture);
 	g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 	g_phdr->skinindex = (g_pData - g_pStart);
@@ -344,20 +344,20 @@ void WriteModel()
 {
 	int i, j, k;
 
-	mstudiobodyparts_t *pbodypart;
-	mstudiomodel_t *pmodel;
+	StudioBodyPart *pbodypart;
+	StudioModel *pmodel;
 	// vec3_t			*bbox;
 	std::uint8_t *pbone;
 	s_trianglevert_t *psrctri;
 	int cur;
 
-	pbodypart = (mstudiobodyparts_t *)g_pData;
+	pbodypart = (StudioBodyPart *)g_pData;
 	g_phdr->numbodyparts = g_bodygroupcount;
 	g_phdr->bodypartindex = (g_pData - g_pStart);
-	g_pData += g_bodygroupcount * sizeof(mstudiobodyparts_t);
+	g_pData += g_bodygroupcount * sizeof(StudioBodyPart);
 
-	pmodel = (mstudiomodel_t *)g_pData;
-	g_pData += g_submodelscount * sizeof(mstudiomodel_t);
+	pmodel = (StudioModel *)g_pData;
+	g_pData += g_submodelscount * sizeof(StudioModel);
 
 	for (i = 0, j = 0; i < g_bodygroupcount; i++)
 	{
@@ -443,11 +443,11 @@ void WriteModel()
 		// save mesh info
 		{
 
-			mstudiomesh_t *pmesh;
-			pmesh = (mstudiomesh_t *)g_pData;
+			StudioMesh *pmesh;
+			pmesh = (StudioMesh *)g_pData;
 			pmodel[i].nummesh = g_submodel[i]->nummesh;
 			pmodel[i].meshindex = (g_pData - g_pStart);
-			g_pData += pmodel[i].nummesh * sizeof(mstudiomesh_t);
+			g_pData += pmodel[i].nummesh * sizeof(StudioMesh);
 			g_pData = (std::uint8_t *)ALIGN(g_pData);
 
 			int total_tris = 0;
@@ -502,11 +502,11 @@ void WriteFile(void)
 		printf("writing %s:\n", groupname);
 		modelouthandle = SafeOpenWrite(groupname);
 
-		g_pseqhdr = (studioseqhdr_t *)g_pStart;
+		g_pseqhdr = (StudioSequenceGroupHeader *)g_pStart;
 		g_pseqhdr->id = IDSTUDIOSEQHEADER;
 		g_pseqhdr->version = STUDIO_VERSION;
 
-		g_pData = g_pStart + sizeof(studioseqhdr_t);
+		g_pData = g_pStart + sizeof(StudioSequenceGroupHeader);
 
 		g_pData = WriteAnimations(g_pData, g_pStart, i);
 
@@ -531,7 +531,7 @@ void WriteFile(void)
 	printf("writing %s:\n", g_modelnameCommand);
 	modelouthandle = SafeOpenWrite(g_modelnameCommand);
 
-	g_phdr = (studiohdr_t *)g_pStart;
+	g_phdr = (StudioHeader *)g_pStart;
 
 	g_phdr->ident = IDSTUDIOHEADER;
 	g_phdr->version = STUDIO_VERSION;
@@ -544,7 +544,7 @@ void WriteFile(void)
 
 	g_phdr->flags = g_flagsCommand;
 
-	g_pData = (std::uint8_t *)g_phdr + sizeof(studiohdr_t);
+	g_pData = (std::uint8_t *)g_phdr + sizeof(StudioHeader);
 
 	WriteBoneInfo();
 	printf("bones     %6d bytes (%d)\n", g_pData - g_pStart - total, g_bonescount);
