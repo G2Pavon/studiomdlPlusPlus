@@ -25,15 +25,6 @@
 
 constexpr float ENGINE_ORIENTATION = 90.0f; // Z rotation to match with engine forward direction (x axis)
 
-std::filesystem::path g_inputfilename;
-FILE *g_inputFile;
-char g_currentline[1024];
-int g_linecount;
-char g_defaulttextures[16][256];
-char g_sourcetexture[16][256];
-int g_numtextureteplacements;
-s_bonefixup_t g_bonefixup[MAXSTUDIOSRCBONES];
-
 // studiomdl.exe args -----------
 int g_flagreversedtriangles;
 int g_flagbadnormals;
@@ -66,8 +57,20 @@ int g_texturegroupCommand[32][32][32]; // $texturegroup
 int g_texturegroupCount;			   // unnecessary? since engine doesn't support multiple texturegroups
 int g_texturegrouplayers[32];
 int g_texturegroupreps[32];
-// ---------------------------------------
 
+// SMD variables --------------------------
+std::filesystem::path g_smdpath;
+FILE *g_smdfile;
+char g_currentsmdline[1024];
+int g_smdlinecount;
+
+char g_defaulttextures[16][256];
+char g_sourcetexture[16][256];
+int g_numtextureteplacements;
+s_bonefixup_t g_bonefixup[MAXSTUDIOSRCBONES];
+
+
+// ---------------------------------------
 void clip_rotations(vec3_t rot)
 {
 	// clip everything to : -Q_PI <= x < Q_PI
@@ -1467,7 +1470,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 	// load the base triangles
 	while (true)
 	{
-		if (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
+		if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 		{
 			s_mesh_t *pmesh;
 			char triangleMaterial[64];
@@ -1477,14 +1480,14 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 			vec3_t triangleVertices[3];
 			vec3_t triangleNormals[3];
 
-			g_linecount++;
+			g_smdlinecount++;
 
 			// check for end
-			if (std::strcmp("end\n", g_currentline) == 0)
+			if (std::strcmp("end\n", g_currentsmdline) == 0)
 				return;
 
 			// strip off trailing smag
-			std::strcpy(triangleMaterial, g_currentline);
+			std::strcpy(triangleMaterial, g_currentsmdline);
 			for (i = strlen(triangleMaterial) - 1; i >= 0 && !isgraph(triangleMaterial[i]); i--)
 				;
 			triangleMaterial[i + 1] = '\0';
@@ -1507,10 +1510,10 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 			if (triangleMaterial[0] == '\0')
 			{
 				// weird model problem, skip them
-				fgets(g_currentline, sizeof(g_currentline), g_inputFile);
-				fgets(g_currentline, sizeof(g_currentline), g_inputFile);
-				fgets(g_currentline, sizeof(g_currentline), g_inputFile);
-				g_linecount += 3;
+				fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile);
+				fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile);
+				fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile);
+				g_smdlinecount += 3;
 				continue;
 			}
 
@@ -1524,13 +1527,13 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 				else
 					ptriangleVert = FindMeshTriangleByIndex(pmesh, pmesh->numtris) + j;
 
-				if (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
+				if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 				{
 					s_vertex_t triangleVertex;
 					s_normal_t triangleNormal;
 
-					g_linecount++;
-					if (sscanf(g_currentline, "%d %f %f %f %f %f %f %f %f",
+					g_smdlinecount++;
+					if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f %f %f",
 							   &parentBone,
 							   &triangleVertex.org[0], &triangleVertex.org[1], &triangleVertex.org[2],
 							   &triangleNormal.org[0], &triangleNormal.org[1], &triangleNormal.org[2],
@@ -1539,7 +1542,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 						if (parentBone < 0 || parentBone >= pmodel->numbones)
 						{
 							fprintf(stderr, "bogus bone index\n");
-							fprintf(stderr, "%d %s :\n%s", g_linecount, g_inputfilename.c_str(), g_currentline);
+							fprintf(stderr, "%d %s :\n%s", g_smdlinecount, g_smdpath.c_str(), g_currentsmdline);
 							exit(1);
 						}
 
@@ -1574,7 +1577,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 					}
 					else
 					{
-						Error("%s: error on line %d: %s", g_inputfilename, g_linecount, g_currentline);
+						Error("%s: error on line %d: %s", g_smdpath, g_smdlinecount, g_currentsmdline);
 					}
 				}
 			}
@@ -1660,10 +1663,10 @@ void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
 	char cmd[1024];
 	int node;
 
-	while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 	{
-		g_linecount++;
-		if (sscanf(g_currentline, "%d %f %f %f %f %f %f", &node, &posX, &posY, &posZ, &rotX, &rotY, &rotZ) == 7)
+		g_smdlinecount++;
+		if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f", &node, &posX, &posY, &posZ, &rotX, &rotY, &rotZ) == 7)
 		{
 			pbones[node].pos[0] = posX;
 			pbones[node].pos[1] = posY;
@@ -1680,7 +1683,7 @@ void Grab_SMDSkeleton(s_node_t *pnodes, s_bone_t *pbones)
 
 			clip_rotations(pbones[node].rot);
 		}
-		else if (sscanf(g_currentline, "%s %d", cmd, &node)) // Delete this
+		else if (sscanf(g_currentsmdline, "%s %d", cmd, &node)) // Delete this
 		{
 			if (std::strcmp(cmd, "time") == 0)
 			{
@@ -1701,10 +1704,10 @@ int Grab_SMDNodes(s_node_t *pnodes)
 	int parent;
 	int numBones = 0;
 
-	while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 	{
-		g_linecount++;
-		if (sscanf(g_currentline, "%d \"%[^\"]\" %d", &index, boneName, &parent) == 3)
+		g_smdlinecount++;
+		if (sscanf(g_currentsmdline, "%d \"%[^\"]\" %d", &index, boneName, &parent) == 3)
 		{
 
 			strcpyn(pnodes[index].name, boneName);
@@ -1726,7 +1729,7 @@ int Grab_SMDNodes(s_node_t *pnodes)
 			return numBones + 1;
 		}
 	}
-	Error("Unexpected EOF at line %d\n", g_linecount);
+	Error("Unexpected EOF at line %d\n", g_smdlinecount);
 	return 0;
 }
 
@@ -1735,22 +1738,22 @@ void ParseSMD(s_model_t *pmodel)
 	char cmd[1024];
 	int option;
 
-	g_inputfilename = g_cdCommandAbsolute / (std::string(pmodel->name) + ".smd");
-	if (!std::filesystem::exists(g_inputfilename))
-		Error("%s doesn't exist", g_inputfilename.c_str());
+	g_smdpath = g_cdCommandAbsolute / (std::string(pmodel->name) + ".smd");
+	if (!std::filesystem::exists(g_smdpath))
+		Error("%s doesn't exist", g_smdpath.c_str());
 
-	printf("grabbing %s\n", g_inputfilename.c_str());
+	printf("grabbing %s\n", g_smdpath.c_str());
 
-	if ((g_inputFile = fopen(g_inputfilename.string().c_str(), "r")) == 0)
+	if ((g_smdfile = fopen(g_smdpath.string().c_str(), "r")) == 0)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", g_inputfilename.c_str());
+		fprintf(stderr, "reader: could not open file '%s'\n", g_smdpath.c_str());
 	}
-	g_linecount = 0;
+	g_smdlinecount = 0;
 
-	while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 	{
-		g_linecount++;
-		sscanf(g_currentline, "%s %d", cmd, &option);
+		g_smdlinecount++;
+		sscanf(g_currentsmdline, "%s %d", cmd, &option);
 		if (std::strcmp(cmd, "version") == 0)
 		{
 			if (option != 1)
@@ -1775,7 +1778,7 @@ void ParseSMD(s_model_t *pmodel)
 			printf("unknown studio command\n");
 		}
 	}
-	fclose(g_inputFile);
+	fclose(g_smdfile);
 }
 
 void Cmd_Eyeposition(std::string& token)
@@ -1936,10 +1939,10 @@ void Grab_OptionAnimation(s_animation_t *panim)
 	cz = cos(g_rotateCommand);
 	sz = sin(g_rotateCommand);
 
-	while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 	{
-		g_linecount++;
-		if (sscanf(g_currentline, "%d %f %f %f %f %f %f", &index, &pos[0], &pos[1], &pos[2], &rot[0], &rot[1], &rot[2]) == 7)
+		g_smdlinecount++;
+		if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f", &index, &pos[0], &pos[1], &pos[2], &rot[0], &rot[1], &rot[2]) == 7)
 		{
 			if (t >= panim->startframe && t <= panim->endframe)
 			{
@@ -1971,7 +1974,7 @@ void Grab_OptionAnimation(s_animation_t *panim)
 				panim->rot[index][t] = rot;
 			}
 		}
-		else if (sscanf(g_currentline, "%s %d", cmd, &index))
+		else if (sscanf(g_currentsmdline, "%s %d", cmd, &index))
 		{
 			if (std::strcmp(cmd, "time") == 0)
 			{
@@ -1985,12 +1988,12 @@ void Grab_OptionAnimation(s_animation_t *panim)
 			}
 			else
 			{
-				Error("Error(%d) : %s", g_linecount, g_currentline);
+				Error("Error(%d) : %s", g_smdlinecount, g_currentsmdline);
 			}
 		}
 		else
 		{
-			Error("Error(%d) : %s", g_linecount, g_currentline);
+			Error("Error(%d) : %s", g_smdlinecount, g_currentsmdline);
 		}
 	}
 	Error("unexpected EOF: %s\n", panim->name);
@@ -2028,23 +2031,23 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 
 	strcpyn(panim->name, name);
 
-	g_inputfilename = g_cdCommandAbsolute / (std::string(panim->name)+".smd");
-	if (!std::filesystem::exists(g_inputfilename))
-		Error("%s doesn't exist", g_inputfilename.c_str());
+	g_smdpath = g_cdCommandAbsolute / (std::string(panim->name)+".smd");
+	if (!std::filesystem::exists(g_smdpath))
+		Error("%s doesn't exist", g_smdpath.c_str());
 
-	printf("grabbing %s\n", g_inputfilename.c_str());
+	printf("grabbing %s\n", g_smdpath.c_str());
 
-	if ((g_inputFile = fopen(g_inputfilename.string().c_str(), "r")) == 0)
+	if ((g_smdfile = fopen(g_smdpath.string().c_str(), "r")) == 0)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", g_inputfilename.c_str());
+		fprintf(stderr, "reader: could not open file '%s'\n", g_smdpath.c_str());
 		Error(0);
 	}
-	g_linecount = 0;
+	g_smdlinecount = 0;
 
-	while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 	{
-		g_linecount++;
-		sscanf(g_currentline, "%s %d", cmd, &option);
+		g_smdlinecount++;
+		sscanf(g_currentsmdline, "%s %d", cmd, &option);
 		if (std::strcmp(cmd, "version") == 0)
 		{
 			if (option != 1)
@@ -2064,15 +2067,15 @@ void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 		else
 		{
 			printf("unknown studio command : %s\n", cmd);
-			while (fgets(g_currentline, sizeof(g_currentline), g_inputFile) != NULL)
+			while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 			{
-				g_linecount++;
-				if (strncmp(g_currentline, "end", 3) == 0)
+				g_smdlinecount++;
+				if (strncmp(g_currentsmdline, "end", 3) == 0)
 					break;
 			}
 		}
 	}
-	fclose(g_inputFile);
+	fclose(g_smdfile);
 }
 
 int Cmd_Sequence_OptionDeform(s_sequence_t *psequence) // delete this
