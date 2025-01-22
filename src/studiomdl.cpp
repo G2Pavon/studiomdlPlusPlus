@@ -25,7 +25,7 @@
 
 constexpr float ENGINE_ORIENTATION = 90.0f; // Z rotation to match with engine forward direction (x axis)
 
-char g_inputfilename[1024];
+std::filesystem::path g_inputfilename;
 FILE *g_inputFile;
 char g_currentline[1024];
 int g_linecount;
@@ -1554,7 +1554,7 @@ void Grab_SMDTriangles(s_model_t *pmodel)
 						if (parentBone < 0 || parentBone >= pmodel->numbones)
 						{
 							fprintf(stderr, "bogus bone index\n");
-							fprintf(stderr, "%d %s :\n%s", g_linecount, g_inputfilename, g_currentline);
+							fprintf(stderr, "%d %s :\n%s", g_linecount, g_inputfilename.c_str(), g_currentline);
 							exit(1);
 						}
 
@@ -1747,20 +1747,18 @@ int Grab_SMDNodes(s_node_t *pnodes)
 
 void ParseSMD(s_model_t *pmodel)
 {
-	int time1;
 	char cmd[1024];
 	int option;
 
-	sprintf(g_inputfilename, "%s/%s.smd", g_cdCommandAbsolute.c_str(), pmodel->name);
-	time1 = FileTime(g_inputfilename);
-	if (time1 == -1)
-		Error("%s doesn't exist", g_inputfilename);
+	g_inputfilename = g_cdCommandAbsolute / (std::string(pmodel->name) + ".smd");
+	if (!std::filesystem::exists(g_inputfilename))
+		Error("%s doesn't exist", g_inputfilename.c_str());
 
-	printf("grabbing %s\n", g_inputfilename);
+	printf("grabbing %s\n", g_inputfilename.c_str());
 
-	if ((g_inputFile = fopen(g_inputfilename, "r")) == 0)
+	if ((g_inputFile = fopen(g_inputfilename.string().c_str(), "r")) == 0)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", g_inputfilename);
+		fprintf(stderr, "reader: could not open file '%s'\n", g_inputfilename.c_str());
 	}
 	g_linecount = 0;
 
@@ -2040,22 +2038,20 @@ void Shift_OptionAnimation(s_animation_t *panim)
 
 void Cmd_Sequence_OptionAnimation(char *name, s_animation_t *panim)
 {
-	int time1;
 	char cmd[1024];
 	int option;
 
 	strcpyn(panim->name, name);
 
-	sprintf(g_inputfilename, "%s/%s.smd", g_cdCommandAbsolute.c_str(), panim->name);
-	time1 = FileTime(g_inputfilename);
-	if (time1 == -1)
-		Error("%s doesn't exist", g_inputfilename);
+	g_inputfilename = g_cdCommandAbsolute / (std::string(panim->name)+".smd");
+	if (!std::filesystem::exists(g_inputfilename))
+		Error("%s doesn't exist", g_inputfilename.c_str());
 
-	printf("grabbing %s\n", g_inputfilename);
+	printf("grabbing %s\n", g_inputfilename.c_str());
 
-	if ((g_inputFile = fopen(g_inputfilename, "r")) == 0)
+	if ((g_inputFile = fopen(g_inputfilename.string().c_str(), "r")) == 0)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", g_inputfilename);
+		fprintf(stderr, "reader: could not open file '%s'\n", g_inputfilename.c_str());
 		Error(0);
 	}
 	g_linecount = 0;
