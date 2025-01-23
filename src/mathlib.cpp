@@ -32,14 +32,14 @@ void angle_matrix(const Vector3 &angles, float matrix[3][4])
 	float sr, sp, sy, cr, cp, cy;
 
 	angle = to_radians(angles.z);
-	sy = sin(angle);
-	cy = cos(angle);
+	sy = sinf(angle);
+	cy = cosf(angle);
 	angle = to_radians(angles.y);
-	sp = sin(angle);
-	cp = cos(angle);
+	sp = sinf(angle);
+	cp = cosf(angle);
 	angle = to_radians(angles.x);
-	sr = sin(angle);
-	cr = cos(angle);
+	sr = sinf(angle);
+	cr = cosf(angle);
 
 	matrix[0][0] = cp * cy;
 	matrix[1][0] = cp * sy;
@@ -61,14 +61,14 @@ void angle_i_matrix(const Vector3 &angles, float matrix[3][4])
 	float sr, sp, sy, cr, cp, cy;
 
 	angle = to_radians(angles.z);
-	sy = sin(angle);
-	cy = cos(angle);
+	sy = sinf(angle);
+	cy = cosf(angle);
 	angle = to_radians(angles.y);
-	sp = sin(angle);
-	cp = cos(angle);
+	sp = sinf(angle);
+	cp = cosf(angle);
 	angle = to_radians(angles.x);
-	sr = sin(angle);
-	cr = cos(angle);
+	sr = sinf(angle);
+	cr = cosf(angle);
 
 	matrix[0][0] = cp * cy;
 	matrix[0][1] = cp * sy;

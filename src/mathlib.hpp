@@ -1,16 +1,22 @@
 // mathlib.c -- math primitives
 
 #include <cmath>
+#include <numbers>
 
-constexpr double Q_PI = 3.14159265358979323846;
-constexpr float EPSILON = 0.001;
+constexpr float Q_PI = std::numbers::pi_v<float>;
+constexpr float EPSILON = 0.001f;
 
 struct Vector3
 {
     float x, y, z;
 
     Vector3() : x(0), y(0), z(0) {}
-    Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
+    Vector3(float new_x, float new_y, float new_z)
+    {
+        x = new_x;
+        y = new_y;
+        z = new_z;
+    }
 
     float &operator[](int i)
     {
@@ -104,7 +110,7 @@ struct Vector3
 
     float magnitude() const
     {
-        return sqrt(x * x + y * y + z * z);
+        return std::sqrtf(x * x + y * y + z * z);
     }
 
     void normalize()
