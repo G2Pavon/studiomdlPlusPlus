@@ -2214,7 +2214,9 @@ int Cmd_Sequence_OptionAction(std::string &szActivity)
 	for (int i = 0; activity_map[i].name; i++)
 	{
 		if (stricmp(szActivity.c_str(), activity_map[i].name) == 0)
+		{
 			return activity_map[i].type;
+		}
 	}
 	// match ACT_#
 	if (strnicmp(szActivity.c_str(), "ACT_", 4) == 0)
@@ -2277,54 +2279,54 @@ int cmd_sequence(std::string &token)
 			}
 			return 1;
 		}
-		if (stricmp("{", token.c_str()) == 0)
+		if (token == "{")
 		{
 			depth++;
 		}
-		else if (stricmp("}", token.c_str()) == 0)
+		else if (token == "}")
 		{
 			depth--;
 		}
-		else if (stricmp("deform", token.c_str()) == 0)
+		else if (token == "deform")
 		{
 			cmd_sequence_option_deform(&g_sequenceCommand[g_sequencecount]);
 		}
-		else if (stricmp("event", token.c_str()) == 0)
+		else if (token == "event")
 		{
 			depth -= cmd_sequence_option_event(token, &g_sequenceCommand[g_sequencecount]);
 		}
-		else if (stricmp("pivot", token.c_str()) == 0)
+		else if (token == "pivot")
 		{
 			cmd_sequence_option_addpivot(token, &g_sequenceCommand[g_sequencecount]);
 		}
-		else if (stricmp("fps", token.c_str()) == 0)
+		else if (token == "fps")
 		{
 			cmd_sequence_option_fps(token, &g_sequenceCommand[g_sequencecount]);
 		}
-		else if (stricmp("origin", token.c_str()) == 0)
+		else if (token == "origin")
 		{
 			Cmd_Sequence_OptionOrigin(token);
 		}
-		else if (stricmp("rotate", token.c_str()) == 0)
+		else if (token == "rotate")
 		{
 			cmd_sequence_option_rotate(token);
 		}
-		else if (stricmp("scale", token.c_str()) == 0)
+		else if (token == "scale")
 		{
 			cmd_sequence_option_scale(token);
 		}
-		else if (strnicmp("loop", token.c_str(), 4) == 0)
+		else if (token == "loop")
 		{
 			g_sequenceCommand[g_sequencecount].flags |= STUDIO_LOOPING;
 		}
-		else if (strnicmp("frame", token.c_str(), 5) == 0)
+		else if (token == "frame")
 		{
 			get_token(false, token);
 			start = std::stoi(token);
 			get_token(false, token);
 			end = std::stoi(token);
 		}
-		else if (strnicmp("blend", token.c_str(), 5) == 0)
+		else if (token == "blend")
 		{
 			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
@@ -2333,19 +2335,19 @@ int cmd_sequence(std::string &token)
 			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].blendend[0] = std::stof(token);
 		}
-		else if (strnicmp("node", token.c_str(), 4) == 0)
+		else if (token == "node")
 		{
 			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].entrynode = g_sequenceCommand[g_sequencecount].exitnode = std::stoi(token);
 		}
-		else if (strnicmp("transition", token.c_str(), 4) == 0)
+		else if (token == "transition")
 		{
 			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].entrynode = std::stoi(token);
 			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].exitnode = std::stoi(token);
 		}
-		else if (strnicmp("rtransition", token.c_str(), 4) == 0)
+		else if (token == "rtransition")
 		{
 			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].entrynode = std::stoi(token);
@@ -2357,7 +2359,7 @@ int cmd_sequence(std::string &token)
 		{
 			g_sequenceCommand[g_sequencecount].motiontype |= lookup_control(token.c_str());
 		}
-		else if (stricmp("animation", token.c_str()) == 0)
+		else if (token == "animation")
 		{
 			get_token(false, token);
 			strcpyn(smdfilename[numblends++], token.c_str());
@@ -2707,7 +2709,7 @@ void parse_qc_file()
 		{
 			cmd_scale(token);
 		}
-		else if (!stricmp(token.c_str(), "$rotate")) // XDM
+		else if (token == "$rotate") // XDM
 		{
 			cmd_rotate(token);
 		}
@@ -2861,7 +2863,6 @@ int main(int argc, char **argv)
 	std::strcpy(path, argv[i]);
 	load_qc_file(path);
 	// parse it
-	std::strcpy(g_modelnameCommand, argv[i]);
 	parse_qc_file();
 	set_skin_values();
 	simplify_model();
