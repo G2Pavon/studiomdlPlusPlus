@@ -261,9 +261,9 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 			g_used[besttris[j]] = 1;
 
 		if (besttype == 1)
-			g_commands[numcommands++] = -bestlen;
+			g_commands[numcommands++] = static_cast<short>(-bestlen);
 		else
-			g_commands[numcommands++] = bestlen;
+			g_commands[numcommands++] = static_cast<short>(bestlen);
 
 		for (j = 0; j < bestlen; j++)
 		{
@@ -271,10 +271,10 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 
 			tri = &g_triangles[besttris[j]][bestverts[j]];
 
-			g_commands[numcommands++] = tri->vertindex;
-			g_commands[numcommands++] = tri->normindex;
-			g_commands[numcommands++] = tri->s;
-			g_commands[numcommands++] = tri->t;
+			g_commands[numcommands++] = static_cast<short>(tri->vertindex);
+			g_commands[numcommands++] = static_cast<short>(tri->normindex);
+			g_commands[numcommands++] = static_cast<short>(tri->s);
+			g_commands[numcommands++] = static_cast<short>(tri->t);
 		}
 		// printf("%d ", bestlen - 2 );
 		g_numcommandnodes++;
