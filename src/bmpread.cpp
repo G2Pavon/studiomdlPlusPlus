@@ -55,18 +55,18 @@ struct RGBQUAD
 int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height)
 {
 	int i, rc = 0;
-	FILE *pfile = NULL;
+	FILE *pfile = nullptr;
 	BITMAPFILEHEADER bmfh;
 	BITMAPINFOHEADER bmih;
 	RGBQUAD rgrgbPalette[256];
 	uint32_t cbBmpBits;
 	uint8_t *pbBmpBits;
-	uint8_t *pb, *pbPal = NULL;
+	uint8_t *pb, *pbPal = nullptr;
 	uint32_t cbPalBytes;
 	uint32_t biTrueWidth;
 
 	// Bogus parameter check
-	if (!(ppbPalette != NULL && ppbBits != NULL))
+	if (!(ppbPalette != nullptr && ppbBits != nullptr))
 	{
 		fprintf(stderr, "invalid BMP file\n");
 		return -1000;
@@ -74,7 +74,7 @@ int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *w
 
 	// File exists?
 	pfile = fopen(szFile, "rb");
-	if (pfile == NULL)
+	if (pfile == nullptr)
 	{
 		fprintf(stderr, "unable to open BMP file\n");
 		return -1;
@@ -145,7 +145,7 @@ int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *w
 
 	// Convert to a packed 768-byte palette
 	pbPal = (uint8_t *)malloc(768);
-	if (pbPal == NULL)
+	if (pbPal == nullptr)
 	{
 		fclose(pfile);
 		return -7;

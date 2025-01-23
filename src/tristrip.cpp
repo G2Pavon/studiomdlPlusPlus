@@ -166,7 +166,7 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 	g_triangles = x;
 	g_pmesh = y;
 
-	t = time(NULL);
+	t = time(nullptr);
 
 	for (i = 0; i < g_pmesh->numtris; i++)
 	{
@@ -279,10 +279,10 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 		// printf("%d ", bestlen - 2 );
 		g_numcommandnodes++;
 
-		if (t != time(NULL))
+		if (t != time(nullptr))
 		{
 			printf("%2d%%\r", (total * 100) / g_pmesh->numtris);
-			t = time(NULL);
+			t = time(nullptr);
 		}
 	}
 

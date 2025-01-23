@@ -1042,7 +1042,7 @@ char *stristr(const char *string, const char *string2)
 		}
 		else
 		{
-			return NULL;
+			return nullptr;
 		}
 	}
 	return (char *)string;
@@ -1062,9 +1062,9 @@ int find_texture_index(std::string texturename)
 	strcpyn(g_texture[i].name, texturename.c_str());
 
 	// XDM: allow such names as "tex_chrome_bright" - chrome and full brightness effects
-	if (stristr(texturename.c_str(), "chrome") != NULL)
+	if (stristr(texturename.c_str(), "chrome") != nullptr)
 		g_texture[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_CHROME;
-	else if (stristr(texturename.c_str(), "bright") != NULL)
+	else if (stristr(texturename.c_str(), "bright") != nullptr)
 		g_texture[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_FULLBRIGHT;
 	else
 		g_texture[i].flags = 0;
@@ -1469,7 +1469,7 @@ void grab_smd_triangles(Model *pmodel)
 	// load the base triangles
 	while (true)
 	{
-		if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
+		if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 		{
 			Mesh *pmesh;
 			char triangleMaterial[64];
@@ -1526,7 +1526,7 @@ void grab_smd_triangles(Model *pmodel)
 				else
 					ptriangleVert = find_mesh_triangle_by_index(pmesh, pmesh->numtris) + j;
 
-				if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
+				if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 				{
 					Vertex triangleVertex;
 					Normal triangleNormal;
@@ -1662,7 +1662,7 @@ void grab_smd_skeleton(Node *pnodes, Bone *pbones)
 	char cmd[1024];
 	int node;
 
-	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
 		g_smdlinecount++;
 		if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f", &node, &posX, &posY, &posZ, &rotX, &rotY, &rotZ) == 7)
@@ -1703,7 +1703,7 @@ int grab_smd_nodes(Node *pnodes)
 	int parent;
 	int numBones = 0;
 
-	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
 		g_smdlinecount++;
 		if (sscanf(g_currentsmdline, "%d \"%[^\"]\" %d", &index, boneName, &parent) == 3)
@@ -1749,7 +1749,7 @@ void parse_smd(Model *pmodel)
 	}
 	g_smdlinecount = 0;
 
-	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
 		g_smdlinecount++;
 		sscanf(g_currentsmdline, "%s %d", cmd, &option);
@@ -1938,7 +1938,7 @@ void grab_option_animation(Animation *panim)
 	cz = cosf(g_rotateCommand);
 	sz = sinf(g_rotateCommand);
 
-	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
 		g_smdlinecount++;
 		if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f", &index, &pos[0], &pos[1], &pos[2], &rot[0], &rot[1], &rot[2]) == 7)
@@ -2043,7 +2043,7 @@ void cmd_sequence_option_animation(char *name, Animation *panim)
 	}
 	g_smdlinecount = 0;
 
-	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
 		g_smdlinecount++;
 		sscanf(g_currentsmdline, "%s %d", cmd, &option);
@@ -2066,7 +2066,7 @@ void cmd_sequence_option_animation(char *name, Animation *panim)
 		else
 		{
 			printf("unknown studio command : %s\n", cmd);
-			while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
+			while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 			{
 				g_smdlinecount++;
 				if (strncmp(g_currentsmdline, "end", 3) == 0)
