@@ -2204,7 +2204,7 @@ int cmd_sequencegroup(std::string &token)
 	return 0;
 }
 
-int Cmd_Sequence_OptionAction(std::string &szActivity)
+int cmd_sequence_option_action(std::string &szActivity)
 {
 	for (int i = 0; activity_map[i].name; i++)
 	{
@@ -2355,7 +2355,7 @@ int cmd_sequence(std::string &token)
 			get_token(false, token);
 			strcpyn(smdfilename[numblends++], token.c_str());
 		}
-		else if ((i = Cmd_Sequence_OptionAction(token)) != 0)
+		else if ((i = cmd_sequence_option_action(token)) != 0)
 		{
 			g_sequenceCommand[g_sequencecount].activity = i;
 			get_token(false, token);

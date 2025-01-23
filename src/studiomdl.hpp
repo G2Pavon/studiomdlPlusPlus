@@ -331,7 +331,7 @@ void cmd_sequence_option_scale(std::string &token);
 void cmd_sequence_option_animation(char *name, Animation *panim);
 void grab_option_animation(Animation *panim);
 void shift_option_animation(Animation *panim);
-int Cmd_Sequence_OptionAction(std::string &szActivity);
+int cmd_sequence_option_action(std::string &szActivity);
 int cmd_sequencegroup(std::string &token);
 void cmd_eyeposition(std::string &token);
 void cmd_origin(std::string &token);
