@@ -99,5 +99,5 @@ enum Activity
 struct ActivityMap
 {
 	int type;
-	char *name;
+	const char *name;
 };
