@@ -2077,11 +2077,6 @@ void cmd_sequence_option_animation(char *name, Animation *panim)
 	fclose(g_smdfile);
 }
 
-int cmd_sequence_option_deform(Sequence *psequence) // delete this
-{
-	return 0;
-}
-
 int cmd_sequence_option_event(std::string &token, Sequence *psequence)
 {
 	int event;
@@ -2286,10 +2281,6 @@ int cmd_sequence(std::string &token)
 		else if (token == "}")
 		{
 			depth--;
-		}
-		else if (token == "deform")
-		{
-			cmd_sequence_option_deform(&g_sequenceCommand[g_sequencecount]);
 		}
 		else if (token == "event")
 		{

@@ -323,7 +323,6 @@ void cmd_bodygroup(std::string &token);
 void cmd_body_optionstudio(std::string &token);
 int cmd_body_optionblank();
 int cmd_sequence(std::string &token);
-int cmd_sequence_option_deform(Sequence *psequence); // delete this
 int cmd_sequence_option_event(std::string &token, Sequence *psequence);
 int cmd_sequence_option_addpivot(std::string &token, Sequence *psequence);
 int cmd_sequence_option_fps(std::string &token, Sequence *psequence);
