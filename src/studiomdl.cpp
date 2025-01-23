@@ -35,16 +35,16 @@ int g_flagignorewarnings;
 bool g_flagkeepallbones;
 
 // QC Command variables -----------------
-std::filesystem::path g_cdCommand;					   // $cd
-std::filesystem::path g_cdCommandAbsolute;			   // $cd
-std::filesystem::path g_cdtextureCommand;			   // $cdtexture
-float g_scaleCommand;								   // $scale
-float g_scaleBodyAndSequenceOption;					   // $body studio <value> // also for $sequence
-Vector3 g_originCommand;								   // $origin
-float g_originCommandRotation;						   // $origin <X> <Y> <Z> <rotation>
-float g_rotateCommand;								   // $rotate and $sequence <sequence name> <SMD path> {[rotate <zrotation>]} only z axis
-Vector3 g_sequenceOrigin;							   // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
-float g_gammaCommand;								   // $$gamma
+std::filesystem::path g_cdCommand;				   // $cd
+std::filesystem::path g_cdCommandAbsolute;		   // $cd
+std::filesystem::path g_cdtextureCommand;		   // $cdtexture
+float g_scaleCommand;							   // $scale
+float g_scaleBodyAndSequenceOption;				   // $body studio <value> // also for $sequence
+Vector3 g_originCommand;						   // $origin
+float g_originCommandRotation;					   // $origin <X> <Y> <Z> <rotation>
+float g_rotateCommand;							   // $rotate and $sequence <sequence name> <SMD path> {[rotate <zrotation>]} only z axis
+Vector3 g_sequenceOrigin;						   // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
+float g_gammaCommand;							   // $$gamma
 RenameBone g_renameboneCommand[MAXSTUDIOSRCBONES]; // $renamebone
 int g_renamebonecount;
 HitGroup g_hitgroupCommand[MAXSTUDIOSRCBONES]; // $hgroup
@@ -117,7 +117,7 @@ void extract_motion()
 					{
 						ptrPos = g_sequenceCommand[i].panim[0]->pos[k];
 
-						adjustedPosition = motion * (j * 1.0 / (g_sequenceCommand[i].numframes - 1));
+						adjustedPosition = motion * (static_cast<float>(j) / static_cast<float>(g_sequenceCommand[i].numframes - 1));
 						for (blendIndex = 0; blendIndex < g_sequenceCommand[i].numblends; blendIndex++)
 						{
 							g_sequenceCommand[i].panim[blendIndex]->pos[k][j] = g_sequenceCommand[i].panim[blendIndex]->pos[k][j] - adjustedPosition;
@@ -777,11 +777,11 @@ void simplify_model()
 			{
 				if (-minv > maxv)
 				{
-					scale = minv / -32768.0;
+					scale = minv / -32768.0f;
 				}
 				else
 				{
-					scale = maxv / 32767;
+					scale = maxv / 32767.0f;
 				}
 			}
 			else
@@ -901,7 +901,7 @@ void simplify_model()
 							case 0:
 							case 1:
 							case 2:
-								value[n] = (g_sequenceCommand[i].panim[q]->pos[j][n][k] - g_bonetable[j].pos[k]) / g_bonetable[j].posscale[k];
+								value[n] = static_cast<short>((g_sequenceCommand[i].panim[q]->pos[j][n][k] - g_bonetable[j].pos[k]) / g_bonetable[j].posscale[k]);
 								break;
 							case 3:
 							case 4:
@@ -912,7 +912,7 @@ void simplify_model()
 								if (v < -Q_PI)
 									v += Q_PI * 2;
 
-								value[n] = v / g_bonetable[j].rotscale[k - 3];
+								value[n] = static_cast<short>(v / g_bonetable[j].rotscale[k - 3]);
 								break;
 							}
 						}
@@ -969,7 +969,7 @@ void simplify_model()
 							pcount->num.total++;
 						}
 
-						g_sequenceCommand[i].panim[q]->numanim[j][k] = pvalue - data;
+						g_sequenceCommand[i].panim[q]->numanim[j][k] = static_cast<int>(pvalue - data);
 						if (g_sequenceCommand[i].panim[q]->numanim[j][k] == 2 && value[0] == 0)
 						{
 							g_sequenceCommand[i].panim[q]->numanim[j][k] = 0;
@@ -1145,9 +1145,9 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 	int i;
 
 	// assume 2 digits of accuracy
-	pv->org[0] = static_cast<int>(pv->org[0] * 100) / 100.0;
-	pv->org[1] = static_cast<int>(pv->org[1] * 100) / 100.0;
-	pv->org[2] = static_cast<int>(pv->org[2] * 100) / 100.0;
+	pv->org[0] = static_cast<int>(pv->org[0] * 100.0f) / 100.0f;
+	pv->org[1] = static_cast<int>(pv->org[1] * 100.0f) / 100.0f;
+	pv->org[2] = static_cast<int>(pv->org[2] * 100.0f) / 100.0f;
 
 	for (i = 0; i < pmodel->numverts; i++)
 	{
@@ -1213,15 +1213,15 @@ void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 		for (j = 0; j < 3; j++)
 		{
 			// round to fix UV shift
-			pmesh->triangle[i][j].s = static_cast<int>(std::round(pmesh->triangle[i][j].u * (ptexture->srcwidth)));
-			pmesh->triangle[i][j].t = static_cast<int>(std::round(pmesh->triangle[i][j].v * (ptexture->srcheight)));
+			pmesh->triangle[i][j].s = static_cast<int>(std::round(pmesh->triangle[i][j].u * static_cast<float>(ptexture->srcwidth)));
+			pmesh->triangle[i][j].t = static_cast<int>(std::round(pmesh->triangle[i][j].v * static_cast<float>(ptexture->srcheight)));
 		}
 	}
 
 	// find the range
-	ptexture->max_s = ptexture->srcwidth;
+	ptexture->max_s = static_cast<float>(ptexture->srcwidth);
 	ptexture->min_s = 0;
-	ptexture->max_t = ptexture->srcheight;
+	ptexture->max_t = static_cast<float>(ptexture->srcheight);
 	ptexture->min_t = 0;
 }
 
@@ -1232,7 +1232,7 @@ void reset_texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			pmesh->triangle[i][j].t = -pmesh->triangle[i][j].t + ptexture->srcheight - ptexture->min_t;
+			pmesh->triangle[i][j].t = -pmesh->triangle[i][j].t + ptexture->srcheight - static_cast<int>(ptexture->min_t);
 		}
 	}
 }
@@ -1254,15 +1254,15 @@ void resize_texture(Texture *ptexture)
 	int srcadjustedwidth;
 
 	// Keep the original texture without resizing to avoid uv shift
-	ptexture->skintop = ptexture->min_t;
-	ptexture->skinleft = ptexture->min_s;
+	ptexture->skintop = static_cast<int>(ptexture->min_t);
+	ptexture->skinleft = static_cast<int>(ptexture->min_s);
 	ptexture->skinwidth = ptexture->srcwidth;
 	ptexture->skinheight = ptexture->srcheight;
 
 	ptexture->size = ptexture->skinwidth * ptexture->skinheight + 256 * 3;
 
 	printf("BMP %s [%d %d] (%.0f%%)  %6d bytes\n", ptexture->name, ptexture->skinwidth, ptexture->skinheight,
-		   ((ptexture->skinwidth * ptexture->skinheight) / static_cast<float>(ptexture->srcwidth * ptexture->srcheight)) * 100.0,
+		   (static_cast<float>(ptexture->skinwidth * ptexture->skinheight) / static_cast<float>(ptexture->srcwidth * ptexture->srcheight)) * 100.0f,
 		   ptexture->size);
 
 	if (ptexture->size > 1024 * 1024)
@@ -1293,15 +1293,15 @@ void resize_texture(Texture *ptexture)
 
 	// TODO: process the texture and flag it if fullbright or transparent are used.
 	// TODO: only save as many palette entries as are actually used.
-	if (g_gammaCommand != 1.8)
+	if (g_gammaCommand != 1.8f)
 	// gamma correct the monster textures to a gamma of 1.8
 	{
 		float g;
 		std::uint8_t *psrc = (std::uint8_t *)ptexture->ppal;
-		g = g_gammaCommand / 1.8;
+		g = g_gammaCommand / 1.8f;
 		for (i = 0; i < 768; i++)
 		{
-			pdest[i] = pow(psrc[i] / 255.0, g) * 255;
+			pdest[i] = static_cast<uint8_t>(std::round(pow(psrc[i] / 255.0, g) * 255));
 		}
 	}
 	else
@@ -1487,7 +1487,7 @@ void grab_smd_triangles(Model *pmodel)
 
 			// strip off trailing smag
 			std::strcpy(triangleMaterial, g_currentsmdline);
-			for (i = strlen(triangleMaterial) - 1; i >= 0 && !isgraph(triangleMaterial[i]); i--)
+			for (i = static_cast<int>(strlen(triangleMaterial)) - 1; i >= 0 && !isgraph(triangleMaterial[i]); i--)
 				;
 			triangleMaterial[i + 1] = '\0';
 
@@ -1935,8 +1935,8 @@ void grab_option_animation(Animation *panim)
 		panim->rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 	}
 
-	cz = cos(g_rotateCommand);
-	sz = sin(g_rotateCommand);
+	cz = cosf(g_rotateCommand);
+	sz = sinf(g_rotateCommand);
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != NULL)
 	{
@@ -2327,7 +2327,7 @@ int cmd_sequence(std::string &token)
 		else if (strnicmp("blend", token.c_str(), 5) == 0)
 		{
 			get_token(false, token);
-			g_sequenceCommand[g_sequencecount].blendtype[0] = lookup_control(token.c_str());
+			g_sequenceCommand[g_sequencecount].blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
 			get_token(false, token);
 			g_sequenceCommand[g_sequencecount].blendstart[0] = std::stof(token);
 			get_token(false, token);
@@ -2795,7 +2795,7 @@ int main(int argc, char **argv)
 	int i;
 	char path[1024];
 
-	g_scaleCommand = 1.0;
+	g_scaleCommand = 1.0f;
 	g_originCommandRotation = to_radians(ENGINE_ORIENTATION);
 
 	g_numtextureteplacements = 0;
@@ -2804,9 +2804,9 @@ int main(int argc, char **argv)
 	g_flagfliptriangles = 1;
 	g_flagkeepallbones = false;
 
-	g_flagnormalblendangle = cos(to_radians(2.0));
+	g_flagnormalblendangle = cosf(to_radians(2.0));
 
-	g_gammaCommand = 1.8;
+	g_gammaCommand = 1.8f;
 
 	if (argc == 1)
 		error("usage: studiomdl <flags>\n [-t texture]\n -r(tag reversed)\n -n(tag bad normals)\n -f(flip all triangles)\n [-a normal_blend_angle]\n -h(dump hboxes)\n -i(ignore warnings) \n b(keep all unused bones)\n file.qc");
@@ -2840,7 +2840,7 @@ int main(int argc, char **argv)
 				break;
 			case 'a':
 				i++;
-				g_flagnormalblendangle = cos(to_radians(atof(argv[i])));
+				g_flagnormalblendangle = cosf(to_radians(std::stof(argv[i])));
 				break;
 			case 'h':
 				g_flagdumphitboxes = 1;
