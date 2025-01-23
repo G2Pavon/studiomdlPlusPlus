@@ -1048,23 +1048,23 @@ char *stristr(const char *string, const char *string2)
 	return (char *)string;
 }
 
-int find_texture_index(char *texturename)
+int find_texture_index(std::string texturename)
 {
 	int i;
 	for (i = 0; i < g_texturescount; i++)
 	{
-		if (stricmp(g_texture[i].name, texturename) == 0)
+		if (stricmp(g_texture[i].name, texturename.c_str()) == 0)
 		{
 			return i;
 		}
 	}
 
-	strcpyn(g_texture[i].name, texturename);
+	strcpyn(g_texture[i].name, texturename.c_str());
 
 	// XDM: allow such names as "tex_chrome_bright" - chrome and full brightness effects
-	if (stristr(texturename, "chrome") != NULL)
+	if (stristr(texturename.c_str(), "chrome") != NULL)
 		g_texture[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_CHROME;
-	else if (stristr(texturename, "bright") != NULL)
+	else if (stristr(texturename.c_str(), "bright") != NULL)
 		g_texture[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_FULLBRIGHT;
 	else
 		g_texture[i].flags = 0;
@@ -1077,7 +1077,7 @@ Mesh *find_mesh_by_texture(Model *pmodel, char *texturename)
 {
 	int i, j;
 
-	j = find_texture_index(texturename);
+	j = find_texture_index(std::string(texturename));
 
 	for (i = 0; i < pmodel->nummesh; i++)
 	{
@@ -2533,7 +2533,7 @@ int cmd_texturegroup(std::string &token)
 		}
 		else if (depth == 2)
 		{
-			i = find_texture_index(const_cast<char *>(token.c_str()));
+			i = find_texture_index(token);
 			g_texturegroupCommand[g_texturegroupCount][group][index] = i;
 			if (group != 0)
 				g_texture[i].parent = g_texturegroupCommand[g_texturegroupCount][0][index];
@@ -2626,9 +2626,9 @@ void cmd_renamebone(std::string &token)
 
 void cmd_texrendermode(std::string &token)
 {
-	char tex_name[256];
+	std::string tex_name;
 	get_token(false, token);
-	std::strcpy(tex_name, token.c_str());
+	tex_name = token;
 
 	get_token(false, token);
 	if (token == "additive")

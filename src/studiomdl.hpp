@@ -364,7 +364,7 @@ void scale_vertex(float *org);
 void clip_rotations(Vector3 rot);
 
 // Common QC and SMD parser
-int find_texture_index(char *texturename);
+int find_texture_index(std::string texturename);
 
 // Helpers
 char *stristr(const char *string, const char *string2);
