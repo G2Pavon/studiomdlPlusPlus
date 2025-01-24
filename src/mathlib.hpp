@@ -1,4 +1,5 @@
 // mathlib.c -- math primitives
+#pragma once
 
 #include <cmath>
 #include <numbers>

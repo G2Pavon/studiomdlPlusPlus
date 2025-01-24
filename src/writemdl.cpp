@@ -5,6 +5,7 @@
 #include "mathlib.hpp"
 #include "studio.hpp"
 #include "studiomdl.hpp"
+#include "tristrip.hpp"
 
 int g_totalframes = 0;
 float g_totalseconds = 0;

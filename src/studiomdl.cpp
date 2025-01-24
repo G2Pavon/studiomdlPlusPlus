@@ -18,6 +18,7 @@
 #include "monsters/activity.hpp"
 #include "monsters/activitymap.hpp"
 #include "writemdl.hpp"
+#include "bmp.hpp"
 
 #define strnicmp strncasecmp
 #define stricmp strcasecmp
@@ -34,7 +35,7 @@ int g_flagdumphitboxes;
 int g_flagignorewarnings;
 bool g_flagkeepallbones;
 
-// QC Command variables -----------------
+// QC variables used in studiomdl -----------------
 std::filesystem::path g_cdCommand;				   // $cd
 std::filesystem::path g_cdCommandAbsolute;		   // $cd
 std::filesystem::path g_cdtextureCommand;		   // $cdtexture

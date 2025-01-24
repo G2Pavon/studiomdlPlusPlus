@@ -2,11 +2,10 @@
 #include <ctime>
 #include <cstring>
 
+#include "tristrip.hpp"
 #include "cmdlib.hpp"
-#include "qctokenizer.hpp"
-#include "mathlib.hpp"
 #include "studio.hpp"
-#include "studiomdl.hpp"
+#include "modeldata.hpp"
 
 int g_used[MAXSTUDIOTRIANGLES];
 // the command list holds counts and s/t values that are valid for
