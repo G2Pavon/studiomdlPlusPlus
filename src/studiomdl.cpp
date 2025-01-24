@@ -2356,7 +2356,7 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 	}
 	for (i = 0; i < numblends; i++)
 	{
-		qc_cmd.animationSequenceOption[qc_cmd.animationcount] = (Animation *)malloc(sizeof(Animation));
+		qc_cmd.animationSequenceOption[qc_cmd.animationcount] = new Animation(); // FIXME: memory leak
 		qc_cmd.sequence[qc_cmd.sequencecount].panim[i] = qc_cmd.animationSequenceOption[qc_cmd.animationcount];
 		qc_cmd.sequence[qc_cmd.sequencecount].panim[i]->startframe = start;
 		qc_cmd.sequence[qc_cmd.sequencecount].panim[i]->endframe = end;
