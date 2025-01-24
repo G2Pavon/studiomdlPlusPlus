@@ -34,9 +34,6 @@ int g_flagdumphitboxes;
 int g_flagignorewarnings;
 bool g_flagkeepallbones;
 
-// QC command settings
-static QC qc_cmd;
-
 // SMD variables --------------------------
 std::filesystem::path g_smdpath;
 FILE *g_smdfile;
@@ -320,7 +317,7 @@ void make_transitions()
 	}
 }
 
-void simplify_model()
+void simplify_model(QC &qc_cmd)
 {
 	int i, j, k;
 	int n, m, q;
@@ -1145,14 +1142,14 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 	return i;
 }
 
-void adjust_vertex_to_origin(Vector3 org)
+void adjust_vertex_to_origin(QC &qc_cmd, Vector3 org)
 {
 	org[0] = (org[0] - qc_cmd.sequenceOrigin[0]);
 	org[1] = (org[1] - qc_cmd.sequenceOrigin[1]);
 	org[2] = (org[2] - qc_cmd.sequenceOrigin[2]);
 }
 
-void ScaleVertexByQcScale(Vector3 org)
+void scale_vertex(QC &qc_cmd, Vector3 org)
 {
 	org[0] = org[0] * qc_cmd.scaleBodyAndSequenceOption;
 	org[1] = org[1] * qc_cmd.scaleBodyAndSequenceOption;
@@ -1226,7 +1223,7 @@ void grab_bmp(const char *filename, Texture *ptexture)
 	}
 }
 
-void resize_texture(Texture *ptexture)
+void resize_texture(QC &qc_cmd, Texture *ptexture)
 {
 	int i, t;
 	std::uint8_t *pdest;
@@ -1292,7 +1289,7 @@ void resize_texture(Texture *ptexture)
 	free(ptexture->ppal);
 }
 
-void grab_skin(Texture *ptexture)
+void grab_skin(QC &qc_cmd, Texture *ptexture)
 {
 	std::filesystem::path textureFilePath = qc_cmd.cdtexture / ptexture->name;
 	if (!std::filesystem::exists(textureFilePath))
@@ -1313,13 +1310,13 @@ void grab_skin(Texture *ptexture)
 	}
 }
 
-void set_skin_values()
+void set_skin_values(QC &qc_cmd)
 {
 	int i, j;
 
 	for (i = 0; i < g_texturescount; i++)
 	{
-		grab_skin(&g_texture[i]);
+		grab_skin(qc_cmd, &g_texture[i]);
 
 		g_texture[i].max_s = -9999999;
 		g_texture[i].min_s = 9999999;
@@ -1356,7 +1353,7 @@ void set_skin_values()
 			}
 		}
 
-		resize_texture(&g_texture[i]);
+		resize_texture(qc_cmd, &g_texture[i]);
 	}
 
 	for (i = 0; i < g_submodelscount; i++)
@@ -1433,7 +1430,7 @@ void build_reference(Model *pmodel)
 	}
 }
 
-void grab_smd_triangles(Model *pmodel)
+void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 {
 	int i;
 	int trianglesCount = 0;
@@ -1534,8 +1531,8 @@ void grab_smd_triangles(Model *pmodel)
 						if (triangleVertex.org[2] < vmin[2])
 							vmin[2] = triangleVertex.org[2];
 
-						adjust_vertex_to_origin(triangleVertex.org);
-						ScaleVertexByQcScale(triangleVertex.org);
+						adjust_vertex_to_origin(qc_cmd, triangleVertex.org);
+						scale_vertex(qc_cmd, triangleVertex.org);
 
 						// move vertex position to object space.
 						Vector3 tmp;
@@ -1635,7 +1632,7 @@ void grab_smd_triangles(Model *pmodel)
 	}
 }
 
-void grab_smd_skeleton(Node *pnodes, Bone *pbones)
+void grab_smd_skeleton(QC &qc_cmd, Node *pnodes, Bone *pbones)
 {
 	float posX, posY, posZ, rotX, rotY, rotZ;
 	char cmd[1024];
@@ -1650,7 +1647,7 @@ void grab_smd_skeleton(Node *pnodes, Bone *pbones)
 			pbones[node].pos[1] = posY;
 			pbones[node].pos[2] = posZ;
 
-			ScaleVertexByQcScale(pbones[node].pos);
+			scale_vertex(qc_cmd, pbones[node].pos);
 
 			if (pnodes[node].mirrored)
 				pbones[node].pos = pbones[node].pos * -1.0;
@@ -1675,7 +1672,7 @@ void grab_smd_skeleton(Node *pnodes, Bone *pbones)
 	}
 }
 
-int grab_smd_nodes(Node *pnodes)
+int grab_smd_nodes(QC &qc_cmd, Node *pnodes)
 {
 	int index;
 	char boneName[1024];
@@ -1711,7 +1708,7 @@ int grab_smd_nodes(Node *pnodes)
 	return 0;
 }
 
-void parse_smd(Model *pmodel)
+void parse_smd(QC &qc_cmd, Model *pmodel)
 {
 	char cmd[1024];
 	int option;
@@ -1741,15 +1738,15 @@ void parse_smd(Model *pmodel)
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			pmodel->numbones = grab_smd_nodes(pmodel->node);
+			pmodel->numbones = grab_smd_nodes(qc_cmd, pmodel->node);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
-			grab_smd_skeleton(pmodel->node, pmodel->skeleton);
+			grab_smd_skeleton(qc_cmd, pmodel->node, pmodel->skeleton);
 		}
 		else if (std::strcmp(cmd, "triangles") == 0)
 		{
-			grab_smd_triangles(pmodel);
+			grab_smd_triangles(qc_cmd, pmodel);
 		}
 		else
 		{
@@ -1785,7 +1782,7 @@ void cmd_modelname(std::string &token)
 	strcpyn(g_modelnameCommand, token.c_str());
 }
 
-void cmd_body_optionstudio(std::string &token)
+void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 {
 	if (!get_token(false, token))
 		return;
@@ -1813,7 +1810,7 @@ void cmd_body_optionstudio(std::string &token)
 		}
 	}
 
-	parse_smd(g_submodel[g_submodelscount]);
+	parse_smd(qc_cmd, g_submodel[g_submodelscount]);
 
 	g_bodypart[g_bodygroupcount].nummodels++;
 	g_submodelscount++;
@@ -1821,7 +1818,7 @@ void cmd_body_optionstudio(std::string &token)
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 }
 
-int cmd_body_optionblank()
+int cmd_body_option_blank()
 {
 	g_submodel[g_submodelscount] = (Model *)(1, sizeof(Model));
 	g_bodypart[g_bodygroupcount].pmodel[g_bodypart[g_bodygroupcount].nummodels] = g_submodel[g_submodelscount];
@@ -1833,7 +1830,7 @@ int cmd_body_optionblank()
 	return 0;
 }
 
-void cmd_bodygroup(std::string &token)
+void cmd_bodygroup(QC &qc_cmd, std::string &token)
 {
 	if (!get_token(false, token))
 		return;
@@ -1865,11 +1862,11 @@ void cmd_bodygroup(std::string &token)
 		}
 		else if (stricmp("studio", token.c_str()) == 0)
 		{
-			cmd_body_optionstudio(token);
+			cmd_body_option_studio(qc_cmd, token);
 		}
 		else if (stricmp("blank", token.c_str()) == 0)
 		{
-			cmd_body_optionblank();
+			cmd_body_option_blank();
 		}
 	}
 
@@ -1877,7 +1874,7 @@ void cmd_bodygroup(std::string &token)
 	return;
 }
 
-void cmd_body(std::string &token)
+void cmd_body(QC &qc_cmd, std::string &token)
 {
 	if (!get_token(false, token))
 		return;
@@ -1892,12 +1889,12 @@ void cmd_body(std::string &token)
 	}
 	strcpyn(g_bodypart[g_bodygroupcount].name, token.c_str());
 
-	cmd_body_optionstudio(token);
+	cmd_body_option_studio(qc_cmd, token);
 
 	g_bodygroupcount++;
 }
 
-void grab_option_animation(Animation *panim)
+void grab_option_animation(QC &qc_cmd, Animation *panim)
 {
 	Vector3 pos;
 	Vector3 rot;
@@ -1926,7 +1923,7 @@ void grab_option_animation(Animation *panim)
 			{
 				if (panim->node[index].parent == -1)
 				{
-					adjust_vertex_to_origin(pos);
+					adjust_vertex_to_origin(qc_cmd, pos);
 					panim->pos[index][t][0] = cz * pos[0] - sz * pos[1];
 					panim->pos[index][t][1] = sz * pos[0] + cz * pos[1];
 					panim->pos[index][t][2] = pos[2];
@@ -1945,7 +1942,7 @@ void grab_option_animation(Animation *panim)
 				if (panim->node[index].mirrored)
 					panim->pos[index][t] = panim->pos[index][t] * -1.0;
 
-				ScaleVertexByQcScale(panim->pos[index][t]);
+				scale_vertex(qc_cmd, panim->pos[index][t]);
 
 				clip_rotations(rot);
 
@@ -2002,7 +1999,7 @@ void shift_option_animation(Animation *panim)
 	}
 }
 
-void cmd_sequence_option_animation(char *name, Animation *panim)
+void cmd_sequence_option_animation(QC &qc_cmd, char *name, Animation *panim)
 {
 	char cmd[1024];
 	int option;
@@ -2035,11 +2032,11 @@ void cmd_sequence_option_animation(char *name, Animation *panim)
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			panim->numbones = grab_smd_nodes(panim->node);
+			panim->numbones = grab_smd_nodes(qc_cmd, panim->node);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
-			grab_option_animation(panim);
+			grab_option_animation(qc_cmd, panim);
 			shift_option_animation(panim);
 		}
 		else
@@ -2119,7 +2116,7 @@ int cmd_sequence_option_addpivot(std::string &token, Sequence *psequence)
 	return 0;
 }
 
-void cmd_origin(std::string &token)
+void cmd_origin(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
 	qc_cmd.origin[0] = std::stof(token);
@@ -2137,7 +2134,7 @@ void cmd_origin(std::string &token)
 	}
 }
 
-void Cmd_Sequence_OptionOrigin(std::string &token)
+void cmd_sequence_option_origin(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
 	qc_cmd.sequenceOrigin[0] = std::stof(token);
@@ -2149,26 +2146,26 @@ void Cmd_Sequence_OptionOrigin(std::string &token)
 	qc_cmd.sequenceOrigin[2] = std::stof(token);
 }
 
-void cmd_sequence_option_rotate(std::string &token)
+void cmd_sequence_option_rotate(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
 	qc_cmd.rotateCommand = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
-void cmd_scale(std::string &token)
+void cmd_scale(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
 	qc_cmd.scale = qc_cmd.scaleBodyAndSequenceOption = std::stof(token);
 }
 
-void cmd_rotate(std::string &token) // XDM
+void cmd_rotate(QC &qc_cmd, std::string &token) // XDM
 {
 	if (!get_token(false, token))
 		return;
 	qc_cmd.rotateCommand = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
-void cmd_sequence_option_scale(std::string &token)
+void cmd_sequence_option_scale(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
 	qc_cmd.scaleBodyAndSequenceOption = std::stof(token);
@@ -2200,7 +2197,7 @@ int cmd_sequence_option_action(std::string &szActivity)
 	return 0;
 }
 
-int cmd_sequence(std::string &token)
+int cmd_sequence(QC &qc_cmd, std::string &token)
 {
 	int depth = 0;
 	char smdfilename[MAXSTUDIOBLENDS][1024];
@@ -2275,15 +2272,15 @@ int cmd_sequence(std::string &token)
 		}
 		else if (token == "origin")
 		{
-			Cmd_Sequence_OptionOrigin(token);
+			cmd_sequence_option_origin(qc_cmd, token);
 		}
 		else if (token == "rotate")
 		{
-			cmd_sequence_option_rotate(token);
+			cmd_sequence_option_rotate(qc_cmd, token);
 		}
 		else if (token == "scale")
 		{
-			cmd_sequence_option_scale(token);
+			cmd_sequence_option_scale(qc_cmd, token);
 		}
 		else if (token == "loop")
 		{
@@ -2364,7 +2361,7 @@ int cmd_sequence(std::string &token)
 		g_sequenceCommand[g_sequencecount].panim[i]->startframe = start;
 		g_sequenceCommand[g_sequencecount].panim[i]->endframe = end;
 		g_sequenceCommand[g_sequencecount].panim[i]->flags = 0;
-		cmd_sequence_option_animation(smdfilename[i], qc_cmd.animationSequenceOption[qc_cmd.animationcount]);
+		cmd_sequence_option_animation(qc_cmd, smdfilename[i], qc_cmd.animationSequenceOption[qc_cmd.animationcount]);
 		qc_cmd.animationcount++;
 	}
 	g_sequenceCommand[g_sequencecount].numblends = numblends;
@@ -2455,19 +2452,19 @@ void cmd_cbox(std::string &token)
 	g_cboxCommand[1][2] = std::stof(token);
 }
 
-void cmd_mirror(std::string &token)
+void cmd_mirror(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
 	strcpyn(qc_cmd.mirrorbone[qc_cmd.mirroredcount++], token.c_str());
 }
 
-void cmd_gamma(std::string &token)
+void cmd_gamma(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
 	qc_cmd.gamma = std::stof(token);
 }
 
-int cmd_texturegroup(std::string &token)
+int cmd_texturegroup(QC &qc_cmd, std::string &token)
 {
 	int i;
 	int depth = 0;
@@ -2527,7 +2524,7 @@ int cmd_texturegroup(std::string &token)
 	return 0;
 }
 
-int cmd_hitgroup(std::string &token)
+int cmd_hitgroup(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
 	qc_cmd.hitgroup[qc_cmd.hitgroupscount].group = std::stoi(token);
@@ -2590,7 +2587,7 @@ int cmd_attachment(std::string &token)
 	return 0;
 }
 
-void cmd_renamebone(std::string &token)
+void cmd_renamebone(QC &qc_cmd, std::string &token)
 {
 	// from
 	get_token(false, token);
@@ -2630,7 +2627,7 @@ void cmd_texrendermode(std::string &token)
 		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);
 }
 
-void parse_qc_file()
+void parse_qc_file(QC &qc_cmd)
 {
 	std::string token;
 	bool iscdalreadyset = false;
@@ -2677,11 +2674,11 @@ void parse_qc_file()
 		}
 		else if (token == "$scale")
 		{
-			cmd_scale(token);
+			cmd_scale(qc_cmd, token);
 		}
 		else if (token == "$rotate") // XDM
 		{
-			cmd_rotate(token);
+			cmd_rotate(qc_cmd, token);
 		}
 		else if (token == "$controller")
 		{
@@ -2689,15 +2686,15 @@ void parse_qc_file()
 		}
 		else if (token == "$body")
 		{
-			cmd_body(token);
+			cmd_body(qc_cmd, token);
 		}
 		else if (token == "$bodygroup")
 		{
-			cmd_bodygroup(token);
+			cmd_bodygroup(qc_cmd, token);
 		}
 		else if (token == "$sequence")
 		{
-			cmd_sequence(token);
+			cmd_sequence(qc_cmd, token);
 		}
 		else if (token == "$sequencegroup")
 		{
@@ -2709,7 +2706,7 @@ void parse_qc_file()
 		}
 		else if (token == "$origin")
 		{
-			cmd_origin(token);
+			cmd_origin(qc_cmd, token);
 		}
 		else if (token == "$bbox")
 		{
@@ -2721,11 +2718,11 @@ void parse_qc_file()
 		}
 		else if (token == "$mirrorbone")
 		{
-			cmd_mirror(token);
+			cmd_mirror(qc_cmd, token);
 		}
 		else if (token == "$gamma")
 		{
-			cmd_gamma(token);
+			cmd_gamma(qc_cmd, token);
 		}
 		else if (token == "$flags")
 		{
@@ -2733,11 +2730,11 @@ void parse_qc_file()
 		}
 		else if (token == "$texturegroup")
 		{
-			cmd_texturegroup(token);
+			cmd_texturegroup(qc_cmd, token);
 		}
 		else if (token == "$hgroup")
 		{
-			cmd_hitgroup(token);
+			cmd_hitgroup(qc_cmd, token);
 		}
 		else if (token == "$hbox")
 		{
@@ -2749,7 +2746,7 @@ void parse_qc_file()
 		}
 		else if (token == "$renamebone")
 		{
-			cmd_renamebone(token);
+			cmd_renamebone(qc_cmd, token);
 		}
 		else if (token == "$texrendermode")
 		{
@@ -2766,6 +2763,8 @@ int main(int argc, char **argv)
 {
 	int i;
 	char path[1024];
+	// QC command settings
+	static QC qc_cmd;
 
 	g_numtextureteplacements = 0;
 	g_flagreversedtriangles = 0;
@@ -2828,9 +2827,9 @@ int main(int argc, char **argv)
 	std::strcpy(path, argv[i]);
 	load_qc_file(path);
 	// parse it
-	parse_qc_file();
-	set_skin_values();
-	simplify_model();
+	parse_qc_file(qc_cmd);
+	set_skin_values(qc_cmd);
+	simplify_model(qc_cmd);
 	write_file();
 
 	return 0;
