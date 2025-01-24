@@ -2754,7 +2754,7 @@ void parse_qc_file(QC &qc_cmd)
 		}
 		else
 		{
-			error("Incorrect/Unsupported command %s\n", token);
+			error("Incorrect/Unsupported command %s\n", token.c_str());
 		}
 	}
 }
