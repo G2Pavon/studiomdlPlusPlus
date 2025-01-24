@@ -12,7 +12,6 @@
 #include "cmdlib.hpp"
 #include "qctokenizer.hpp"
 #include "mathlib.hpp"
-#define extern // ??
 #include "studio.hpp"
 #include "studiomdl.hpp"
 #include "monsters/activity.hpp"
@@ -44,6 +43,20 @@ char g_defaulttextures[16][256];
 char g_sourcetexture[16][256];
 int g_numtextureteplacements;
 BoneFixUp g_bonefixup[MAXSTUDIOSRCBONES];
+
+// Common studiomdl and writemdl variables -----------------
+std::array<std::array<int, 100>, 100> g_xnode;
+int g_numxnodes; // Not initialized??
+
+std::array<BoneTable, MAXSTUDIOSRCBONES> g_bonetable;
+int g_bonescount;
+
+std::array<Texture, MAXSTUDIOSKINS> g_textures;
+int g_texturescount;
+
+std::array<std::array<int, MAXSTUDIOSKINS>, 256> g_skinref; // [skin][skinref], returns texture index
+int g_skinrefcount;
+int g_skinfamiliescount;
 
 // ---------------------------------------
 void clip_rotations(Vector3 rot)
