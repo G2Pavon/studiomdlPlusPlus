@@ -1787,7 +1787,7 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	qc_cmd.submodel[qc_cmd.submodelscount] = (Model *)std::calloc(1, sizeof(Model));
+	qc_cmd.submodel[qc_cmd.submodelscount] = new Model();
 	qc_cmd.bodypart[qc_cmd.bodygroupcount].pmodel[qc_cmd.bodypart[qc_cmd.bodygroupcount].nummodels] = qc_cmd.submodel[qc_cmd.submodelscount];
 
 	strcpyn(qc_cmd.submodel[qc_cmd.submodelscount]->name, token.c_str());
@@ -1820,7 +1820,7 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 
 int cmd_body_option_blank(QC &qc_cmd)
 {
-	qc_cmd.submodel[qc_cmd.submodelscount] = (Model *)(1, sizeof(Model));
+	qc_cmd.submodel[qc_cmd.submodelscount] = new Model();
 	qc_cmd.bodypart[qc_cmd.bodygroupcount].pmodel[qc_cmd.bodypart[qc_cmd.bodygroupcount].nummodels] = qc_cmd.submodel[qc_cmd.submodelscount];
 
 	strcpyn(qc_cmd.submodel[qc_cmd.submodelscount]->name, "blank");
