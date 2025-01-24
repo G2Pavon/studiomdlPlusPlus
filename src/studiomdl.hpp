@@ -8,15 +8,18 @@
 #include "qc.hpp"
 
 // Common studiomdl and writemdl variables -----------------
+extern std::array<std::array<int, 100>, 100> g_xnode;
 extern int g_numxnodes; // Not initialized??
-extern int g_xnode[100][100];
-extern BoneTable g_bonetable[MAXSTUDIOSRCBONES];
+
+extern std::array<BoneTable, MAXSTUDIOSRCBONES> g_bonetable;
 extern int g_bonescount;
-extern Texture g_texture[MAXSTUDIOSKINS];
+
+extern std::array<Texture, MAXSTUDIOSKINS> g_textures;
 extern int g_texturescount;
+
+extern std::array<std::array<int, MAXSTUDIOSKINS>, 256> g_skinref; // [skin][skinref], returns texture index
 extern int g_skinrefcount;
 extern int g_skinfamiliescount;
-extern int g_skinref[256][MAXSTUDIOSKINS]; // [skin][skinref], returns texture index
 
 // Main functions -----------------------
 

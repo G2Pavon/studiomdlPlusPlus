@@ -1029,21 +1029,21 @@ int find_texture_index(std::string texturename)
 	int i;
 	for (i = 0; i < g_texturescount; i++)
 	{
-		if (stricmp(g_texture[i].name, texturename.c_str()) == 0)
+		if (stricmp(g_textures[i].name, texturename.c_str()) == 0)
 		{
 			return i;
 		}
 	}
 
-	strcpyn(g_texture[i].name, texturename.c_str());
+	strcpyn(g_textures[i].name, texturename.c_str());
 
 	// XDM: allow such names as "tex_chrome_bright" - chrome and full brightness effects
 	if (stristr(texturename.c_str(), "chrome") != nullptr)
-		g_texture[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_CHROME;
+		g_textures[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_CHROME;
 	else if (stristr(texturename.c_str(), "bright") != nullptr)
-		g_texture[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_FULLBRIGHT;
+		g_textures[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_FULLBRIGHT;
 	else
-		g_texture[i].flags = 0;
+		g_textures[i].flags = 0;
 
 	g_texturescount++;
 	return i;
@@ -1316,51 +1316,51 @@ void set_skin_values(QC &qc_cmd)
 
 	for (i = 0; i < g_texturescount; i++)
 	{
-		grab_skin(qc_cmd, &g_texture[i]);
+		grab_skin(qc_cmd, &g_textures[i]);
 
-		g_texture[i].max_s = -9999999;
-		g_texture[i].min_s = 9999999;
-		g_texture[i].max_t = -9999999;
-		g_texture[i].min_t = 9999999;
+		g_textures[i].max_s = -9999999;
+		g_textures[i].min_s = 9999999;
+		g_textures[i].max_t = -9999999;
+		g_textures[i].min_t = 9999999;
 	}
 
 	for (i = 0; i < qc_cmd.submodelscount; i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->nummesh; j++)
 		{
-			texture_coord_ranges(qc_cmd.submodel[i]->pmesh[j], &g_texture[qc_cmd.submodel[i]->pmesh[j]->skinref]);
+			texture_coord_ranges(qc_cmd.submodel[i]->pmesh[j], &g_textures[qc_cmd.submodel[i]->pmesh[j]->skinref]);
 		}
 	}
 
 	for (i = 0; i < g_texturescount; i++)
 	{
-		if (g_texture[i].max_s < g_texture[i].min_s)
+		if (g_textures[i].max_s < g_textures[i].min_s)
 		{
 			// must be a replacement texture
-			if (g_texture[i].flags & STUDIO_NF_CHROME)
+			if (g_textures[i].flags & STUDIO_NF_CHROME)
 			{
-				g_texture[i].max_s = 63;
-				g_texture[i].min_s = 0;
-				g_texture[i].max_t = 63;
-				g_texture[i].min_t = 0;
+				g_textures[i].max_s = 63;
+				g_textures[i].min_s = 0;
+				g_textures[i].max_t = 63;
+				g_textures[i].min_t = 0;
 			}
 			else
 			{
-				g_texture[i].max_s = g_texture[g_texture[i].parent].max_s;
-				g_texture[i].min_s = g_texture[g_texture[i].parent].min_s;
-				g_texture[i].max_t = g_texture[g_texture[i].parent].max_t;
-				g_texture[i].min_t = g_texture[g_texture[i].parent].min_t;
+				g_textures[i].max_s = g_textures[g_textures[i].parent].max_s;
+				g_textures[i].min_s = g_textures[g_textures[i].parent].min_s;
+				g_textures[i].max_t = g_textures[g_textures[i].parent].max_t;
+				g_textures[i].min_t = g_textures[g_textures[i].parent].min_t;
 			}
 		}
 
-		resize_texture(qc_cmd, &g_texture[i]);
+		resize_texture(qc_cmd, &g_textures[i]);
 	}
 
 	for (i = 0; i < qc_cmd.submodelscount; i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->nummesh; j++)
 		{
-			reset_texture_coord_ranges(qc_cmd.submodel[i]->pmesh[j], &g_texture[qc_cmd.submodel[i]->pmesh[j]->skinref]);
+			reset_texture_coord_ranges(qc_cmd.submodel[i]->pmesh[j], &g_textures[qc_cmd.submodel[i]->pmesh[j]->skinref]);
 		}
 	}
 
@@ -2512,7 +2512,7 @@ int cmd_texturegroup(QC &qc_cmd, std::string &token)
 			i = find_texture_index(token);
 			qc_cmd.texturegroup[qc_cmd.texturegroupCount][group][index] = i;
 			if (group != 0)
-				g_texture[i].parent = qc_cmd.texturegroup[qc_cmd.texturegroupCount][0][index];
+				g_textures[i].parent = qc_cmd.texturegroup[qc_cmd.texturegroupCount][0][index];
 			index++;
 			qc_cmd.texturegroupreps[qc_cmd.texturegroupCount] = index;
 			qc_cmd.texturegrouplayers[qc_cmd.texturegroupCount] = group + 1;
@@ -2609,19 +2609,19 @@ void cmd_texrendermode(std::string &token)
 	get_token(false, token);
 	if (token == "additive")
 	{
-		g_texture[find_texture_index(tex_name)].flags |= STUDIO_NF_ADDITIVE;
+		g_textures[find_texture_index(tex_name)].flags |= STUDIO_NF_ADDITIVE;
 	}
 	else if (token == "masked")
 	{
-		g_texture[find_texture_index(tex_name)].flags |= STUDIO_NF_MASKED;
+		g_textures[find_texture_index(tex_name)].flags |= STUDIO_NF_MASKED;
 	}
 	else if (token == "fullbright")
 	{
-		g_texture[find_texture_index(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
+		g_textures[find_texture_index(tex_name)].flags |= STUDIO_NF_FULLBRIGHT;
 	}
 	else if (token == "flatshade")
 	{
-		g_texture[find_texture_index(tex_name)].flags |= STUDIO_NF_FLATSHADE;
+		g_textures[find_texture_index(tex_name)].flags |= STUDIO_NF_FLATSHADE;
 	}
 	else
 		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);

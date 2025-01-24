@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <cstring>
 #include <array>
-#include <algorithm> // for std::fill
+#include <algorithm>
 
 #include "mathlib.hpp"
 #include "modeldata.hpp"
@@ -12,7 +12,6 @@
 class QC
 {
 public:
-    // General settings
     char modelname[1024];                                  // $modelname
     std::filesystem::path cd;                              // $cd
     std::filesystem::path cdAbsolute;                      // $cd
@@ -28,8 +27,10 @@ public:
 
     std::array<RenameBone, MAXSTUDIOSRCBONES> renamebone{}; // $renamebone
     int renamebonecount = 0;
+
     std::array<HitGroup, MAXSTUDIOSRCBONES> hitgroup{}; // $hgroup
     int hitgroupscount = 0;
+
     std::array<std::array<char, 64>, MAXSTUDIOSRCBONES> mirrorbone{}; // $mirrorbone
     int mirroredcount = 0;
 

@@ -331,13 +331,13 @@ void write_textures()
 
 	for (i = 0; i < g_texturescount; i++)
 	{
-		std::strcpy(ptexture[i].name, g_texture[i].name);
-		ptexture[i].flags = g_texture[i].flags;
-		ptexture[i].width = g_texture[i].skinwidth;
-		ptexture[i].height = g_texture[i].skinheight;
+		std::strcpy(ptexture[i].name, g_textures[i].name);
+		ptexture[i].flags = g_textures[i].flags;
+		ptexture[i].width = g_textures[i].skinwidth;
+		ptexture[i].height = g_textures[i].skinheight;
 		ptexture[i].index = static_cast<int>(g_currentposition - g_bufferstart);
-		memcpy(g_currentposition, g_texture[i].pdata, g_texture[i].size);
-		g_currentposition += g_texture[i].size;
+		memcpy(g_currentposition, g_textures[i].pdata, g_textures[i].size);
+		g_currentposition += g_textures[i].size;
 	}
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 }
