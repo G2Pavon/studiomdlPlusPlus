@@ -1691,7 +1691,7 @@ int grab_smd_nodes(QC &qc_cmd, Node *pnodes)
 			// check for mirrored bones;
 			for (int i = 0; i < qc_cmd.mirroredcount; i++)
 			{
-				if (std::strcmp(boneName, qc_cmd.mirrorbone[i]) == 0)
+				if (std::strcmp(boneName, qc_cmd.mirrorbone[i].data()) == 0)
 					pnodes[index].mirrored = 1;
 			}
 			if ((!pnodes[index].mirrored) && parent != -1)
@@ -2455,7 +2455,7 @@ void cmd_cbox(QC &qc_cmd, std::string &token)
 void cmd_mirror(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
-	strcpyn(qc_cmd.mirrorbone[qc_cmd.mirroredcount++], token.c_str());
+	strcpyn(qc_cmd.mirrorbone[qc_cmd.mirroredcount++].data(), token.c_str());
 }
 
 void cmd_gamma(QC &qc_cmd, std::string &token)

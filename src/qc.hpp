@@ -2,6 +2,8 @@
 
 #include <filesystem>
 #include <cstring>
+#include <array>
+#include <algorithm> // for std::fill
 
 #include "mathlib.hpp"
 #include "modeldata.hpp"
@@ -10,89 +12,80 @@
 class QC
 {
 public:
-    char modelname[1024];             // $modelname
-    std::filesystem::path cd;         // $cd
-    std::filesystem::path cdAbsolute; // $cd
-    std::filesystem::path cdtexture;  // $cdtexture
-    Vector3 eyeposition;              // $eyeposition
-    float scale;                      // $scale
-    float scaleBodyAndSequenceOption; // $body studio <value> // also for $sequence
-    Vector3 origin;                   // $origin
-    float originRotation;             // $origin <X> <Y> <Z> <rotation>
-    float rotate;                     // $rotate and $sequence <sequence name> <SMD path> {[rotate <zrotation>]} only z axis
-    Vector3 sequenceOrigin;           // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
-    float gamma;                      // $$gamma
+    // General settings
+    char modelname[1024];                                  // $modelname
+    std::filesystem::path cd;                              // $cd
+    std::filesystem::path cdAbsolute;                      // $cd
+    std::filesystem::path cdtexture;                       // $cdtexture
+    Vector3 eyeposition{};                                 // $eyeposition
+    float scale = 1.0f;                                    // $scale
+    float scaleBodyAndSequenceOption = 1.0f;               // $body studio <value> // also for $sequence
+    Vector3 origin{};                                      // $origin
+    float originRotation = to_radians(ENGINE_ORIENTATION); // $origin <X> <Y> <Z> <rotation>
+    float rotate = 0.0f;                                   // $rotate and $sequence <sequence name> <SMD path> {[rotate <zrotation>]} only z axis
+    Vector3 sequenceOrigin{};                              // $sequence <sequence name> <SMD path> {[origin <X> <Y> <Z>]}
+    float gamma = 1.8f;                                    // $$gamma
 
-    // Bone related settings
-    RenameBone renamebone[MAXSTUDIOSRCBONES]; // $renamebone
-    int renamebonecount;
-    HitGroup hitgroup[MAXSTUDIOSRCBONES]; // $hgroup
-    int hitgroupscount;
-    char mirrorbone[MAXSTUDIOSRCBONES][64]; // $mirrorbone
-    int mirroredcount;
+    std::array<RenameBone, MAXSTUDIOSRCBONES> renamebone{}; // $renamebone
+    int renamebonecount = 0;
+    std::array<HitGroup, MAXSTUDIOSRCBONES> hitgroup{}; // $hgroup
+    int hitgroupscount = 0;
+    std::array<std::array<char, 64>, MAXSTUDIOSRCBONES> mirrorbone{}; // $mirrorbone
+    int mirroredcount = 0;
 
-    // Animation settings
-    Animation *animationSequenceOption[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // $sequence, each sequence can have 16 blends
-    int animationcount;
+    std::array<Animation *, MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS> animationSequenceOption{}; // $sequence, each sequence can have 16 blends
+    int animationcount = 0;
 
-    // Texture settings
-    int texturegroup[32][32][32]; // $texturegroup
-    int texturegroupCount;        // unnecessary? since engine doesn't support multiple texturegroups
-    int texturegrouplayers[32];
-    int texturegroupreps[32];
+    std::array<std::array<std::array<int, 32>, 32>, 32> texturegroup{}; // $texturegroup
+    int texturegroupCount = 0;                                          // unnecessary? since engine doesn't support multiple texturegroups
+    std::array<int, 32> texturegrouplayers{};
+    std::array<int, 32> texturegroupreps{};
 
-    Vector3 bbox[2]; // $bbox
-    Vector3 cbox[2]; // $cbox
+    std::array<Vector3, 2> bbox{}; // $bbox
+    std::array<Vector3, 2> cbox{}; // $cbox
 
-    HitBox hitbox[MAXSTUDIOSRCBONES]; // $hbox
-    int hitboxescount;
+    std::array<HitBox, MAXSTUDIOSRCBONES> hitbox{}; // $hbox
+    int hitboxescount = 0;
 
-    BoneController bonecontroller[MAXSTUDIOSRCBONES]; // $$controller
-    int bonecontrollerscount;
+    std::array<BoneController, MAXSTUDIOSRCBONES> bonecontroller{}; // $$controller
+    int bonecontrollerscount = 0;
 
-    Attachment attachment[MAXSTUDIOSRCBONES]; // $attachment
-    int attachmentscount;
+    std::array<Attachment, MAXSTUDIOSRCBONES> attachment{}; // $attachment
+    int attachmentscount = 0;
 
-    Sequence sequence[MAXSTUDIOSEQUENCES]; // $sequence
-    int sequencecount;
+    std::array<Sequence, MAXSTUDIOSEQUENCES> sequence{}; // $sequence
+    int sequencecount = 0;
 
-    SequenceGroup sequencegroup[MAXSTUDIOSEQUENCES]; // $sequencegroup
-    int sequencegroupcount;
+    std::array<SequenceGroup, MAXSTUDIOSEQUENCES> sequencegroup{}; // $sequencegroup
+    int sequencegroupcount = 0;
 
-    Model *submodel[MAXSTUDIOMODELS]; // $body
-    int submodelscount;
+    std::array<Model *, MAXSTUDIOMODELS> submodel{}; // $body
+    int submodelscount = 0;
 
-    BodyPart bodypart[MAXSTUDIOBODYPARTS]; // $bodygroup
-    int bodygroupcount;
+    std::array<BodyPart, MAXSTUDIOBODYPARTS> bodypart{}; // $bodygroup
+    int bodygroupcount = 0;
 
-    int flags; // $flags
+    int flags = 0; // $flags
 
-    QC() : scale(1.0f),
-           scaleBodyAndSequenceOption(1.0f),
-           originRotation(to_radians(ENGINE_ORIENTATION)),
-           rotate(0.0f),
-           gamma(1.8f),
-           renamebonecount(0),
-           hitgroupscount(0),
-           mirroredcount(0),
-           animationcount(0),
-           texturegroupCount(0)
+    // Constructor
+    QC()
     {
-        std::memset(renamebone, 0, sizeof(renamebone));
-        std::memset(hitgroup, 0, sizeof(hitgroup));
-        std::memset(mirrorbone, 0, sizeof(mirrorbone));
-        std::memset(animationSequenceOption, 0, sizeof(animationSequenceOption));
-        std::memset(texturegroup, 0, sizeof(texturegroup));
-        std::memset(texturegrouplayers, 0, sizeof(texturegrouplayers));
-        std::memset(texturegroupreps, 0, sizeof(texturegroupreps));
-        std::memset(bbox, 0, sizeof(bbox));
-        std::memset(cbox, 0, sizeof(cbox));
-        std::memset(hitbox, 0, sizeof(hitbox));
-        std::memset(bonecontroller, 0, sizeof(bonecontroller));
-        std::memset(attachment, 0, sizeof(attachment));
-        std::memset(sequence, 0, sizeof(sequence));
-        std::memset(sequencegroup, 0, sizeof(sequencegroup));
-        std::memset(submodel, 0, sizeof(submodel));
-        std::memset(bodypart, 0, sizeof(bodypart));
+        // Initialize arrays with default values
+        renamebone.fill(RenameBone{});
+        hitgroup.fill(HitGroup{});
+        mirrorbone.fill({});
+        animationSequenceOption.fill(nullptr);
+        texturegroup.fill({});
+        texturegrouplayers.fill(0);
+        texturegroupreps.fill(0);
+        bbox.fill(Vector3{});
+        cbox.fill(Vector3{});
+        hitbox.fill(HitBox{});
+        bonecontroller.fill(BoneController{});
+        attachment.fill(Attachment{});
+        sequence.fill(Sequence{});
+        sequencegroup.fill(SequenceGroup{});
+        submodel.fill(nullptr);
+        bodypart.fill(BodyPart{});
     }
 };
