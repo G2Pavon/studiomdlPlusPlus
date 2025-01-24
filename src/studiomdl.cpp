@@ -19,6 +19,7 @@
 #include "monsters/activitymap.hpp"
 #include "writemdl.hpp"
 #include "bmp.hpp"
+#include "qc.hpp"
 
 #define strnicmp strncasecmp
 #define stricmp strcasecmp
@@ -35,29 +36,8 @@ int g_flagdumphitboxes;
 int g_flagignorewarnings;
 bool g_flagkeepallbones;
 
-// QC variables used in studiomdl -----------------
-std::filesystem::path g_cdCommand;				   // $cd
-std::filesystem::path g_cdCommandAbsolute;		   // $cd
-std::filesystem::path g_cdtextureCommand;		   // $cdtexture
-float g_scaleCommand;							   // $scale
-float g_scaleBodyAndSequenceOption;				   // $body studio <value> // also for $sequence
-Vector3 g_originCommand;						   // $origin
-float g_originCommandRotation;					   // $origin <X> <Y> <Z> <rotation>
-float g_rotateCommand;							   // $rotate and $sequence <sequence name> <SMD path> {[rotate <zrotation>]} only z axis
-Vector3 g_sequenceOrigin;						   // $sequence <sequence name> <SMD path>  {[origin <X> <Y> <Z>]}
-float g_gammaCommand;							   // $$gamma
-RenameBone g_renameboneCommand[MAXSTUDIOSRCBONES]; // $renamebone
-int g_renamebonecount;
-HitGroup g_hitgroupCommand[MAXSTUDIOSRCBONES]; // $hgroup
-int g_hitgroupscount;
-char g_mirrorboneCommand[MAXSTUDIOSRCBONES][64]; // $mirrorbone
-int g_mirroredcount;
-Animation *g_animationSequenceOption[MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS]; // $sequence, each sequence can have 16 blends
-int g_animationcount;
-int g_texturegroupCommand[32][32][32]; // $texturegroup
-int g_texturegroupCount;			   // unnecessary? since engine doesn't support multiple texturegroups
-int g_texturegrouplayers[32];
-int g_texturegroupreps[32];
+// QC command settings
+static QC qc_cmd;
 
 // SMD variables --------------------------
 std::filesystem::path g_smdpath;
@@ -385,11 +365,11 @@ void simplify_model()
 	{
 		for (j = 0; j < g_submodel[i]->numbones; j++)
 		{
-			for (k = 0; k < g_renamebonecount; k++)
+			for (k = 0; k < qc_cmd.renamebonecount; k++)
 			{
-				if (!std::strcmp(g_submodel[i]->node[j].name, g_renameboneCommand[k].from))
+				if (!std::strcmp(g_submodel[i]->node[j].name, qc_cmd.renamebone[k].from))
 				{
-					std::strcpy(g_submodel[i]->node[j].name, g_renameboneCommand[k].to);
+					std::strcpy(g_submodel[i]->node[j].name, qc_cmd.renamebone[k].to);
 					break;
 				}
 			}
@@ -471,11 +451,11 @@ void simplify_model()
 	{
 		for (j = 0; j < g_sequenceCommand[i].panim[0]->numbones; j++)
 		{
-			for (k = 0; k < g_renamebonecount; k++)
+			for (k = 0; k < qc_cmd.renamebonecount; k++)
 			{
-				if (!std::strcmp(g_sequenceCommand[i].panim[0]->node[j].name, g_renameboneCommand[k].from))
+				if (!std::strcmp(g_sequenceCommand[i].panim[0]->node[j].name, qc_cmd.renamebone[k].from))
 				{
-					std::strcpy(g_sequenceCommand[i].panim[0]->node[j].name, g_renameboneCommand[k].to);
+					std::strcpy(g_sequenceCommand[i].panim[0]->node[j].name, qc_cmd.renamebone[k].to);
 					break;
 				}
 			}
@@ -576,18 +556,18 @@ void simplify_model()
 	{
 		g_bonetable[k].group = -9999;
 	}
-	for (j = 0; j < g_hitgroupscount; j++)
+	for (j = 0; j < qc_cmd.hitgroupscount; j++)
 	{
 		for (k = 0; k < g_bonescount; k++)
 		{
-			if (std::strcmp(g_bonetable[k].name, g_hitgroupCommand[j].name) == 0)
+			if (std::strcmp(g_bonetable[k].name, qc_cmd.hitgroup[j].name) == 0)
 			{
-				g_bonetable[k].group = g_hitgroupCommand[j].group;
+				g_bonetable[k].group = qc_cmd.hitgroup[j].group;
 				break;
 			}
 		}
 		if (k >= g_bonescount)
-			error("cannot find bone %s for hitgroup %d\n", g_hitgroupCommand[j].name, g_hitgroupCommand[j].group);
+			error("cannot find bone %s for hitgroup %d\n", qc_cmd.hitgroup[j].name, qc_cmd.hitgroup[j].group);
 	}
 	for (k = 0; k < g_bonescount; k++)
 	{
@@ -1169,16 +1149,16 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 
 void adjust_vertex_to_origin(Vector3 org)
 {
-	org[0] = (org[0] - g_sequenceOrigin[0]);
-	org[1] = (org[1] - g_sequenceOrigin[1]);
-	org[2] = (org[2] - g_sequenceOrigin[2]);
+	org[0] = (org[0] - qc_cmd.sequenceOrigin[0]);
+	org[1] = (org[1] - qc_cmd.sequenceOrigin[1]);
+	org[2] = (org[2] - qc_cmd.sequenceOrigin[2]);
 }
 
 void ScaleVertexByQcScale(Vector3 org)
 {
-	org[0] = org[0] * g_scaleBodyAndSequenceOption;
-	org[1] = org[1] * g_scaleBodyAndSequenceOption;
-	org[2] = org[2] * g_scaleBodyAndSequenceOption;
+	org[0] = org[0] * qc_cmd.scaleBodyAndSequenceOption;
+	org[1] = org[1] * qc_cmd.scaleBodyAndSequenceOption;
+	org[2] = org[2] * qc_cmd.scaleBodyAndSequenceOption;
 }
 
 // Called for the base frame
@@ -1294,12 +1274,12 @@ void resize_texture(Texture *ptexture)
 
 	// TODO: process the texture and flag it if fullbright or transparent are used.
 	// TODO: only save as many palette entries as are actually used.
-	if (g_gammaCommand != 1.8f)
+	if (qc_cmd.gamma != 1.8f)
 	// gamma correct the monster textures to a gamma of 1.8
 	{
 		float g;
 		std::uint8_t *psrc = (std::uint8_t *)ptexture->ppal;
-		g = g_gammaCommand / 1.8f;
+		g = qc_cmd.gamma / 1.8f;
 		for (i = 0; i < 768; i++)
 		{
 			pdest[i] = static_cast<uint8_t>(std::round(pow(psrc[i] / 255.0, g) * 255));
@@ -1316,13 +1296,13 @@ void resize_texture(Texture *ptexture)
 
 void grab_skin(Texture *ptexture)
 {
-	std::filesystem::path textureFilePath = g_cdtextureCommand / ptexture->name;
+	std::filesystem::path textureFilePath = qc_cmd.cdtexture / ptexture->name;
 	if (!std::filesystem::exists(textureFilePath))
 	{
-		textureFilePath = g_cdCommandAbsolute / ptexture->name;
+		textureFilePath = qc_cmd.cdAbsolute / ptexture->name;
 		if (!std::filesystem::exists(textureFilePath))
 		{
-			error("cannot find %s texture in \"%s\" nor \"%s\"\nor those path don't exist\n", ptexture->name, g_cdtextureCommand.c_str(), g_cdCommandAbsolute.c_str());
+			error("cannot find %s texture in \"%s\" nor \"%s\"\nor those path don't exist\n", ptexture->name, qc_cmd.cdtexture.c_str(), qc_cmd.cdAbsolute.c_str());
 		}
 	}
 	if (textureFilePath.extension() == ".bmp")
@@ -1397,11 +1377,11 @@ void set_skin_values()
 			g_skinref[i][j] = j;
 		}
 	}
-	for (i = 0; i < g_texturegrouplayers[0]; i++)
+	for (i = 0; i < qc_cmd.texturegrouplayers[0]; i++)
 	{
-		for (j = 0; j < g_texturegroupreps[0]; j++)
+		for (j = 0; j < qc_cmd.texturegroupreps[0]; j++)
 		{
-			g_skinref[i][g_texturegroupCommand[0][0][j]] = g_texturegroupCommand[0][i][j];
+			g_skinref[i][qc_cmd.texturegroup[0][0][j]] = qc_cmd.texturegroup[0][i][j];
 		}
 	}
 	if (i != 0)
@@ -1714,9 +1694,9 @@ int grab_smd_nodes(Node *pnodes)
 			pnodes[index].parent = parent;
 			numBones = index;
 			// check for mirrored bones;
-			for (int i = 0; i < g_mirroredcount; i++)
+			for (int i = 0; i < qc_cmd.mirroredcount; i++)
 			{
-				if (std::strcmp(boneName, g_mirrorboneCommand[i]) == 0)
+				if (std::strcmp(boneName, qc_cmd.mirrorbone[i]) == 0)
 					pnodes[index].mirrored = 1;
 			}
 			if ((!pnodes[index].mirrored) && parent != -1)
@@ -1738,7 +1718,7 @@ void parse_smd(Model *pmodel)
 	char cmd[1024];
 	int option;
 
-	g_smdpath = g_cdCommandAbsolute / (std::string(pmodel->name) + ".smd");
+	g_smdpath = qc_cmd.cdAbsolute / (std::string(pmodel->name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
 		error("%s doesn't exist", g_smdpath.c_str());
 
@@ -1819,7 +1799,7 @@ void cmd_body_optionstudio(std::string &token)
 
 	g_flagfliptriangles = 1;
 
-	g_scaleBodyAndSequenceOption = g_scaleCommand;
+	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 
 	while (token_available())
 	{
@@ -1831,7 +1811,7 @@ void cmd_body_optionstudio(std::string &token)
 		else if (stricmp("scale", token.c_str()) == 0)
 		{
 			get_token(false, token);
-			g_scaleBodyAndSequenceOption = std::stof(token);
+			qc_cmd.scaleBodyAndSequenceOption = std::stof(token);
 		}
 	}
 
@@ -1840,7 +1820,7 @@ void cmd_body_optionstudio(std::string &token)
 	g_bodypart[g_bodygroupcount].nummodels++;
 	g_submodelscount++;
 
-	g_scaleBodyAndSequenceOption = g_scaleCommand;
+	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 }
 
 int cmd_body_optionblank()
@@ -1936,8 +1916,8 @@ void grab_option_animation(Animation *panim)
 		panim->rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 	}
 
-	cz = cosf(g_rotateCommand);
-	sz = sinf(g_rotateCommand);
+	cz = cosf(qc_cmd.rotateCommand);
+	sz = sinf(qc_cmd.rotateCommand);
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
@@ -1953,7 +1933,7 @@ void grab_option_animation(Animation *panim)
 					panim->pos[index][t][1] = sz * pos[0] + cz * pos[1];
 					panim->pos[index][t][2] = pos[2];
 					// rotate model
-					rot[2] += g_rotateCommand;
+					rot[2] += qc_cmd.rotateCommand;
 				}
 				else
 				{
@@ -2031,7 +2011,7 @@ void cmd_sequence_option_animation(char *name, Animation *panim)
 
 	strcpyn(panim->name, name);
 
-	g_smdpath = g_cdCommandAbsolute / (std::string(panim->name) + ".smd");
+	g_smdpath = qc_cmd.cdAbsolute / (std::string(panim->name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
 		error("%s doesn't exist", g_smdpath.c_str());
 
@@ -2144,56 +2124,56 @@ int cmd_sequence_option_addpivot(std::string &token, Sequence *psequence)
 void cmd_origin(std::string &token)
 {
 	get_token(false, token);
-	g_originCommand[0] = std::stof(token);
+	qc_cmd.origin[0] = std::stof(token);
 
 	get_token(false, token);
-	g_originCommand[1] = std::stof(token);
+	qc_cmd.origin[1] = std::stof(token);
 
 	get_token(false, token);
-	g_originCommand[2] = std::stof(token);
+	qc_cmd.origin[2] = std::stof(token);
 
 	if (token_available())
 	{
 		get_token(false, token);
-		g_originCommandRotation = to_radians(std::stof(token) + ENGINE_ORIENTATION);
+		qc_cmd.originRotation = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 	}
 }
 
 void Cmd_Sequence_OptionOrigin(std::string &token)
 {
 	get_token(false, token);
-	g_sequenceOrigin[0] = std::stof(token);
+	qc_cmd.sequenceOrigin[0] = std::stof(token);
 
 	get_token(false, token);
-	g_sequenceOrigin[1] = std::stof(token);
+	qc_cmd.sequenceOrigin[1] = std::stof(token);
 
 	get_token(false, token);
-	g_sequenceOrigin[2] = std::stof(token);
+	qc_cmd.sequenceOrigin[2] = std::stof(token);
 }
 
 void cmd_sequence_option_rotate(std::string &token)
 {
 	get_token(false, token);
-	g_rotateCommand = to_radians(std::stof(token) + ENGINE_ORIENTATION);
+	qc_cmd.rotateCommand = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
 void cmd_scale(std::string &token)
 {
 	get_token(false, token);
-	g_scaleCommand = g_scaleBodyAndSequenceOption = std::stof(token);
+	qc_cmd.scale = qc_cmd.scaleBodyAndSequenceOption = std::stof(token);
 }
 
 void cmd_rotate(std::string &token) // XDM
 {
 	if (!get_token(false, token))
 		return;
-	g_rotateCommand = to_radians(std::stof(token) + ENGINE_ORIENTATION);
+	qc_cmd.rotateCommand = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
 void cmd_sequence_option_scale(std::string &token)
 {
 	get_token(false, token);
-	g_scaleBodyAndSequenceOption = std::stof(token);
+	qc_cmd.scaleBodyAndSequenceOption = std::stof(token);
 }
 
 int cmd_sequencegroup(std::string &token)
@@ -2236,10 +2216,10 @@ int cmd_sequence(std::string &token)
 
 	strcpyn(g_sequenceCommand[g_sequencecount].name, token.c_str());
 
-	g_sequenceOrigin = g_originCommand;
-	g_scaleBodyAndSequenceOption = g_scaleCommand;
+	qc_cmd.sequenceOrigin = qc_cmd.origin;
+	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 
-	g_rotateCommand = g_originCommandRotation;
+	qc_cmd.rotateCommand = qc_cmd.originRotation;
 	g_sequenceCommand[g_sequencecount].fps = 30.0;
 	g_sequenceCommand[g_sequencecount].seqgroup = g_sequencegroupcount - 1;
 	g_sequenceCommand[g_sequencecount].blendstart[0] = 0.0;
@@ -2381,13 +2361,13 @@ int cmd_sequence(std::string &token)
 	}
 	for (i = 0; i < numblends; i++)
 	{
-		g_animationSequenceOption[g_animationcount] = (Animation *)malloc(sizeof(Animation));
-		g_sequenceCommand[g_sequencecount].panim[i] = g_animationSequenceOption[g_animationcount];
+		qc_cmd.animationSequenceOption[qc_cmd.animationcount] = (Animation *)malloc(sizeof(Animation));
+		g_sequenceCommand[g_sequencecount].panim[i] = qc_cmd.animationSequenceOption[qc_cmd.animationcount];
 		g_sequenceCommand[g_sequencecount].panim[i]->startframe = start;
 		g_sequenceCommand[g_sequencecount].panim[i]->endframe = end;
 		g_sequenceCommand[g_sequencecount].panim[i]->flags = 0;
-		cmd_sequence_option_animation(smdfilename[i], g_animationSequenceOption[g_animationcount]);
-		g_animationcount++;
+		cmd_sequence_option_animation(smdfilename[i], qc_cmd.animationSequenceOption[qc_cmd.animationcount]);
+		qc_cmd.animationcount++;
 	}
 	g_sequenceCommand[g_sequencecount].numblends = numblends;
 
@@ -2480,13 +2460,13 @@ void cmd_cbox(std::string &token)
 void cmd_mirror(std::string &token)
 {
 	get_token(false, token);
-	strcpyn(g_mirrorboneCommand[g_mirroredcount++], token.c_str());
+	strcpyn(qc_cmd.mirrorbone[qc_cmd.mirroredcount++], token.c_str());
 }
 
 void cmd_gamma(std::string &token)
 {
 	get_token(false, token);
-	g_gammaCommand = std::stof(token);
+	qc_cmd.gamma = std::stof(token);
 }
 
 int cmd_texturegroup(std::string &token)
@@ -2535,16 +2515,16 @@ int cmd_texturegroup(std::string &token)
 		else if (depth == 2)
 		{
 			i = find_texture_index(token);
-			g_texturegroupCommand[g_texturegroupCount][group][index] = i;
+			qc_cmd.texturegroup[qc_cmd.texturegroupCount][group][index] = i;
 			if (group != 0)
-				g_texture[i].parent = g_texturegroupCommand[g_texturegroupCount][0][index];
+				g_texture[i].parent = qc_cmd.texturegroup[qc_cmd.texturegroupCount][0][index];
 			index++;
-			g_texturegroupreps[g_texturegroupCount] = index;
-			g_texturegrouplayers[g_texturegroupCount] = group + 1;
+			qc_cmd.texturegroupreps[qc_cmd.texturegroupCount] = index;
+			qc_cmd.texturegrouplayers[qc_cmd.texturegroupCount] = group + 1;
 		}
 	}
 
-	g_texturegroupCount++;
+	qc_cmd.texturegroupCount++;
 
 	return 0;
 }
@@ -2552,10 +2532,10 @@ int cmd_texturegroup(std::string &token)
 int cmd_hitgroup(std::string &token)
 {
 	get_token(false, token);
-	g_hitgroupCommand[g_hitgroupscount].group = std::stoi(token);
+	qc_cmd.hitgroup[qc_cmd.hitgroupscount].group = std::stoi(token);
 	get_token(false, token);
-	strcpyn(g_hitgroupCommand[g_hitgroupscount].name, token.c_str());
-	g_hitgroupscount++;
+	strcpyn(qc_cmd.hitgroup[qc_cmd.hitgroupscount].name, token.c_str());
+	qc_cmd.hitgroupscount++;
 
 	return 0;
 }
@@ -2616,13 +2596,13 @@ void cmd_renamebone(std::string &token)
 {
 	// from
 	get_token(false, token);
-	std::strcpy(g_renameboneCommand[g_renamebonecount].from, token.c_str());
+	std::strcpy(qc_cmd.renamebone[qc_cmd.renamebonecount].from, token.c_str());
 
 	// to
 	get_token(false, token);
-	std::strcpy(g_renameboneCommand[g_renamebonecount].to, token.c_str());
+	std::strcpy(qc_cmd.renamebone[qc_cmd.renamebonecount].to, token.c_str());
 
-	g_renamebonecount++;
+	qc_cmd.renamebonecount++;
 }
 
 void cmd_texrendermode(std::string &token)
@@ -2686,8 +2666,8 @@ void parse_qc_file()
 			iscdalreadyset = true;
 			get_token(false, token);
 
-			g_cdCommand = token;
-			g_cdCommandAbsolute = std::filesystem::absolute(g_cdCommand);
+			qc_cmd.cd = token;
+			qc_cmd.cdAbsolute = std::filesystem::absolute(qc_cmd.cd);
 		}
 		else if (token == "$cdtexture")
 		{
@@ -2695,7 +2675,7 @@ void parse_qc_file()
 				error("Two $cdtexture in one model");
 			iscdtexturealreadyset = true;
 			get_token(false, token);
-			g_cdtextureCommand = token;
+			qc_cmd.cdtexture = token;
 		}
 		else if (token == "$scale")
 		{
@@ -2789,8 +2769,8 @@ int main(int argc, char **argv)
 	int i;
 	char path[1024];
 
-	g_scaleCommand = 1.0f;
-	g_originCommandRotation = to_radians(ENGINE_ORIENTATION);
+	qc_cmd.scale = 1.0f;
+	qc_cmd.originRotation = to_radians(ENGINE_ORIENTATION);
 
 	g_numtextureteplacements = 0;
 	g_flagreversedtriangles = 0;
@@ -2800,7 +2780,7 @@ int main(int argc, char **argv)
 
 	g_flagnormalblendangle = cosf(to_radians(2.0));
 
-	g_gammaCommand = 1.8f;
+	qc_cmd.gamma = 1.8f;
 
 	if (argc == 1)
 		error("usage: studiomdl <flags>\n [-t texture]\n -r(tag reversed)\n -n(tag bad normals)\n -f(flip all triangles)\n [-a normal_blend_angle]\n -h(dump hboxes)\n -i(ignore warnings) \n b(keep all unused bones)\n file.qc");
