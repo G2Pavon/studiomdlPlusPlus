@@ -41,7 +41,7 @@ public:
 
     QC() : scale(1.0f),
            scaleBodyAndSequenceOption(1.0f),
-           originRotation(0.0f),
+           originRotation(to_radians(ENGINE_ORIENTATION)),
            rotateCommand(0.0f),
            gamma(1.8f),
            renamebonecount(0),

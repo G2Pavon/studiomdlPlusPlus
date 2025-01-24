@@ -45,6 +45,9 @@ constexpr int MAXSEQUENCENAMELENGTH = 32;
 constexpr int DEGREESOFFREEDOM = 6; // X, Y, Z, rotX, rotY, rotZ - Representing the 6 degrees of freedom for bone transformations.
 constexpr int MAXSEQUENCEBLEND = 2; // Maximum number of blends per sequence (as described in the "Animation blending" section of the wiki).
 
+// other
+constexpr float ENGINE_ORIENTATION = 90.0f; // Z rotation to match with engine forward direction (x axis)
+
 // --- Structure Definitions --- // [byte offset] Description
 
 /**

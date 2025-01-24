@@ -25,8 +25,6 @@
 #define stricmp strcasecmp
 #define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
 
-constexpr float ENGINE_ORIENTATION = 90.0f; // Z rotation to match with engine forward direction (x axis)
-
 // studiomdl.exe args -----------
 int g_flagreversedtriangles;
 int g_flagbadnormals;
@@ -2769,18 +2767,13 @@ int main(int argc, char **argv)
 	int i;
 	char path[1024];
 
-	qc_cmd.scale = 1.0f;
-	qc_cmd.originRotation = to_radians(ENGINE_ORIENTATION);
-
 	g_numtextureteplacements = 0;
 	g_flagreversedtriangles = 0;
 	g_flagbadnormals = 0;
 	g_flagfliptriangles = 1;
 	g_flagkeepallbones = false;
-
 	g_flagnormalblendangle = cosf(to_radians(2.0));
-
-	qc_cmd.gamma = 1.8f;
+	g_flagdumphitboxes = 0;
 
 	if (argc == 1)
 		error("usage: studiomdl <flags>\n [-t texture]\n -r(tag reversed)\n -n(tag bad normals)\n -f(flip all triangles)\n [-a normal_blend_angle]\n -h(dump hboxes)\n -i(ignore warnings) \n b(keep all unused bones)\n file.qc");
