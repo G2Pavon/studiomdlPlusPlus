@@ -1,3 +1,7 @@
+/*
+    Internal data used by studiomdl which is then transferred/mapped to the real .mdl data
+*/
+
 #pragma once
 
 #include "mathlib.hpp"
@@ -249,7 +253,7 @@ struct Model
 
     int numframes;
     float interval;
-    struct s_model_s *next;
+    struct Model *next;
 };
 
 struct BodyPart
