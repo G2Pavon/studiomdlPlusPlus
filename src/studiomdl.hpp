@@ -85,7 +85,7 @@ int grab_smd_nodes(QC &qc_cmd, Node *pnodes);
 void build_reference(Model *pmodel);
 Mesh *find_mesh_by_texture(Model *pmodel, char *texturename);
 TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index);
-int finx_vertex_normal_index(Model *pmodel, Normal *pnormal);
+int find_vertex_normal_index(Model *pmodel, Normal *pnormal);
 int find_vertex_index(Model *pmodel, Vertex *pv);
 void adjust_vertex_to_origin(QC &qc_cmd, float *org);
 void scale_vertex(QC &qc_cmd, float *org);

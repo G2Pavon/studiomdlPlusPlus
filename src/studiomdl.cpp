@@ -1095,7 +1095,7 @@ TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index)
 	return pmesh->triangle[index];
 }
 
-int finx_vertex_normal_index(Model *pmodel, Normal *pnormal)
+int find_vertex_normal_index(Model *pmodel, Normal *pnormal)
 {
 	int i;
 	for (i = 0; i < pmodel->numnorms; i++)
@@ -1434,7 +1434,6 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 {
 	int i;
 	int trianglesCount = 0;
-	int badNormalsCount = 0;
 	Vector3 vmin, vmax;
 
 	vmin[0] = vmin[1] = vmin[2] = 99999;
@@ -1543,7 +1542,7 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 						vector_transform(tmp, g_bonefixup[triangleVertex.bone].im, triangleNormal.org);
 						triangleNormal.org.normalize();
 
-						ptriangleVert->normindex = finx_vertex_normal_index(pmodel, &triangleNormal);
+						ptriangleVert->normindex = find_vertex_normal_index(pmodel, &triangleNormal);
 						ptriangleVert->vertindex = find_vertex_index(pmodel, &triangleVertex);
 
 						// tag bone as being used
@@ -1565,9 +1564,6 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 			break;
 		}
 	}
-
-	if (badNormalsCount)
-		printf("%d triangles with misdirected normals\n", badNormalsCount);
 
 	if (vmin[2] != 0.0)
 	{
