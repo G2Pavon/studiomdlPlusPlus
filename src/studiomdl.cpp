@@ -78,7 +78,7 @@ void extract_motion(QC &qc_cmd)
 		if (qc_cmd.sequence[i].numframes > 1)
 		{
 			// assume 0 for now.
-			Vector3 motion = {0, 0, 0};
+			Vector3 motion{0, 0, 0};
 			int typeMotion = qc_cmd.sequence[i].motiontype;
 			Vector3 *ptrPos = qc_cmd.sequence[i].panim[0]->pos[0];
 
@@ -163,8 +163,8 @@ void extract_motion(QC &qc_cmd)
 		// assume 0 for now.
 		Vector3 *ptrAutoPos;
 		Vector3 *ptrAutoRot;
-		Vector3 motion = {0, 0, 0};
-		Vector3 angles = {0, 0, 0};
+		Vector3 motion{0, 0, 0};
+		Vector3 angles{0, 0, 0};
 
 		int typeAutoMotion = qc_cmd.sequence[i].motiontype;
 		for (j = 0; j < qc_cmd.sequence[i].numframes; j++)
@@ -666,8 +666,8 @@ void simplify_model(QC &qc_cmd)
 	// relink animations
 	for (i = 0; i < qc_cmd.sequencecount; i++)
 	{
-		Vector3 *origpos[MAXSTUDIOSRCBONES] = {0};
-		Vector3 *origrot[MAXSTUDIOSRCBONES] = {0};
+		Vector3 *origpos[MAXSTUDIOSRCBONES] = {nullptr};
+		Vector3 *origrot[MAXSTUDIOSRCBONES] = {nullptr};
 
 		for (q = 0; q < qc_cmd.sequence[i].numblends; q++)
 		{
@@ -800,9 +800,9 @@ void simplify_model(QC &qc_cmd)
 				{
 
 					Vector3 angles;
-					angles[0] = to_degrees(qc_cmd.sequence[i].panim[q]->rot[j][n][0]);
-					angles[1] = to_degrees(qc_cmd.sequence[i].panim[q]->rot[j][n][1]);
-					angles[2] = to_degrees(qc_cmd.sequence[i].panim[q]->rot[j][n][2]);
+					angles.x = to_degrees(qc_cmd.sequence[i].panim[q]->rot[j][n][0]);
+					angles.y = to_degrees(qc_cmd.sequence[i].panim[q]->rot[j][n][1]);
+					angles.z = to_degrees(qc_cmd.sequence[i].panim[q]->rot[j][n][2]);
 
 					angle_matrix(angles, bonematrix);
 
@@ -1418,10 +1418,8 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 {
 	int i;
 	int trianglesCount = 0;
-	Vector3 vmin, vmax;
-
-	vmin[0] = vmin[1] = vmin[2] = 99999;
-	vmax[0] = vmax[1] = vmax[2] = -99999;
+	Vector3 vmin{99999, 99999, 99999};
+	Vector3 vmax{-99999, -99999, -99999};
 
 	build_reference(pmodel);
 
