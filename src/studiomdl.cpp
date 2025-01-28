@@ -78,11 +78,9 @@ void extract_motion(QC &qc_cmd)
 		if (qc_cmd.sequence[i].numframes > 1)
 		{
 			// assume 0 for now.
-			int typeMotion;
-			Vector3 *ptrPos;
 			Vector3 motion = {0, 0, 0};
-			typeMotion = qc_cmd.sequence[i].motiontype;
-			ptrPos = qc_cmd.sequence[i].panim[0]->pos[0];
+			int typeMotion = qc_cmd.sequence[i].motiontype;
+			Vector3 *ptrPos = qc_cmd.sequence[i].panim[0]->pos[0];
 
 			k = qc_cmd.sequence[i].numframes - 1;
 
@@ -122,8 +120,7 @@ void extract_motion(QC &qc_cmd)
 	// extract unused motion
 	for (i = 0; i < qc_cmd.sequencecount; i++)
 	{
-		int typeUnusedMotion;
-		typeUnusedMotion = qc_cmd.sequence[i].motiontype;
+		int typeUnusedMotion = qc_cmd.sequence[i].motiontype;
 		for (k = 0; k < qc_cmd.sequence[i].panim[0]->numbones; k++)
 		{
 			if (qc_cmd.sequence[i].panim[0]->node[k].parent == -1)
@@ -164,13 +161,12 @@ void extract_motion(QC &qc_cmd)
 	for (i = 0; i < qc_cmd.sequencecount; i++)
 	{
 		// assume 0 for now.
-		int typeAutoMotion;
 		Vector3 *ptrAutoPos;
 		Vector3 *ptrAutoRot;
 		Vector3 motion = {0, 0, 0};
 		Vector3 angles = {0, 0, 0};
 
-		typeAutoMotion = qc_cmd.sequence[i].motiontype;
+		int typeAutoMotion = qc_cmd.sequence[i].motiontype;
 		for (j = 0; j < qc_cmd.sequence[i].numframes; j++)
 		{
 			ptrAutoPos = qc_cmd.sequence[i].panim[0]->pos[0];
@@ -853,7 +849,6 @@ void simplify_model(QC &qc_cmd)
 
 	// reduce animations
 	{
-		int total = 0;
 		int changes = 0;
 		int p;
 
@@ -865,7 +860,6 @@ void simplify_model(QC &qc_cmd)
 				{
 					for (k = 0; k < DEGREESOFFREEDOM; k++)
 					{
-						StudioAnimationValue *pcount, *pvalue;
 						float v;
 						short value[MAXSTUDIOANIMATIONS];
 						StudioAnimationValue data[MAXSTUDIOANIMATIONS];
@@ -898,8 +892,8 @@ void simplify_model(QC &qc_cmd)
 						qc_cmd.sequence[i].panim[q]->numanim[j][k] = 0;
 
 						std::memset(data, 0, sizeof(data));
-						pcount = data;
-						pvalue = pcount + 1;
+						StudioAnimationValue *pcount = data;
+						StudioAnimationValue *pvalue = pcount + 1;
 
 						pcount->num.valid = 1;
 						pcount->num.total = 1;
@@ -932,7 +926,6 @@ void simplify_model(QC &qc_cmd)
 							// or if we're not on a run and the run is less than 3 units
 							else if ((value[m] != value[m - 1]) || ((pcount->num.total == pcount->num.valid) && ((m < n - 1) && value[m] != value[m + 1])))
 							{
-								total++;
 								if (pcount->num.total != pcount->num.valid)
 								{
 									pcount = pvalue;
@@ -1000,9 +993,8 @@ int lookup_control(const char *string)
 // search case-insensitive for string2 in string
 char *stristr(const char *string, const char *string2)
 {
-	int c, len;
-	c = tolower(*string2);
-	len = strlen(string2);
+	int c = tolower(*string2);
+	int len = strlen(string2);
 
 	while (string)
 	{
@@ -1051,9 +1043,8 @@ int find_texture_index(std::string texturename)
 
 Mesh *find_mesh_by_texture(Model *pmodel, char *texturename)
 {
-	int i, j;
-
-	j = find_texture_index(std::string(texturename));
+	int i;
+	int j = find_texture_index(std::string(texturename));
 
 	for (i = 0; i < pmodel->nummesh; i++)
 	{
@@ -1215,9 +1206,7 @@ void reset_texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 
 void grab_bmp(const char *filename, Texture *ptexture)
 {
-	int result;
-
-	if (result = load_bmp(filename, &ptexture->ppicture, (std::uint8_t **)&ptexture->ppal, &ptexture->srcwidth, &ptexture->srcheight))
+	if (int result = load_bmp(filename, &ptexture->ppicture, (std::uint8_t **)&ptexture->ppal, &ptexture->srcwidth, &ptexture->srcheight))
 	{
 		error("error %d reading BMP image \"%s\"\n", result, filename);
 	}
@@ -1226,8 +1215,6 @@ void grab_bmp(const char *filename, Texture *ptexture)
 void resize_texture(QC &qc_cmd, Texture *ptexture)
 {
 	int i, t;
-	std::uint8_t *pdest;
-	int srcadjustedwidth;
 
 	// Keep the original texture without resizing to avoid uv shift
 	ptexture->skintop = static_cast<int>(ptexture->min_t);
@@ -1246,11 +1233,11 @@ void resize_texture(QC &qc_cmd, Texture *ptexture)
 		printf("%.0f %.0f %.0f %.0f\n", ptexture->min_s, ptexture->max_s, ptexture->min_t, ptexture->max_t);
 		error("texture too large\n");
 	}
-	pdest = (std::uint8_t *)malloc(ptexture->size);
+	std::uint8_t *pdest = (std::uint8_t *)malloc(ptexture->size);
 	ptexture->pdata = pdest;
 
 	// Data is saved as a multiple of 4
-	srcadjustedwidth = (ptexture->srcwidth + 3) & ~3;
+	int srcadjustedwidth = (ptexture->srcwidth + 3) & ~3;
 
 	// Move the picture data to the model area, replicating missing data, deleting unused data.
 	for (i = 0, t = ptexture->srcheight - ptexture->skinheight - ptexture->skintop + 10 * ptexture->srcheight; i < ptexture->skinheight; i++, t++)
@@ -1272,9 +1259,8 @@ void resize_texture(QC &qc_cmd, Texture *ptexture)
 	if (qc_cmd.gamma != 1.8f)
 	// gamma correct the monster textures to a gamma of 1.8
 	{
-		float g;
 		std::uint8_t *psrc = (std::uint8_t *)ptexture->ppal;
-		g = qc_cmd.gamma / 1.8f;
+		float g = qc_cmd.gamma / 1.8f;
 		for (i = 0; i < 768; i++)
 		{
 			pdest[i] = static_cast<uint8_t>(std::round(pow(psrc[i] / 255.0, g) * 255));
@@ -1396,14 +1382,12 @@ void build_reference(Model *pmodel)
 
 	for (int i = 0; i < pmodel->numbones; i++)
 	{
-		int parent;
-
 		// convert to degrees
 		boneAngle[0] = to_degrees(pmodel->skeleton[i].rot[0]);
 		boneAngle[1] = to_degrees(pmodel->skeleton[i].rot[1]);
 		boneAngle[2] = to_degrees(pmodel->skeleton[i].rot[2]);
 
-		parent = pmodel->node[i].parent;
+		int parent = pmodel->node[i].parent;
 		if (parent == -1)
 		{
 			// scale the done pos.
@@ -1838,7 +1822,6 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 	char cmd[1024];
 	int index;
 	int t = -99999999;
-	float cz, sz;
 	int start = 99999;
 	int end = 0;
 
@@ -1848,8 +1831,8 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 		panim->rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 	}
 
-	cz = cosf(qc_cmd.rotate);
-	sz = sinf(qc_cmd.rotate);
+	float cz = cosf(qc_cmd.rotate);
+	float sz = sinf(qc_cmd.rotate);
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
@@ -1913,17 +1896,12 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 
 void shift_option_animation(Animation *panim)
 {
-	int size;
-
-	size = (panim->endframe - panim->startframe + 1) * sizeof(Vector3);
+	int size = (panim->endframe - panim->startframe + 1) * sizeof(Vector3);
 	// shift
 	for (int j = 0; j < panim->numbones; j++)
 	{
-		Vector3 *ppos;
-		Vector3 *prot;
-
-		ppos = (Vector3 *)std::calloc(1, size);
-		prot = (Vector3 *)std::calloc(1, size);
+		Vector3 *ppos = (Vector3 *)std::calloc(1, size);
+		Vector3 *prot = (Vector3 *)std::calloc(1, size);
 
 		std::memcpy(ppos, &panim->pos[j][panim->startframe], size);
 		std::memcpy(prot, &panim->rot[j][panim->startframe], size);
@@ -1992,8 +1970,6 @@ void cmd_sequence_option_animation(QC &qc_cmd, char *name, Animation *panim)
 
 int cmd_sequence_option_event(std::string &token, Sequence *psequence)
 {
-	int event;
-
 	if (psequence->numevents + 1 >= MAXSTUDIOEVENTS)
 	{
 		printf("too many events\n");
@@ -2001,7 +1977,7 @@ int cmd_sequence_option_event(std::string &token, Sequence *psequence)
 	}
 
 	get_token(false, token);
-	event = std::stoi(token);
+	int event = std::stoi(token);
 	psequence->event[psequence->numevents].event = event;
 
 	get_token(false, token);
@@ -2539,9 +2515,8 @@ void cmd_renamebone(QC &qc_cmd, std::string &token)
 
 void cmd_texrendermode(std::string &token)
 {
-	std::string tex_name;
 	get_token(false, token);
-	tex_name = token;
+	std::string tex_name = token;
 
 	get_token(false, token);
 	if (token == "additive")
