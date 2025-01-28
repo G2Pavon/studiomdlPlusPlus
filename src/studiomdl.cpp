@@ -25,12 +25,8 @@
 #define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
 
 // studiomdl.exe args -----------
-int g_flagreversedtriangles;
-int g_flagbadnormals;
-int g_flagfliptriangles;
+bool g_flaginvertnormals;
 float g_flagnormalblendangle;
-int g_flagdumphitboxes;
-int g_flagignorewarnings;
 bool g_flagkeepallbones;
 
 // SMD variables --------------------------
@@ -444,7 +440,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	if (iError && !(g_flagignorewarnings))
+	if (iError)
 	{
 		exit(1);
 	}
@@ -511,7 +507,7 @@ void simplify_model(QC &qc_cmd)
 			}
 		}
 	}
-	if (iError && !(g_flagignorewarnings))
+	if (iError)
 	{
 		exit(1);
 	}
@@ -650,15 +646,6 @@ void simplify_model(QC &qc_cmd)
 				qc_cmd.hitbox[qc_cmd.hitboxescount].group = g_bonetable[k].group;
 				qc_cmd.hitbox[qc_cmd.hitboxescount].bmin = g_bonetable[k].bmin;
 				qc_cmd.hitbox[qc_cmd.hitboxescount].bmax = g_bonetable[k].bmax;
-
-				if (g_flagdumphitboxes)
-				{
-					printf("$hbox %d \"%s\" %.2f %.2f %.2f  %.2f %.2f %.2f\n",
-						   qc_cmd.hitbox[qc_cmd.hitboxescount].group,
-						   g_bonetable[qc_cmd.hitbox[qc_cmd.hitboxescount].bone].name,
-						   qc_cmd.hitbox[qc_cmd.hitboxescount].bmin[0], qc_cmd.hitbox[qc_cmd.hitboxescount].bmin[1], qc_cmd.hitbox[qc_cmd.hitboxescount].bmin[2],
-						   qc_cmd.hitbox[qc_cmd.hitboxescount].bmax[0], qc_cmd.hitbox[qc_cmd.hitboxescount].bmax[1], qc_cmd.hitbox[qc_cmd.hitboxescount].bmax[2]);
-				}
 				qc_cmd.hitboxescount++;
 			}
 		}
@@ -1509,11 +1496,10 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 
 			for (int j = 0; j < 3; j++)
 			{
-				if (g_flagfliptriangles)
-					// quake wants them in the reverse order
-					ptriangleVert = find_mesh_triangle_by_index(pmesh, pmesh->numtris) + 2 - j;
-				else
+				if (g_flaginvertnormals)
 					ptriangleVert = find_mesh_triangle_by_index(pmesh, pmesh->numtris) + j;
+				else // quake wants them in the reverse order
+					ptriangleVert = find_mesh_triangle_by_index(pmesh, pmesh->numtris) + 2 - j;
 
 				if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 				{
@@ -1566,62 +1552,6 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 					else
 					{
 						error("%s: error on line %d: %s", g_smdpath, g_smdlinecount, g_currentsmdline);
-					}
-				}
-			}
-
-			if (g_flagreversedtriangles || g_flagbadnormals)
-			{
-				// check triangle direction
-
-				if (triangleNormals[0].dot(triangleNormals[1]) < 0.0 || triangleNormals[1].dot(triangleNormals[2]) < 0.0 || triangleNormals[2].dot(triangleNormals[0]) < 0.0)
-				{
-					badNormalsCount++;
-
-					if (g_flagbadnormals)
-					{
-						// steal the triangle and make it white
-						TriangleVert *ptriv2;
-						pmesh = find_mesh_by_texture(pmodel, "..\\white.bmp");
-						ptriv2 = find_mesh_triangle_by_index(pmesh, pmesh->numtris);
-
-						ptriv2[0] = ptriangleVert[0];
-						ptriv2[1] = ptriangleVert[1];
-						ptriv2[2] = ptriangleVert[2];
-					}
-				}
-				else
-				{
-					Vector3 triangleEdge1, triangleEdge2, surfaceNormal;
-					float x, y, z;
-
-					triangleEdge1 = triangleVertices[1] - triangleVertices[0];
-					triangleEdge2 = triangleVertices[2] - triangleVertices[0];
-					surfaceNormal = triangleEdge1.cross(triangleEdge2);
-					surfaceNormal.normalize();
-
-					x = surfaceNormal.dot(triangleNormals[0]);
-					y = surfaceNormal.dot(triangleNormals[1]);
-					z = surfaceNormal.dot(triangleNormals[2]);
-					if (x < 0.0 || y < 0.0 || z < 0.0)
-					{
-						if (g_flagreversedtriangles)
-						{
-							// steal the triangle and make it white
-							TriangleVert *ptriv2;
-
-							printf("triangle reversed (%f %f %f)\n",
-								   triangleNormals[0].dot(triangleNormals[1]),
-								   triangleNormals[1].dot(triangleNormals[2]),
-								   triangleNormals[2].dot(triangleNormals[0]));
-
-							pmesh = find_mesh_by_texture(pmodel, "..\\white.bmp");
-							ptriv2 = find_mesh_triangle_by_index(pmesh, pmesh->numtris);
-
-							ptriv2[0] = ptriangleVert[0];
-							ptriv2[1] = ptriangleVert[1];
-							ptriv2[2] = ptriangleVert[2];
-						}
 					}
 				}
 			}
@@ -1805,8 +1735,6 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 
 	strcpyn(qc_cmd.submodel[qc_cmd.submodelscount]->name, token.c_str());
 
-	g_flagfliptriangles = 1;
-
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 
 	while (token_available())
@@ -1814,7 +1742,7 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 		get_token(false, token);
 		if (stricmp("reverse", token.c_str()) == 0)
 		{
-			g_flagfliptriangles = 0;
+			g_flaginvertnormals = true;
 		}
 		else if (stricmp("scale", token.c_str()) == 0)
 		{
@@ -2772,78 +2700,77 @@ void parse_qc_file(QC &qc_cmd)
 	}
 }
 
+
 int main(int argc, char **argv)
 {
-	int i;
-	char path[1024];
-	// QC command settings
-	static QC qc_cmd;
+    char path[1024] = {0};
+    static QC qc_cmd;
 
-	g_numtextureteplacements = 0;
-	g_flagreversedtriangles = 0;
-	g_flagbadnormals = 0;
-	g_flagfliptriangles = 1;
-	g_flagkeepallbones = false;
-	g_flagnormalblendangle = cosf(to_radians(2.0));
-	g_flagdumphitboxes = 0;
+    g_flaginvertnormals = false;
+    g_flagkeepallbones = false;
+    g_flagnormalblendangle = cosf(to_radians(0));
 
-	if (argc == 1)
-		error("usage: studiomdl <flags>\n [-t texture]\n -r(tag reversed)\n -n(tag bad normals)\n -f(flip all triangles)\n [-a normal_blend_angle]\n -h(dump hboxes)\n -i(ignore warnings) \n b(keep all unused bones)\n file.qc");
+    if (argc == 1)
+    {
+        error("Usage: studiomdl <inputfile.qc> <flags>\n"
+              "  Flags:\n"
+              "    [-f]                Invert normals\n"
+              "    [-a <angle>]        Set vertex normal blend angle override\n"
+              "    [-b]                Keep all unused bones\n");
+    }
 
-	for (i = 1; i < argc - 1; i++)
-	{
-		if (argv[i][0] == '-')
-		{
-			switch (argv[i][1])
-			{
-			case 't':
-				i++;
-				std::strcpy(g_defaulttextures[g_numtextureteplacements], argv[i]);
-				if (i < argc - 2 && argv[i + 1][0] != '-')
-				{
-					i++;
-					std::strcpy(g_sourcetexture[g_numtextureteplacements], argv[i]);
-					printf("Replaceing %s with %s\n", g_sourcetexture[g_numtextureteplacements], g_defaulttextures[g_numtextureteplacements]);
-				}
-				printf("Using default texture: %s\n", g_defaulttextures);
-				g_numtextureteplacements++;
-				break;
-			case 'r':
-				g_flagreversedtriangles = 1;
-				break;
-			case 'n':
-				g_flagbadnormals = 1;
-				break;
-			case 'f':
-				g_flagfliptriangles = 0;
-				break;
-			case 'a':
-				i++;
-				g_flagnormalblendangle = cosf(to_radians(std::stof(argv[i])));
-				break;
-			case 'h':
-				g_flagdumphitboxes = 1;
-				break;
-			case 'i':
-				g_flagignorewarnings = 1;
-				break;
-			case 'b':
-				g_flagkeepallbones = true;
-				break;
-			}
-		}
-	}
+    const char *ext = strrchr(argv[1], '.');
+    if (!ext || strcmp(ext, ".qc") != 0)
+    {
+        error("Error: The first argument must be a .qc file\n");
+    }
+    std::strcpy(path, argv[1]);
 
-	std::strcpy(qc_cmd.sequencegroup[qc_cmd.sequencegroupcount].label, "default");
-	qc_cmd.sequencegroupcount = 1;
-	// load the script
-	std::strcpy(path, argv[i]);
-	load_qc_file(path);
-	// parse it
-	parse_qc_file(qc_cmd);
-	set_skin_values(qc_cmd);
-	simplify_model(qc_cmd);
-	write_file(qc_cmd);
+    for (int i = 2; i < argc; i++)
+    {
+        if (argv[i][0] == '-')
+        {
+            switch (argv[i][1])
+            {
+            case 'f':
+                g_flaginvertnormals = true;
+                break;
+            case 'a':
+                if (i + 1 >= argc)
+                {
+                    error("Error: Missing value for -a flag.\n");
+                }
+                i++;
+                try
+                {
+                    g_flagnormalblendangle = cosf(to_radians(std::stof(argv[i])));
+                }
+                catch (...)
+                {
+                    error("Error: Invalid value for -a flag. Expected a numeric angle.\n");
+                }
+                break;
+            case 'b':
+                g_flagkeepallbones = true;
+                break;
+            default:
+                error("Error: Unknown flag '%s'.\n", argv[i]);
+            }
+        }
+        else
+        {
+            error("Error: Unexpected argument '%s'.\n", argv[i]);
+        }
+    }
 
-	return 0;
+    std::strcpy(qc_cmd.sequencegroup[qc_cmd.sequencegroupcount].label, "default");
+    qc_cmd.sequencegroupcount = 1;
+
+    load_qc_file(path);       
+    parse_qc_file(qc_cmd); 
+    set_skin_values(qc_cmd); 
+    simplify_model(qc_cmd); 
+    write_file(qc_cmd);      
+
+    return 0;
 }
