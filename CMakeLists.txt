@@ -18,12 +18,12 @@ include_directories(src)
 include_directories(src/monsters)
 
 set(SOURCES
-    src/bmpread.cpp
-    src/cmdlib.cpp
-    src/mathlib.cpp
-    src/qctokenizer.cpp
+    src/utils/cmdlib.cpp
+    src/utils/mathlib.cpp
+    src/utils/stripification.cpp
+    src/format/image/bmpread.cpp
+    src/format/qc.cpp
     src/studiomdl.cpp
-    src/tristrip.cpp
     src/writemdl.cpp
 )
 

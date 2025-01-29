@@ -9,15 +9,17 @@
 #include <string>
 #include <filesystem>
 
-#include "cmdlib.hpp"
-#include "mathlib.hpp"
-#include "format/mdl.hpp"
+
 #include "studiomdl.hpp"
+#include "utils/cmdlib.hpp"
+#include "utils/mathlib.hpp"
+#include "format/image/bmp.hpp"
+#include "format/mdl.hpp"
+#include "format/qc.hpp"
+#include "writemdl.hpp"
+
 #include "monsters/activity.hpp"
 #include "monsters/activitymap.hpp"
-#include "writemdl.hpp"
-#include "bmp.hpp"
-#include "format/qc.hpp"
 
 #define strnicmp strncasecmp
 #define stricmp strcasecmp

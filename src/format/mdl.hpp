@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "mathlib.hpp"
+#include "utils/mathlib.hpp"
 
 // Half-Life 1 MDL v10 Constants and Structures
 

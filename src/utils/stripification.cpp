@@ -2,8 +2,8 @@
 #include <ctime>
 #include <cstring>
 
-#include "tristrip.hpp"
-#include "cmdlib.hpp"
+#include "utils/stripification.hpp"
+#include "utils/cmdlib.hpp"
 #include "format/mdl.hpp"
 #include "modeldata.hpp"
 

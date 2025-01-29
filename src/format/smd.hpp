@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <filesystem>
 
-#include "mathlib.hpp"
+#include "utils/mathlib.hpp"
 
 namespace smd {
 

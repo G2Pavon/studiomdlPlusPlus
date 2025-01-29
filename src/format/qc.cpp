@@ -2,8 +2,8 @@
 #include <cstdlib>
 #include <string>
 
-#include "cmdlib.hpp"
-#include "qc.hpp"
+#include "utils/cmdlib.hpp"
+#include "format/qc.hpp"
 
 char *qc_stream_p;     // Pointer to the current position in the QC file's data stream
 int qc_line_number;    // Current line number in the QC file

@@ -6,8 +6,8 @@
 #include <array>
 #include <algorithm>
 
-#include "cmdlib.hpp"
-#include "mathlib.hpp"
+#include "utils/cmdlib.hpp"
+#include "utils/mathlib.hpp"
 #include "modeldata.hpp"
 #include "format/mdl.hpp"
 

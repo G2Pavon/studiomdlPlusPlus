@@ -2,11 +2,11 @@
 #include <cstdlib>
 
 #include "writemdl.hpp"
-#include "mathlib.hpp"
 #include "format/mdl.hpp"
 #include "studiomdl.hpp"
 #include "format/qc.hpp"
-#include "tristrip.hpp"
+#include "utils/mathlib.hpp"
+#include "utils/stripification.hpp"
 
 int g_totalframes = 0;
 float g_totalseconds = 0;

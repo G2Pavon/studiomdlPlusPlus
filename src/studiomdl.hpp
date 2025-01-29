@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "mathlib.hpp"
+#include "utils/mathlib.hpp"
 #include "modeldata.hpp"
 #include "format/mdl.hpp"
 #include "format/qc.hpp"
