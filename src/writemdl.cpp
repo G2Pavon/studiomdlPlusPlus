@@ -3,9 +3,9 @@
 
 #include "writemdl.hpp"
 #include "mathlib.hpp"
-#include "studio.hpp"
+#include "format/mdl.hpp"
 #include "studiomdl.hpp"
-#include "qc.hpp"
+#include "format/qc.hpp"
 #include "tristrip.hpp"
 
 int g_totalframes = 0;

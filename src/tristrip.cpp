@@ -4,7 +4,7 @@
 
 #include "tristrip.hpp"
 #include "cmdlib.hpp"
-#include "studio.hpp"
+#include "format/mdl.hpp"
 #include "modeldata.hpp"
 
 int g_used[MAXSTUDIOTRIANGLES];

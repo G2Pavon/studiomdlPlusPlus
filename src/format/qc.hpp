@@ -1,13 +1,15 @@
 #pragma once
 
+#include <string>
 #include <filesystem>
 #include <cstring>
 #include <array>
 #include <algorithm>
 
+#include "cmdlib.hpp"
 #include "mathlib.hpp"
 #include "modeldata.hpp"
-#include "studio.hpp"
+#include "format/mdl.hpp"
 
 class QC
 {
@@ -90,3 +92,12 @@ public:
         bodypart.fill(BodyPart{});
     }
 };
+
+
+extern bool end_of_qc_file;
+extern char *qc_script_buffer;
+
+void load_qc_file(char *filename);
+
+bool get_token(bool crossline, std::string &token);
+bool token_available(void);

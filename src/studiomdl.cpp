@@ -10,15 +10,14 @@
 #include <filesystem>
 
 #include "cmdlib.hpp"
-#include "qctokenizer.hpp"
 #include "mathlib.hpp"
-#include "studio.hpp"
+#include "format/mdl.hpp"
 #include "studiomdl.hpp"
 #include "monsters/activity.hpp"
 #include "monsters/activitymap.hpp"
 #include "writemdl.hpp"
 #include "bmp.hpp"
-#include "qc.hpp"
+#include "format/qc.hpp"
 
 #define strnicmp strncasecmp
 #define stricmp strcasecmp

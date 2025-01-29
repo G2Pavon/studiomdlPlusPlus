@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "cmdlib.hpp"
-#include "qc.hpp"
+#include "format/qc.hpp"
 
 #define ALIGN(a) (((uintptr_t)(a) + 3) & ~(uintptr_t)3)
 

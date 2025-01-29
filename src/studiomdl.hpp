@@ -2,10 +2,10 @@
 
 #include <string>
 
-#include "studio.hpp"
 #include "mathlib.hpp"
 #include "modeldata.hpp"
-#include "qc.hpp"
+#include "format/mdl.hpp"
+#include "format/qc.hpp"
 
 // Common studiomdl and writemdl variables -----------------
 extern std::array<std::array<int, 100>, 100> g_xnode;

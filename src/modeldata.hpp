@@ -5,7 +5,7 @@
 #pragma once
 
 #include "mathlib.hpp"
-#include "studio.hpp"
+#include "format/mdl.hpp"
 
 struct TriangleVert
 {
