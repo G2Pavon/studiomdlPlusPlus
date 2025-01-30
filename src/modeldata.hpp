@@ -61,7 +61,7 @@ struct RenameBone
 
 struct HitBox
 {
-   std::string name; // bone name
+    std::string name; // bone name
     int bone;
     int group; // hitgroup
     int model;
@@ -122,7 +122,7 @@ struct Event
 {
     int event;
     int frame;
-    char options[MAXEVENTOPTIONS];
+    std::string options;
 };
 
 struct Pivot
@@ -138,7 +138,7 @@ struct Sequence
     int motiontype;
     Vector3 linearmovement;
 
-    char name[MAXSEQUENCENAMELENGTH]; // before: name[64]
+    std::string name; // before: name[64]
     int flags;
     float fps;
     int numframes;
@@ -175,8 +175,8 @@ struct Sequence
 
 struct SequenceGroup
 {
-    char label[32];
-    char name[64];
+    std::string label;
+    std::string name;
 };
 
 struct RGB

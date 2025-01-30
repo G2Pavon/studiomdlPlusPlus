@@ -1991,7 +1991,7 @@ int cmd_sequence_option_event(std::string &token, Sequence *psequence)
 		if (token[0] == '}') // opps, hit the end
 			return 1;
 		// found an option
-		std::strcpy(psequence->event[psequence->numevents - 1].options, token.c_str());
+		psequence->event[psequence->numevents - 1].options = token;
 	}
 
 	return 0;
@@ -2086,7 +2086,7 @@ void cmd_sequence_option_scale(QC &qc_cmd, std::string &token)
 int cmd_sequencegroup(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
-	strcpyn(qc_cmd.sequencegroup[g_num_sequencegroup].label, token.c_str());
+	qc_cmd.sequencegroup[g_num_sequencegroup].label = token;
 	g_num_sequencegroup++;
 
 	return 0;
@@ -2121,7 +2121,7 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return 0;
 
-	strcpyn(qc_cmd.sequence[g_num_sequence].name, token.c_str());
+	qc_cmd.sequence[g_num_sequence].name = token;
 
 	qc_cmd.sequenceOrigin = qc_cmd.origin;
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
@@ -2733,7 +2733,7 @@ int main(int argc, char **argv)
         }
     }
 
-    std::strcpy(qc_cmd.sequencegroup[g_num_sequencegroup].label, "default");
+    qc_cmd.sequencegroup[g_num_sequencegroup].label = "default";
     g_num_sequencegroup = 1;
 
     load_qc_file(path);       

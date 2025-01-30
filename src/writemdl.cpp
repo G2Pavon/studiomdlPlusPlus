@@ -150,7 +150,7 @@ void write_sequence_info(QC &qc_cmd)
 
 	for (i = 0; i < g_num_sequence; i++, pseqdesc++)
 	{
-		std::strcpy(pseqdesc->label, qc_cmd.sequence[i].name);
+		std::strcpy(pseqdesc->label, qc_cmd.sequence[i].name.c_str());
 		pseqdesc->numframes = qc_cmd.sequence[i].numframes;
 		pseqdesc->fps = qc_cmd.sequence[i].fps;
 		pseqdesc->flags = qc_cmd.sequence[i].flags;
@@ -195,7 +195,7 @@ void write_sequence_info(QC &qc_cmd)
 			{
 				pevent[j].frame = qc_cmd.sequence[i].event[j].frame - qc_cmd.sequence[i].frameoffset;
 				pevent[j].event = qc_cmd.sequence[i].event[j].event;
-				memcpy(pevent[j].options, qc_cmd.sequence[i].event[j].options, sizeof(pevent[j].options));
+				memcpy(pevent[j].options, qc_cmd.sequence[i].event[j].options.c_str(), sizeof(pevent[j].options));
 			}
 			g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 		}
@@ -225,8 +225,8 @@ void write_sequence_info(QC &qc_cmd)
 
 	for (i = 0; i < g_num_sequencegroup; i++)
 	{
-		std::strcpy(pseqgroup[i].label, qc_cmd.sequencegroup[i].label);
-		std::strcpy(pseqgroup[i].name, qc_cmd.sequencegroup[i].name);
+		std::strcpy(pseqgroup[i].label, qc_cmd.sequencegroup[i].label.c_str());
+		std::strcpy(pseqgroup[i].name, qc_cmd.sequencegroup[i].name.c_str());
 	}
 
 	// save transition graph
@@ -513,8 +513,8 @@ void write_file(QC &qc_cmd)
 		g_currentposition = write_animations(qc_cmd, g_currentposition, g_bufferstart, i);
 
 		extract_filebase(groupname, localname);
-		sprintf(qc_cmd.sequencegroup[i].name, "models\\%s.mdl", localname);
-		std::strcpy(g_studiosequenceheader->name, qc_cmd.sequencegroup[i].name);
+		sprintf(const_cast<char*>(qc_cmd.sequencegroup[i].name.c_str()), "models\\%s.mdl", localname);
+		std::strcpy(g_studiosequenceheader->name, qc_cmd.sequencegroup[i].name.c_str());
 		g_studiosequenceheader->length = static_cast<int>(g_currentposition - g_bufferstart);
 
 		printf("total     %6d\n", g_studiosequenceheader->length);
