@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "utils/mathlib.hpp"
 #include "format/mdl.hpp"
 
@@ -38,7 +40,7 @@ struct BoneFixUp
 
 struct BoneTable
 {
-    char name[MAXBONENAMELENGTH]; // bone name for symbolic links
+    std::string name; // bone name for symbolic links. TODO: Check name length limits
     int parent;                   // parent bone
     int bonecontroller;           // -1 == 0
     int flags;                    // X, Y, Z, XR, YR, ZR
@@ -53,13 +55,13 @@ struct BoneTable
 
 struct RenameBone
 {
-    char from[MAXBONENAMELENGTH];
-    char to[MAXBONENAMELENGTH];
+    std::string from;
+    std::string to;
 };
 
 struct HitBox
 {
-    char name[MAXBONENAMELENGTH]; // bone name
+   std::string name; // bone name
     int bone;
     int group; // hitgroup
     int model;
@@ -70,12 +72,12 @@ struct HitGroup
 {
     int models;
     int group;
-    char name[MAXBONENAMELENGTH]; // bone name
+    std::string name; // bone name
 };
 
 struct BoneController
 {
-    char name[MAXBONENAMELENGTH];
+    std::string name;
     int bone;
     int type;
     int index;
@@ -85,8 +87,8 @@ struct BoneController
 
 struct Attachment
 {
-    char name[MAXBONENAMELENGTH];
-    char bonename[MAXBONENAMELENGTH];
+    std::string name;
+    std::string bonename;
     int index;
     int bone;
     int type;
@@ -95,14 +97,14 @@ struct Attachment
 
 struct Node
 {
-    char name[MAXBONENAMELENGTH]; // before: name[64]
+    std::string name; // before: name[64]
     int parent;
     int mirrored;
 };
 
 struct Animation
 {
-    char name[MAXBONENAMELENGTH]; // before: name[64]
+    std::string name; // before: name[64]
     int startframe;
     int endframe;
     int flags;
@@ -185,7 +187,7 @@ struct RGB
 // FIXME: what about texture overrides inline with loading models
 struct Texture
 {
-    char name[64];
+    std::string name;
     int flags;
     int srcwidth;
     int srcheight;
@@ -226,7 +228,7 @@ struct Bone
 
 struct Model
 {
-    char name[64];
+    std::string name;
 
     int numbones;
     Node node[MAXSTUDIOSRCBONES];
@@ -258,7 +260,7 @@ struct Model
 
 struct BodyPart
 {
-    char name[32];
+    std::string name;
     int nummodels;
     int base;
     Model *pmodel[MAXSTUDIOMODELS];

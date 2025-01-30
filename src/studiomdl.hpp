@@ -34,7 +34,7 @@ void texture_coord_ranges(Mesh *pmesh, Texture *ptexture);
 // SimplifyModel:
 void simplify_model(QC &qc_cmd);
 void make_transitions(QC &qc_cmd);
-int find_node(char *name);
+int find_node(std::string name);
 void optimize_animations(QC &qc_cmd);
 void extract_motion(QC &qc_cmd);
 

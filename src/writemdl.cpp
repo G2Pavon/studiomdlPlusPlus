@@ -33,7 +33,7 @@ void write_bone_info(QC &qc_cmd)
 
 	for (i = 0; i < g_bonescount; i++)
 	{
-		std::strcpy(pbone[i].name, g_bonetable[i].name);
+		std::strcpy(pbone[i].name, g_bonetable[i].name.c_str());
 		pbone[i].parent = g_bonetable[i].parent;
 		pbone[i].flags = g_bonetable[i].flags;
 		pbone[i].value[0] = g_bonetable[i].pos[0];
@@ -331,7 +331,7 @@ void write_textures()
 
 	for (i = 0; i < g_texturescount; i++)
 	{
-		std::strcpy(ptexture[i].name, g_textures[i].name);
+		std::strcpy(ptexture[i].name, g_textures[i].name.c_str());
 		ptexture[i].flags = g_textures[i].flags;
 		ptexture[i].width = g_textures[i].skinwidth;
 		ptexture[i].height = g_textures[i].skinheight;
@@ -363,7 +363,7 @@ void write_model(QC &qc_cmd)
 
 	for (i = 0, j = 0; i < qc_cmd.bodygroupcount; i++)
 	{
-		std::strcpy(pbodypart[i].name, qc_cmd.bodypart[i].name);
+		std::strcpy(pbodypart[i].name, qc_cmd.bodypart[i].name.c_str());
 		pbodypart[i].nummodels = qc_cmd.bodypart[i].nummodels;
 		pbodypart[i].base = qc_cmd.bodypart[i].base;
 		pbodypart[i].modelindex = static_cast<int>((std::uint8_t *)&pmodel[j] - g_bufferstart);
@@ -378,7 +378,7 @@ void write_model(QC &qc_cmd)
 		int normimap[MAXSTUDIOVERTS];
 		int n = 0;
 
-		std::strcpy(pmodel[i].name, qc_cmd.submodel[i]->name);
+		std::strcpy(pmodel[i].name, qc_cmd.submodel[i]->name.c_str());
 
 		// save bbox info
 

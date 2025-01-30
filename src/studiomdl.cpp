@@ -251,11 +251,11 @@ void optimize_animations(QC &qc_cmd)
 	}
 }
 
-int find_node(char *name)
+int find_node(std::string name)
 {
 	for (int k = 0; k < g_bonescount; k++)
 	{
-		if (std::strcmp(g_bonetable[k].name, name) == 0)
+		if (g_bonetable[k].name == name)
 		{
 			return k;
 		}
@@ -368,9 +368,9 @@ void simplify_model(QC &qc_cmd)
 		{
 			for (k = 0; k < qc_cmd.renamebonecount; k++)
 			{
-				if (!std::strcmp(qc_cmd.submodel[i]->node[j].name, qc_cmd.renamebone[k].from))
+				if (qc_cmd.submodel[i]->node[j].name == qc_cmd.renamebone[k].from)
 				{
-					std::strcpy(qc_cmd.submodel[i]->node[j].name, qc_cmd.renamebone[k].to);
+					qc_cmd.submodel[i]->node[j].name = qc_cmd.renamebone[k].to;
 					break;
 				}
 			}
@@ -394,7 +394,7 @@ void simplify_model(QC &qc_cmd)
 				{
 					// create new bone
 					k = g_bonescount;
-					strcpyn(g_bonetable[k].name, qc_cmd.submodel[i]->node[j].name);
+					g_bonetable[k].name = qc_cmd.submodel[i]->node[j].name;
 					if ((n = qc_cmd.submodel[i]->node[j].parent) != -1)
 						g_bonetable[k].parent = find_node(qc_cmd.submodel[i]->node[n].name);
 					else
@@ -454,9 +454,9 @@ void simplify_model(QC &qc_cmd)
 		{
 			for (k = 0; k < qc_cmd.renamebonecount; k++)
 			{
-				if (!std::strcmp(qc_cmd.sequence[i].panim[0]->node[j].name, qc_cmd.renamebone[k].from))
+				if (qc_cmd.sequence[i].panim[0]->node[j].name == qc_cmd.renamebone[k].from)
 				{
-					std::strcpy(qc_cmd.sequence[i].panim[0]->node[j].name, qc_cmd.renamebone[k].to);
+					qc_cmd.sequence[i].panim[0]->node[j].name = qc_cmd.renamebone[k].to;
 					break;
 				}
 			}
@@ -485,10 +485,10 @@ void simplify_model(QC &qc_cmd)
 
 				// whoa, check parent connections!
 				if (qc_cmd.sequence[i].panim[0]->node[j].parent != -1)
-					szAnim = qc_cmd.sequence[i].panim[0]->node[qc_cmd.sequence[i].panim[0]->node[j].parent].name;
+					szAnim = const_cast<char*>((qc_cmd.sequence[i].panim[0]->node[qc_cmd.sequence[i].panim[0]->node[j].parent].name).c_str());
 
 				if (g_bonetable[k].parent != -1)
-					szNode = g_bonetable[g_bonetable[k].parent].name;
+					szNode = const_cast<char*>(g_bonetable[g_bonetable[k].parent].name.c_str());
 
 				if (std::strcmp(szAnim, szNode))
 				{
@@ -514,7 +514,7 @@ void simplify_model(QC &qc_cmd)
 	{
 		for (j = 0; j < g_bonescount; j++)
 		{
-			if (stricmp(qc_cmd.bonecontroller[i].name, g_bonetable[j].name) == 0)
+			if (qc_cmd.bonecontroller[i].name == g_bonetable[j].name)
 				break;
 		}
 		if (j >= g_bonescount)
@@ -529,7 +529,7 @@ void simplify_model(QC &qc_cmd)
 	{
 		for (j = 0; j < g_bonescount; j++)
 		{
-			if (stricmp(qc_cmd.attachment[i].bonename, g_bonetable[j].name) == 0)
+			if (qc_cmd.attachment[i].bonename == g_bonetable[j].name)
 				break;
 		}
 		if (j >= g_bonescount)
@@ -561,7 +561,7 @@ void simplify_model(QC &qc_cmd)
 	{
 		for (k = 0; k < g_bonescount; k++)
 		{
-			if (std::strcmp(g_bonetable[k].name, qc_cmd.hitgroup[j].name) == 0)
+			if (g_bonetable[k].name == qc_cmd.hitgroup[j].name)
 			{
 				g_bonetable[k].group = qc_cmd.hitgroup[j].group;
 				break;
@@ -653,7 +653,7 @@ void simplify_model(QC &qc_cmd)
 		{
 			for (k = 0; k < g_bonescount; k++)
 			{
-				if (std::strcmp(g_bonetable[k].name, qc_cmd.hitbox[j].name) == 0)
+				if (g_bonetable[k].name == qc_cmd.hitbox[j].name)
 				{
 					qc_cmd.hitbox[j].bone = k;
 					break;
@@ -1022,13 +1022,13 @@ int find_texture_index(std::string texturename)
 	int i;
 	for (i = 0; i < g_texturescount; i++)
 	{
-		if (stricmp(g_textures[i].name, texturename.c_str()) == 0)
+		if (g_textures[i].name == texturename)
 		{
 			return i;
 		}
 	}
 
-	strcpyn(g_textures[i].name, texturename.c_str());
+	g_textures[i].name = texturename;
 
 	// XDM: allow such names as "tex_chrome_bright" - chrome and full brightness effects
 	if (stristr(texturename.c_str(), "chrome") != nullptr)
@@ -1225,7 +1225,7 @@ void resize_texture(QC &qc_cmd, Texture *ptexture)
 
 	ptexture->size = ptexture->skinwidth * ptexture->skinheight + 256 * 3;
 
-	printf("BMP %s [%d %d] (%.0f%%)  %6d bytes\n", ptexture->name, ptexture->skinwidth, ptexture->skinheight,
+	printf("BMP %s [%d %d] (%.0f%%)  %6d bytes\n", ptexture->name.c_str(), ptexture->skinwidth, ptexture->skinheight,
 		   (static_cast<float>(ptexture->skinwidth * ptexture->skinheight) / static_cast<float>(ptexture->srcwidth * ptexture->srcheight)) * 100.0f,
 		   ptexture->size);
 
@@ -1607,7 +1607,7 @@ int grab_smd_nodes(QC &qc_cmd, Node *pnodes)
 		if (sscanf(g_currentsmdline, "%d \"%[^\"]\" %d", &index, boneName, &parent) == 3)
 		{
 
-			strcpyn(pnodes[index].name, boneName);
+			pnodes[index].name = boneName;
 			pnodes[index].parent = parent;
 			numBones = index;
 			// check for mirrored bones;
@@ -1712,7 +1712,7 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 	qc_cmd.submodel[qc_cmd.submodelscount] = new Model();
 	qc_cmd.bodypart[qc_cmd.bodygroupcount].pmodel[qc_cmd.bodypart[qc_cmd.bodygroupcount].nummodels] = qc_cmd.submodel[qc_cmd.submodelscount];
 
-	strcpyn(qc_cmd.submodel[qc_cmd.submodelscount]->name, token.c_str());
+	qc_cmd.submodel[qc_cmd.submodelscount]->name = token;
 
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 
@@ -1743,7 +1743,7 @@ int cmd_body_option_blank(QC &qc_cmd)
 	qc_cmd.submodel[qc_cmd.submodelscount] = new Model();
 	qc_cmd.bodypart[qc_cmd.bodygroupcount].pmodel[qc_cmd.bodypart[qc_cmd.bodygroupcount].nummodels] = qc_cmd.submodel[qc_cmd.submodelscount];
 
-	strcpyn(qc_cmd.submodel[qc_cmd.submodelscount]->name, "blank");
+	qc_cmd.submodel[qc_cmd.submodelscount]->name = "blank";
 
 	qc_cmd.bodypart[qc_cmd.bodygroupcount].nummodels++;
 	qc_cmd.submodelscount++;
@@ -1763,7 +1763,7 @@ void cmd_bodygroup(QC &qc_cmd, std::string &token)
 	{
 		qc_cmd.bodypart[qc_cmd.bodygroupcount].base = qc_cmd.bodypart[qc_cmd.bodygroupcount - 1].base * qc_cmd.bodypart[qc_cmd.bodygroupcount - 1].nummodels;
 	}
-	strcpyn(qc_cmd.bodypart[qc_cmd.bodygroupcount].name, token.c_str());
+	qc_cmd.bodypart[qc_cmd.bodygroupcount].name = token;
 
 	while (true)
 	{
@@ -1807,7 +1807,7 @@ void cmd_body(QC &qc_cmd, std::string &token)
 	{
 		qc_cmd.bodypart[qc_cmd.bodygroupcount].base = qc_cmd.bodypart[qc_cmd.bodygroupcount - 1].base * qc_cmd.bodypart[qc_cmd.bodygroupcount - 1].nummodels;
 	}
-	strcpyn(qc_cmd.bodypart[qc_cmd.bodygroupcount].name, token.c_str());
+	qc_cmd.bodypart[qc_cmd.bodygroupcount].name = token;
 
 	cmd_body_option_studio(qc_cmd, token);
 
@@ -1918,7 +1918,7 @@ void cmd_sequence_option_animation(QC &qc_cmd, char *name, Animation *panim)
 	char cmd[1024];
 	int option;
 
-	strcpyn(panim->name, name);
+	panim->name = name;
 
 	g_smdpath = qc_cmd.cdAbsolute / (std::string(panim->name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
@@ -2297,7 +2297,7 @@ int cmd_controller(QC &qc_cmd, std::string &token)
 		}
 		if (get_token(false, token))
 		{
-			strcpyn(qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].name, token.c_str());
+			qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].name = token;
 			get_token(false, token);
 			if ((qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].type = lookup_control(token.c_str())) == -1)
 			{
@@ -2441,7 +2441,7 @@ int cmd_hitgroup(QC &qc_cmd, std::string &token)
 	get_token(false, token);
 	qc_cmd.hitgroup[qc_cmd.hitgroupscount].group = std::stoi(token);
 	get_token(false, token);
-	strcpyn(qc_cmd.hitgroup[qc_cmd.hitgroupscount].name, token.c_str());
+	qc_cmd.hitgroup[qc_cmd.hitgroupscount].name = token;
 	qc_cmd.hitgroupscount++;
 
 	return 0;
@@ -2452,7 +2452,7 @@ int cmd_hitbox(QC &qc_cmd, std::string &token)
 	get_token(false, token);
 	qc_cmd.hitbox[qc_cmd.hitboxescount].group = std::stoi(token);
 	get_token(false, token);
-	strcpyn(qc_cmd.hitbox[qc_cmd.hitboxescount].name, token.c_str());
+	qc_cmd.hitbox[qc_cmd.hitboxescount].name = token;
 	get_token(false, token);
 	qc_cmd.hitbox[qc_cmd.hitboxescount].bmin[0] = std::stof(token);
 	get_token(false, token);
@@ -2479,7 +2479,7 @@ int cmd_attachment(QC &qc_cmd, std::string &token)
 
 	// bone name
 	get_token(false, token);
-	strcpyn(qc_cmd.attachment[qc_cmd.attachmentscount].bonename, token.c_str());
+	qc_cmd.attachment[qc_cmd.attachmentscount].bonename = token;
 
 	// position
 	get_token(false, token);
@@ -2503,11 +2503,11 @@ void cmd_renamebone(QC &qc_cmd, std::string &token)
 {
 	// from
 	get_token(false, token);
-	std::strcpy(qc_cmd.renamebone[qc_cmd.renamebonecount].from, token.c_str());
+	qc_cmd.renamebone[qc_cmd.renamebonecount].from = token;
 
 	// to
 	get_token(false, token);
-	std::strcpy(qc_cmd.renamebone[qc_cmd.renamebonecount].to, token.c_str());
+	qc_cmd.renamebone[qc_cmd.renamebonecount].to = token;
 
 	qc_cmd.renamebonecount++;
 }
