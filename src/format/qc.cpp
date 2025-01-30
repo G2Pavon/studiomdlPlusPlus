@@ -5,6 +5,20 @@
 #include "utils/cmdlib.hpp"
 #include "format/qc.hpp"
 
+int g_num_renamebone = 0;
+int g_num_hitgroups = 0;
+int g_num_mirrored = 0;
+int g_num_animation = 0;
+int g_num_texturegroup = 0;
+int g_num_hitboxes = 0;
+int g_num_bonecontroller = 0; 
+int g_num_attachments = 0;
+int g_num_sequence = 0;
+int g_num_sequencegroup = 0;
+int g_num_submodels = 0;
+int g_num_bodygroup = 0;
+
+
 char *qc_stream_p;     // Pointer to the current position in the QC file's data stream
 int qc_line_number;    // Current line number in the QC file
 bool token_ready;      // Flag indicating if a token is ready

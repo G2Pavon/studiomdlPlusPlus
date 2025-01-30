@@ -11,6 +11,23 @@
 #include "modeldata.hpp"
 #include "format/mdl.hpp"
 
+// Global variables for count commands
+// since array does not have .size() like vector
+// TODO: use vector instead
+
+extern int g_num_renamebone;
+extern int g_num_hitgroups;
+extern int g_num_mirrored;
+extern int g_num_animation;
+extern int g_num_texturegroup; // unnecessary? since engine doesn't support multiple texturegroups
+extern int g_num_hitboxes;
+extern int g_num_bonecontroller; 
+extern int g_num_attachments;
+extern int g_num_sequence;
+extern int g_num_sequencegroup;
+extern int g_num_submodels;
+extern int g_num_bodygroup;
+
 class QC
 {
 public:
@@ -28,19 +45,14 @@ public:
     float gamma = 1.8f;                                    // $$gamma
 
     std::array<RenameBone, MAXSTUDIOSRCBONES> renamebone{}; // $renamebone
-    int renamebonecount = 0;
 
     std::array<HitGroup, MAXSTUDIOSRCBONES> hitgroup{}; // $hgroup
-    int hitgroupscount = 0;
 
     std::array<std::array<char, 64>, MAXSTUDIOSRCBONES> mirrorbone{}; // $mirrorbone
-    int mirroredcount = 0;
 
     std::array<Animation *, MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS> animationSequenceOption{}; // $sequence, each sequence can have 16 blends
-    int animationcount = 0;
 
     std::array<std::array<std::array<int, 32>, 32>, 32> texturegroup{}; // $texturegroup
-    int texturegroupCount = 0;                                          // unnecessary? since engine doesn't support multiple texturegroups
     std::array<int, 32> texturegrouplayers{};
     std::array<int, 32> texturegroupreps{};
 
@@ -48,25 +60,18 @@ public:
     std::array<Vector3, 2> cbox{}; // $cbox
 
     std::array<HitBox, MAXSTUDIOSRCBONES> hitbox{}; // $hbox
-    int hitboxescount = 0;
 
     std::array<BoneController, MAXSTUDIOSRCBONES> bonecontroller{}; // $$controller
-    int bonecontrollerscount = 0;
 
     std::array<Attachment, MAXSTUDIOSRCBONES> attachment{}; // $attachment
-    int attachmentscount = 0;
 
     std::array<Sequence, MAXSTUDIOSEQUENCES> sequence{}; // $sequence
-    int sequencecount = 0;
 
     std::array<SequenceGroup, MAXSTUDIOSEQUENCES> sequencegroup{}; // $sequencegroup
-    int sequencegroupcount = 0;
 
     std::array<Model *, MAXSTUDIOMODELS> submodel{}; // $body
-    int submodelscount = 0;
 
     std::array<BodyPart, MAXSTUDIOBODYPARTS> bodypart{}; // $bodygroup
-    int bodygroupcount = 0;
 
     int flags = 0; // $flags
 

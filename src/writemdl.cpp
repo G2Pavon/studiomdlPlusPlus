@@ -61,7 +61,7 @@ void write_bone_info(QC &qc_cmd)
 		}
 	}
 
-	for (i = 0; i < qc_cmd.bonecontrollerscount; i++)
+	for (i = 0; i < g_num_bonecontroller; i++)
 	{
 		j = qc_cmd.bonecontroller[i].bone;
 		switch (qc_cmd.bonecontroller[i].type & STUDIO_TYPES)
@@ -92,10 +92,10 @@ void write_bone_info(QC &qc_cmd)
 
 	// save bonecontroller info
 	pbonecontroller = (StudioBoneController *)g_currentposition;
-	g_studioheader->numbonecontrollers = qc_cmd.bonecontrollerscount;
+	g_studioheader->numbonecontrollers = g_num_bonecontroller;
 	g_studioheader->bonecontrollerindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < qc_cmd.bonecontrollerscount; i++)
+	for (i = 0; i < g_num_bonecontroller; i++)
 	{
 		pbonecontroller[i].bone = qc_cmd.bonecontroller[i].bone;
 		pbonecontroller[i].index = qc_cmd.bonecontroller[i].index;
@@ -103,35 +103,35 @@ void write_bone_info(QC &qc_cmd)
 		pbonecontroller[i].start = qc_cmd.bonecontroller[i].start;
 		pbonecontroller[i].end = qc_cmd.bonecontroller[i].end;
 	}
-	g_currentposition += qc_cmd.bonecontrollerscount * sizeof(StudioBoneController);
+	g_currentposition += g_num_bonecontroller * sizeof(StudioBoneController);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	// save attachment info
 	pattachment = (StudioAttachment *)g_currentposition;
-	g_studioheader->numattachments = qc_cmd.attachmentscount;
+	g_studioheader->numattachments = g_num_attachments;
 	g_studioheader->attachmentindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < qc_cmd.attachmentscount; i++)
+	for (i = 0; i < g_num_attachments; i++)
 	{
 		pattachment[i].bone = qc_cmd.attachment[i].bone;
 		pattachment[i].org = qc_cmd.attachment[i].org;
 	}
-	g_currentposition += qc_cmd.attachmentscount * sizeof(StudioAttachment);
+	g_currentposition += g_num_attachments * sizeof(StudioAttachment);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	// save bbox info
 	pbbox = (StudioHitbox *)g_currentposition;
-	g_studioheader->numhitboxes = qc_cmd.hitboxescount;
+	g_studioheader->numhitboxes = g_num_hitboxes;
 	g_studioheader->hitboxindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < qc_cmd.hitboxescount; i++)
+	for (i = 0; i < g_num_hitboxes; i++)
 	{
 		pbbox[i].bone = qc_cmd.hitbox[i].bone;
 		pbbox[i].group = qc_cmd.hitbox[i].group;
 		pbbox[i].bbmin = qc_cmd.hitbox[i].bmin;
 		pbbox[i].bbmax = qc_cmd.hitbox[i].bmax;
 	}
-	g_currentposition += qc_cmd.hitboxescount * sizeof(StudioHitbox);
+	g_currentposition += g_num_hitboxes * sizeof(StudioHitbox);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 }
 void write_sequence_info(QC &qc_cmd)
@@ -144,11 +144,11 @@ void write_sequence_info(QC &qc_cmd)
 
 	// save sequence info
 	pseqdesc = (StudioSequenceDescription *)g_currentposition;
-	g_studioheader->numseq = qc_cmd.sequencecount;
+	g_studioheader->numseq = g_num_sequence;
 	g_studioheader->seqindex = static_cast<int>(g_currentposition - g_bufferstart);
-	g_currentposition += qc_cmd.sequencecount * sizeof(StudioSequenceDescription);
+	g_currentposition += g_num_sequence * sizeof(StudioSequenceDescription);
 
-	for (i = 0; i < qc_cmd.sequencecount; i++, pseqdesc++)
+	for (i = 0; i < g_num_sequence; i++, pseqdesc++)
 	{
 		std::strcpy(pseqdesc->label, qc_cmd.sequence[i].name);
 		pseqdesc->numframes = qc_cmd.sequence[i].numframes;
@@ -218,12 +218,12 @@ void write_sequence_info(QC &qc_cmd)
 
 	// save sequence group info
 	pseqgroup = (StudioSequenceGroup *)g_currentposition;
-	g_studioheader->numseqgroups = qc_cmd.sequencegroupcount;
+	g_studioheader->numseqgroups = g_num_sequencegroup;
 	g_studioheader->seqgroupindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_studioheader->numseqgroups * sizeof(StudioSequenceGroup);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
-	for (i = 0; i < qc_cmd.sequencegroupcount; i++)
+	for (i = 0; i < g_num_sequencegroup; i++)
 	{
 		std::strcpy(pseqgroup[i].label, qc_cmd.sequencegroup[i].label);
 		std::strcpy(pseqgroup[i].name, qc_cmd.sequencegroup[i].name);
@@ -252,7 +252,7 @@ std::uint8_t *write_animations(QC &qc_cmd, std::uint8_t *pData, const std::uint8
 	// hack for seqgroup 0
 	// pseqgroup->data = (pData - pStart);
 
-	for (int i = 0; i < qc_cmd.sequencecount; i++)
+	for (int i = 0; i < g_num_sequence; i++)
 	{
 		if (qc_cmd.sequence[i].seqgroup == group)
 		{
@@ -354,14 +354,14 @@ void write_model(QC &qc_cmd)
 	std::intptr_t cur;
 
 	pbodypart = (StudioBodyPart *)g_currentposition;
-	g_studioheader->numbodyparts = qc_cmd.bodygroupcount;
+	g_studioheader->numbodyparts = g_num_bodygroup;
 	g_studioheader->bodypartindex = static_cast<int>(g_currentposition - g_bufferstart);
-	g_currentposition += qc_cmd.bodygroupcount * sizeof(StudioBodyPart);
+	g_currentposition += g_num_bodygroup * sizeof(StudioBodyPart);
 
 	pmodel = (StudioModel *)g_currentposition;
-	g_currentposition += qc_cmd.submodelscount * sizeof(StudioModel);
+	g_currentposition += g_num_submodels * sizeof(StudioModel);
 
-	for (i = 0, j = 0; i < qc_cmd.bodygroupcount; i++)
+	for (i = 0, j = 0; i < g_num_bodygroup; i++)
 	{
 		std::strcpy(pbodypart[i].name, qc_cmd.bodypart[i].name.c_str());
 		pbodypart[i].nummodels = qc_cmd.bodypart[i].nummodels;
@@ -372,7 +372,7 @@ void write_model(QC &qc_cmd)
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	cur = reinterpret_cast<std::intptr_t>(g_currentposition);
-	for (i = 0; i < qc_cmd.submodelscount; i++)
+	for (i = 0; i < g_num_submodels; i++)
 	{
 		int normmap[MAXSTUDIOVERTS];
 		int normimap[MAXSTUDIOVERTS];
@@ -494,7 +494,7 @@ void write_file(QC &qc_cmd)
 
 	strip_extension(qc_cmd.modelname);
 
-	for (int i = 1; i < qc_cmd.sequencegroupcount; i++)
+	for (int i = 1; i < g_num_sequencegroup; i++)
 	{
 		// write the non-default sequence group data to separate files
 		char groupname[128], localname[128];

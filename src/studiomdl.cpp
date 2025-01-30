@@ -74,7 +74,7 @@ void extract_motion(QC &qc_cmd)
 	int blendIndex;
 
 	// extract linear motion
-	for (i = 0; i < qc_cmd.sequencecount; i++)
+	for (i = 0; i < g_num_sequence; i++)
 	{
 		if (qc_cmd.sequence[i].numframes > 1)
 		{
@@ -119,7 +119,7 @@ void extract_motion(QC &qc_cmd)
 	}
 
 	// extract unused motion
-	for (i = 0; i < qc_cmd.sequencecount; i++)
+	for (i = 0; i < g_num_sequence; i++)
 	{
 		int typeUnusedMotion = qc_cmd.sequence[i].motiontype;
 		for (k = 0; k < qc_cmd.sequence[i].panim[0]->numbones; k++)
@@ -159,7 +159,7 @@ void extract_motion(QC &qc_cmd)
 	}
 
 	// extract auto motion
-	for (i = 0; i < qc_cmd.sequencecount; i++)
+	for (i = 0; i < g_num_sequence; i++)
 	{
 		// assume 0 for now.
 		Vector3 *ptrAutoPos;
@@ -199,7 +199,7 @@ void optimize_animations(QC &qc_cmd)
 	int iError = 0;
 
 	// optimize animations
-	for (int i = 0; i < qc_cmd.sequencecount; i++)
+	for (int i = 0; i < g_num_sequence; i++)
 	{
 		qc_cmd.sequence[i].numframes = qc_cmd.sequence[i].panim[0]->endframe - qc_cmd.sequence[i].panim[0]->startframe + 1;
 
@@ -269,7 +269,7 @@ void make_transitions(QC &qc_cmd)
 	int iHit;
 
 	// Add in direct node transitions
-	for (i = 0; i < qc_cmd.sequencecount; i++)
+	for (i = 0; i < g_num_sequence; i++)
 	{
 		if (qc_cmd.sequence[i].entrynode != qc_cmd.sequence[i].exitnode)
 		{
@@ -336,7 +336,7 @@ void simplify_model(QC &qc_cmd)
 	make_transitions(qc_cmd);
 
 	// find used bones
-	for (i = 0; i < qc_cmd.submodelscount; i++)
+	for (i = 0; i < g_num_submodels; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -362,11 +362,11 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// rename model bones if needed
-	for (i = 0; i < qc_cmd.submodelscount; i++)
+	for (i = 0; i < g_num_submodels; i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->numbones; j++)
 		{
-			for (k = 0; k < qc_cmd.renamebonecount; k++)
+			for (k = 0; k < g_num_renamebone; k++)
 			{
 				if (qc_cmd.submodel[i]->node[j].name == qc_cmd.renamebone[k].from)
 				{
@@ -379,7 +379,7 @@ void simplify_model(QC &qc_cmd)
 
 	// union of all used bones
 	g_bonescount = 0;
-	for (i = 0; i < qc_cmd.submodelscount; i++)
+	for (i = 0; i < g_num_submodels; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -448,11 +448,11 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// rename sequence bones if needed
-	for (i = 0; i < qc_cmd.sequencecount; i++)
+	for (i = 0; i < g_num_sequence; i++)
 	{
 		for (j = 0; j < qc_cmd.sequence[i].panim[0]->numbones; j++)
 		{
-			for (k = 0; k < qc_cmd.renamebonecount; k++)
+			for (k = 0; k < g_num_renamebone; k++)
 			{
 				if (qc_cmd.sequence[i].panim[0]->node[j].name == qc_cmd.renamebone[k].from)
 				{
@@ -464,7 +464,7 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// map each sequences bone list to master list
-	for (i = 0; i < qc_cmd.sequencecount; i++)
+	for (i = 0; i < g_num_sequence; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -510,7 +510,7 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// link bonecontrollers
-	for (i = 0; i < qc_cmd.bonecontrollerscount; i++)
+	for (i = 0; i < g_num_bonecontroller; i++)
 	{
 		for (j = 0; j < g_bonescount; j++)
 		{
@@ -525,7 +525,7 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// link attachments
-	for (i = 0; i < qc_cmd.attachmentscount; i++)
+	for (i = 0; i < g_num_attachments; i++)
 	{
 		for (j = 0; j < g_bonescount; j++)
 		{
@@ -540,7 +540,7 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// relink model
-	for (i = 0; i < qc_cmd.submodelscount; i++)
+	for (i = 0; i < g_num_submodels; i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->numverts; j++)
 		{
@@ -557,7 +557,7 @@ void simplify_model(QC &qc_cmd)
 	{
 		g_bonetable[k].group = -9999;
 	}
-	for (j = 0; j < qc_cmd.hitgroupscount; j++)
+	for (j = 0; j < g_num_hitgroups; j++)
 	{
 		for (k = 0; k < g_bonescount; k++)
 		{
@@ -581,7 +581,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	if (qc_cmd.hitboxescount == 0)
+	if (g_num_hitboxes == 0)
 	{
 		// find intersection box volume for each bone
 		for (k = 0; k < g_bonescount; k++)
@@ -593,7 +593,7 @@ void simplify_model(QC &qc_cmd)
 			}
 		}
 		// try all the connect vertices
-		for (i = 0; i < qc_cmd.submodelscount; i++)
+		for (i = 0; i < g_num_submodels; i++)
 		{
 			Vector3 p;
 			for (j = 0; j < qc_cmd.submodel[i]->numverts; j++)
@@ -639,17 +639,17 @@ void simplify_model(QC &qc_cmd)
 		{
 			if (g_bonetable[k].bmin[0] < g_bonetable[k].bmax[0] - 1 && g_bonetable[k].bmin[1] < g_bonetable[k].bmax[1] - 1 && g_bonetable[k].bmin[2] < g_bonetable[k].bmax[2] - 1)
 			{
-				qc_cmd.hitbox[qc_cmd.hitboxescount].bone = k;
-				qc_cmd.hitbox[qc_cmd.hitboxescount].group = g_bonetable[k].group;
-				qc_cmd.hitbox[qc_cmd.hitboxescount].bmin = g_bonetable[k].bmin;
-				qc_cmd.hitbox[qc_cmd.hitboxescount].bmax = g_bonetable[k].bmax;
-				qc_cmd.hitboxescount++;
+				qc_cmd.hitbox[g_num_hitboxes].bone = k;
+				qc_cmd.hitbox[g_num_hitboxes].group = g_bonetable[k].group;
+				qc_cmd.hitbox[g_num_hitboxes].bmin = g_bonetable[k].bmin;
+				qc_cmd.hitbox[g_num_hitboxes].bmax = g_bonetable[k].bmax;
+				g_num_hitboxes++;
 			}
 		}
 	}
 	else
 	{
-		for (j = 0; j < qc_cmd.hitboxescount; j++)
+		for (j = 0; j < g_num_hitboxes; j++)
 		{
 			for (k = 0; k < g_bonescount; k++)
 			{
@@ -665,7 +665,7 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// relink animations
-	for (i = 0; i < qc_cmd.sequencecount; i++)
+	for (i = 0; i < g_num_sequence; i++)
 	{
 		Vector3 *origpos[MAXSTUDIOSRCBONES] = {nullptr};
 		Vector3 *origrot[MAXSTUDIOSRCBONES] = {nullptr};
@@ -715,7 +715,7 @@ void simplify_model(QC &qc_cmd)
 				maxv = Q_PI / 8.0;
 			}
 
-			for (i = 0; i < qc_cmd.sequencecount; i++)
+			for (i = 0; i < g_num_sequence; i++)
 			{
 				for (q = 0; q < qc_cmd.sequence[i].numblends; q++)
 				{
@@ -778,7 +778,7 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// find bounding box for each sequence
-	for (i = 0; i < qc_cmd.sequencecount; i++)
+	for (i = 0; i < g_num_sequence; i++)
 	{
 		Vector3 bmin, bmax;
 
@@ -821,7 +821,7 @@ void simplify_model(QC &qc_cmd)
 					}
 				}
 
-				for (k = 0; k < qc_cmd.submodelscount; k++)
+				for (k = 0; k < g_num_submodels; k++)
 				{
 					for (j = 0; j < qc_cmd.submodel[k]->numverts; j++)
 					{
@@ -853,7 +853,7 @@ void simplify_model(QC &qc_cmd)
 		int changes = 0;
 		int p;
 
-		for (i = 0; i < qc_cmd.sequencecount; i++)
+		for (i = 0; i < g_num_sequence; i++)
 		{
 			for (q = 0; q < qc_cmd.sequence[i].numblends; q++)
 			{
@@ -1311,7 +1311,7 @@ void set_skin_values(QC &qc_cmd)
 		g_textures[i].min_t = 9999999;
 	}
 
-	for (i = 0; i < qc_cmd.submodelscount; i++)
+	for (i = 0; i < g_num_submodels; i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->nummesh; j++)
 		{
@@ -1343,7 +1343,7 @@ void set_skin_values(QC &qc_cmd)
 		resize_texture(qc_cmd, &g_textures[i]);
 	}
 
-	for (i = 0; i < qc_cmd.submodelscount; i++)
+	for (i = 0; i < g_num_submodels; i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->nummesh; j++)
 		{
@@ -1611,7 +1611,7 @@ int grab_smd_nodes(QC &qc_cmd, Node *pnodes)
 			pnodes[index].parent = parent;
 			numBones = index;
 			// check for mirrored bones;
-			for (int i = 0; i < qc_cmd.mirroredcount; i++)
+			for (int i = 0; i < g_num_mirrored; i++)
 			{
 				if (std::strcmp(boneName, qc_cmd.mirrorbone[i].data()) == 0)
 					pnodes[index].mirrored = 1;
@@ -1709,10 +1709,10 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	qc_cmd.submodel[qc_cmd.submodelscount] = new Model();
-	qc_cmd.bodypart[qc_cmd.bodygroupcount].pmodel[qc_cmd.bodypart[qc_cmd.bodygroupcount].nummodels] = qc_cmd.submodel[qc_cmd.submodelscount];
+	qc_cmd.submodel[g_num_submodels] = new Model();
+	qc_cmd.bodypart[g_num_bodygroup].pmodel[qc_cmd.bodypart[g_num_bodygroup].nummodels] = qc_cmd.submodel[g_num_submodels];
 
-	qc_cmd.submodel[qc_cmd.submodelscount]->name = token;
+	qc_cmd.submodel[g_num_submodels]->name = token;
 
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 
@@ -1730,23 +1730,23 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 		}
 	}
 
-	parse_smd(qc_cmd, qc_cmd.submodel[qc_cmd.submodelscount]);
+	parse_smd(qc_cmd, qc_cmd.submodel[g_num_submodels]);
 
-	qc_cmd.bodypart[qc_cmd.bodygroupcount].nummodels++;
-	qc_cmd.submodelscount++;
+	qc_cmd.bodypart[g_num_bodygroup].nummodels++;
+	g_num_submodels++;
 
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 }
 
 int cmd_body_option_blank(QC &qc_cmd)
 {
-	qc_cmd.submodel[qc_cmd.submodelscount] = new Model();
-	qc_cmd.bodypart[qc_cmd.bodygroupcount].pmodel[qc_cmd.bodypart[qc_cmd.bodygroupcount].nummodels] = qc_cmd.submodel[qc_cmd.submodelscount];
+	qc_cmd.submodel[g_num_submodels] = new Model();
+	qc_cmd.bodypart[g_num_bodygroup].pmodel[qc_cmd.bodypart[g_num_bodygroup].nummodels] = qc_cmd.submodel[g_num_submodels];
 
-	qc_cmd.submodel[qc_cmd.submodelscount]->name = "blank";
+	qc_cmd.submodel[g_num_submodels]->name = "blank";
 
-	qc_cmd.bodypart[qc_cmd.bodygroupcount].nummodels++;
-	qc_cmd.submodelscount++;
+	qc_cmd.bodypart[g_num_bodygroup].nummodels++;
+	g_num_submodels++;
 	return 0;
 }
 
@@ -1755,15 +1755,15 @@ void cmd_bodygroup(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	if (qc_cmd.bodygroupcount == 0)
+	if (g_num_bodygroup == 0)
 	{
-		qc_cmd.bodypart[qc_cmd.bodygroupcount].base = 1;
+		qc_cmd.bodypart[g_num_bodygroup].base = 1;
 	}
 	else
 	{
-		qc_cmd.bodypart[qc_cmd.bodygroupcount].base = qc_cmd.bodypart[qc_cmd.bodygroupcount - 1].base * qc_cmd.bodypart[qc_cmd.bodygroupcount - 1].nummodels;
+		qc_cmd.bodypart[g_num_bodygroup].base = qc_cmd.bodypart[g_num_bodygroup - 1].base * qc_cmd.bodypart[g_num_bodygroup - 1].nummodels;
 	}
-	qc_cmd.bodypart[qc_cmd.bodygroupcount].name = token;
+	qc_cmd.bodypart[g_num_bodygroup].name = token;
 
 	while (true)
 	{
@@ -1790,7 +1790,7 @@ void cmd_bodygroup(QC &qc_cmd, std::string &token)
 		}
 	}
 
-	qc_cmd.bodygroupcount++;
+	g_num_bodygroup++;
 	return;
 }
 
@@ -1799,19 +1799,19 @@ void cmd_body(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	if (qc_cmd.bodygroupcount == 0)
+	if (g_num_bodygroup == 0)
 	{
-		qc_cmd.bodypart[qc_cmd.bodygroupcount].base = 1;
+		qc_cmd.bodypart[g_num_bodygroup].base = 1;
 	}
 	else
 	{
-		qc_cmd.bodypart[qc_cmd.bodygroupcount].base = qc_cmd.bodypart[qc_cmd.bodygroupcount - 1].base * qc_cmd.bodypart[qc_cmd.bodygroupcount - 1].nummodels;
+		qc_cmd.bodypart[g_num_bodygroup].base = qc_cmd.bodypart[g_num_bodygroup - 1].base * qc_cmd.bodypart[g_num_bodygroup - 1].nummodels;
 	}
-	qc_cmd.bodypart[qc_cmd.bodygroupcount].name = token;
+	qc_cmd.bodypart[g_num_bodygroup].name = token;
 
 	cmd_body_option_studio(qc_cmd, token);
 
-	qc_cmd.bodygroupcount++;
+	g_num_bodygroup++;
 }
 
 void grab_option_animation(QC &qc_cmd, Animation *panim)
@@ -2086,8 +2086,8 @@ void cmd_sequence_option_scale(QC &qc_cmd, std::string &token)
 int cmd_sequencegroup(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
-	strcpyn(qc_cmd.sequencegroup[qc_cmd.sequencegroupcount].label, token.c_str());
-	qc_cmd.sequencegroupcount++;
+	strcpyn(qc_cmd.sequencegroup[g_num_sequencegroup].label, token.c_str());
+	g_num_sequencegroup++;
 
 	return 0;
 }
@@ -2121,16 +2121,16 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return 0;
 
-	strcpyn(qc_cmd.sequence[qc_cmd.sequencecount].name, token.c_str());
+	strcpyn(qc_cmd.sequence[g_num_sequence].name, token.c_str());
 
 	qc_cmd.sequenceOrigin = qc_cmd.origin;
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 
 	qc_cmd.rotate = qc_cmd.originRotation;
-	qc_cmd.sequence[qc_cmd.sequencecount].fps = 30.0;
-	qc_cmd.sequence[qc_cmd.sequencecount].seqgroup = qc_cmd.sequencegroupcount - 1;
-	qc_cmd.sequence[qc_cmd.sequencecount].blendstart[0] = 0.0;
-	qc_cmd.sequence[qc_cmd.sequencecount].blendend[0] = 1.0;
+	qc_cmd.sequence[g_num_sequence].fps = 30.0;
+	qc_cmd.sequence[g_num_sequence].seqgroup = g_num_sequencegroup - 1;
+	qc_cmd.sequence[g_num_sequence].blendstart[0] = 0.0;
+	qc_cmd.sequence[g_num_sequence].blendend[0] = 1.0;
 
 	while (true)
 	{
@@ -2172,15 +2172,15 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		}
 		else if (token == "event")
 		{
-			depth -= cmd_sequence_option_event(token, &qc_cmd.sequence[qc_cmd.sequencecount]);
+			depth -= cmd_sequence_option_event(token, &qc_cmd.sequence[g_num_sequence]);
 		}
 		else if (token == "pivot")
 		{
-			cmd_sequence_option_addpivot(token, &qc_cmd.sequence[qc_cmd.sequencecount]);
+			cmd_sequence_option_addpivot(token, &qc_cmd.sequence[g_num_sequence]);
 		}
 		else if (token == "fps")
 		{
-			cmd_sequence_option_fps(token, &qc_cmd.sequence[qc_cmd.sequencecount]);
+			cmd_sequence_option_fps(token, &qc_cmd.sequence[g_num_sequence]);
 		}
 		else if (token == "origin")
 		{
@@ -2196,7 +2196,7 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		}
 		else if (token == "loop")
 		{
-			qc_cmd.sequence[qc_cmd.sequencecount].flags |= STUDIO_LOOPING;
+			qc_cmd.sequence[g_num_sequence].flags |= STUDIO_LOOPING;
 		}
 		else if (token == "frame")
 		{
@@ -2208,35 +2208,35 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		else if (token == "blend")
 		{
 			get_token(false, token);
-			qc_cmd.sequence[qc_cmd.sequencecount].blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
+			qc_cmd.sequence[g_num_sequence].blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
 			get_token(false, token);
-			qc_cmd.sequence[qc_cmd.sequencecount].blendstart[0] = std::stof(token);
+			qc_cmd.sequence[g_num_sequence].blendstart[0] = std::stof(token);
 			get_token(false, token);
-			qc_cmd.sequence[qc_cmd.sequencecount].blendend[0] = std::stof(token);
+			qc_cmd.sequence[g_num_sequence].blendend[0] = std::stof(token);
 		}
 		else if (token == "node")
 		{
 			get_token(false, token);
-			qc_cmd.sequence[qc_cmd.sequencecount].entrynode = qc_cmd.sequence[qc_cmd.sequencecount].exitnode = std::stoi(token);
+			qc_cmd.sequence[g_num_sequence].entrynode = qc_cmd.sequence[g_num_sequence].exitnode = std::stoi(token);
 		}
 		else if (token == "transition")
 		{
 			get_token(false, token);
-			qc_cmd.sequence[qc_cmd.sequencecount].entrynode = std::stoi(token);
+			qc_cmd.sequence[g_num_sequence].entrynode = std::stoi(token);
 			get_token(false, token);
-			qc_cmd.sequence[qc_cmd.sequencecount].exitnode = std::stoi(token);
+			qc_cmd.sequence[g_num_sequence].exitnode = std::stoi(token);
 		}
 		else if (token == "rtransition")
 		{
 			get_token(false, token);
-			qc_cmd.sequence[qc_cmd.sequencecount].entrynode = std::stoi(token);
+			qc_cmd.sequence[g_num_sequence].entrynode = std::stoi(token);
 			get_token(false, token);
-			qc_cmd.sequence[qc_cmd.sequencecount].exitnode = std::stoi(token);
-			qc_cmd.sequence[qc_cmd.sequencecount].nodeflags |= 1;
+			qc_cmd.sequence[g_num_sequence].exitnode = std::stoi(token);
+			qc_cmd.sequence[g_num_sequence].nodeflags |= 1;
 		}
 		else if (lookup_control(token.c_str()) != -1) // motion flags [motion extraction]
 		{
-			qc_cmd.sequence[qc_cmd.sequencecount].motiontype |= lookup_control(token.c_str());
+			qc_cmd.sequence[g_num_sequence].motiontype |= lookup_control(token.c_str());
 		}
 		else if (token == "animation")
 		{
@@ -2245,9 +2245,9 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		}
 		else if ((i = cmd_sequence_option_action(token)) != 0)
 		{
-			qc_cmd.sequence[qc_cmd.sequencecount].activity = i;
+			qc_cmd.sequence[g_num_sequence].activity = i;
 			get_token(false, token);
-			qc_cmd.sequence[qc_cmd.sequencecount].actweight = std::stoi(token);
+			qc_cmd.sequence[g_num_sequence].actweight = std::stoi(token);
 		}
 		else
 		{
@@ -2268,17 +2268,17 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 	}
 	for (i = 0; i < numblends; i++)
 	{
-		qc_cmd.animationSequenceOption[qc_cmd.animationcount] = new Animation(); // FIXME: memory leak
-		qc_cmd.sequence[qc_cmd.sequencecount].panim[i] = qc_cmd.animationSequenceOption[qc_cmd.animationcount];
-		qc_cmd.sequence[qc_cmd.sequencecount].panim[i]->startframe = start;
-		qc_cmd.sequence[qc_cmd.sequencecount].panim[i]->endframe = end;
-		qc_cmd.sequence[qc_cmd.sequencecount].panim[i]->flags = 0;
-		cmd_sequence_option_animation(qc_cmd, smdfilename[i], qc_cmd.animationSequenceOption[qc_cmd.animationcount]);
-		qc_cmd.animationcount++;
+		qc_cmd.animationSequenceOption[g_num_animation] = new Animation(); // FIXME: memory leak
+		qc_cmd.sequence[g_num_sequence].panim[i] = qc_cmd.animationSequenceOption[g_num_animation];
+		qc_cmd.sequence[g_num_sequence].panim[i]->startframe = start;
+		qc_cmd.sequence[g_num_sequence].panim[i]->endframe = end;
+		qc_cmd.sequence[g_num_sequence].panim[i]->flags = 0;
+		cmd_sequence_option_animation(qc_cmd, smdfilename[i], qc_cmd.animationSequenceOption[g_num_animation]);
+		g_num_animation++;
 	}
-	qc_cmd.sequence[qc_cmd.sequencecount].numblends = numblends;
+	qc_cmd.sequence[g_num_sequence].numblends = numblends;
 
-	qc_cmd.sequencecount++;
+	g_num_sequence++;
 
 	return 0;
 }
@@ -2289,34 +2289,34 @@ int cmd_controller(QC &qc_cmd, std::string &token)
 	{
 		if (token == "mouth")
 		{
-			qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].index = 4;
+			qc_cmd.bonecontroller[g_num_bonecontroller].index = 4;
 		}
 		else
 		{
-			qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].index = std::stoi(token);
+			qc_cmd.bonecontroller[g_num_bonecontroller].index = std::stoi(token);
 		}
 		if (get_token(false, token))
 		{
-			qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].name = token;
+			qc_cmd.bonecontroller[g_num_bonecontroller].name = token;
 			get_token(false, token);
-			if ((qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].type = lookup_control(token.c_str())) == -1)
+			if ((qc_cmd.bonecontroller[g_num_bonecontroller].type = lookup_control(token.c_str())) == -1)
 			{
 				printf("unknown bonecontroller type '%s'\n", token);
 				return 0;
 			}
 			get_token(false, token);
-			qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].start = std::stof(token);
+			qc_cmd.bonecontroller[g_num_bonecontroller].start = std::stof(token);
 			get_token(false, token);
-			qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].end = std::stof(token);
+			qc_cmd.bonecontroller[g_num_bonecontroller].end = std::stof(token);
 
-			if (qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
+			if (qc_cmd.bonecontroller[g_num_bonecontroller].type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
 			{
-				if ((static_cast<int>(qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].start + 360) % 360) == (static_cast<int>(qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].end + 360) % 360))
+				if ((static_cast<int>(qc_cmd.bonecontroller[g_num_bonecontroller].start + 360) % 360) == (static_cast<int>(qc_cmd.bonecontroller[g_num_bonecontroller].end + 360) % 360))
 				{
-					qc_cmd.bonecontroller[qc_cmd.bonecontrollerscount].type |= STUDIO_RLOOP;
+					qc_cmd.bonecontroller[g_num_bonecontroller].type |= STUDIO_RLOOP;
 				}
 			}
-			qc_cmd.bonecontrollerscount++;
+			g_num_bonecontroller++;
 		}
 	}
 	return 1;
@@ -2367,7 +2367,7 @@ void cmd_cbox(QC &qc_cmd, std::string &token)
 void cmd_mirror(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
-	strcpyn(qc_cmd.mirrorbone[qc_cmd.mirroredcount++].data(), token.c_str());
+	strcpyn(qc_cmd.mirrorbone[g_num_mirrored++].data(), token.c_str());
 }
 
 void cmd_gamma(QC &qc_cmd, std::string &token)
@@ -2422,16 +2422,16 @@ int cmd_texturegroup(QC &qc_cmd, std::string &token)
 		else if (depth == 2)
 		{
 			i = find_texture_index(token);
-			qc_cmd.texturegroup[qc_cmd.texturegroupCount][group][index] = i;
+			qc_cmd.texturegroup[g_num_texturegroup][group][index] = i;
 			if (group != 0)
-				g_textures[i].parent = qc_cmd.texturegroup[qc_cmd.texturegroupCount][0][index];
+				g_textures[i].parent = qc_cmd.texturegroup[g_num_texturegroup][0][index];
 			index++;
-			qc_cmd.texturegroupreps[qc_cmd.texturegroupCount] = index;
-			qc_cmd.texturegrouplayers[qc_cmd.texturegroupCount] = group + 1;
+			qc_cmd.texturegroupreps[g_num_texturegroup] = index;
+			qc_cmd.texturegrouplayers[g_num_texturegroup] = group + 1;
 		}
 	}
 
-	qc_cmd.texturegroupCount++;
+	g_num_texturegroup++;
 
 	return 0;
 }
@@ -2439,10 +2439,10 @@ int cmd_texturegroup(QC &qc_cmd, std::string &token)
 int cmd_hitgroup(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
-	qc_cmd.hitgroup[qc_cmd.hitgroupscount].group = std::stoi(token);
+	qc_cmd.hitgroup[g_num_hitgroups].group = std::stoi(token);
 	get_token(false, token);
-	qc_cmd.hitgroup[qc_cmd.hitgroupscount].name = token;
-	qc_cmd.hitgroupscount++;
+	qc_cmd.hitgroup[g_num_hitgroups].name = token;
+	g_num_hitgroups++;
 
 	return 0;
 }
@@ -2450,23 +2450,23 @@ int cmd_hitgroup(QC &qc_cmd, std::string &token)
 int cmd_hitbox(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
-	qc_cmd.hitbox[qc_cmd.hitboxescount].group = std::stoi(token);
+	qc_cmd.hitbox[g_num_hitboxes].group = std::stoi(token);
 	get_token(false, token);
-	qc_cmd.hitbox[qc_cmd.hitboxescount].name = token;
+	qc_cmd.hitbox[g_num_hitboxes].name = token;
 	get_token(false, token);
-	qc_cmd.hitbox[qc_cmd.hitboxescount].bmin[0] = std::stof(token);
+	qc_cmd.hitbox[g_num_hitboxes].bmin[0] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.hitbox[qc_cmd.hitboxescount].bmin[1] = std::stof(token);
+	qc_cmd.hitbox[g_num_hitboxes].bmin[1] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.hitbox[qc_cmd.hitboxescount].bmin[2] = std::stof(token);
+	qc_cmd.hitbox[g_num_hitboxes].bmin[2] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.hitbox[qc_cmd.hitboxescount].bmax[0] = std::stof(token);
+	qc_cmd.hitbox[g_num_hitboxes].bmax[0] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.hitbox[qc_cmd.hitboxescount].bmax[1] = std::stof(token);
+	qc_cmd.hitbox[g_num_hitboxes].bmax[1] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.hitbox[qc_cmd.hitboxescount].bmax[2] = std::stof(token);
+	qc_cmd.hitbox[g_num_hitboxes].bmax[2] = std::stof(token);
 
-	qc_cmd.hitboxescount++;
+	g_num_hitboxes++;
 
 	return 0;
 }
@@ -2475,19 +2475,19 @@ int cmd_attachment(QC &qc_cmd, std::string &token)
 {
 	// index
 	get_token(false, token);
-	qc_cmd.attachment[qc_cmd.attachmentscount].index = std::stoi(token);
+	qc_cmd.attachment[g_num_attachments].index = std::stoi(token);
 
 	// bone name
 	get_token(false, token);
-	qc_cmd.attachment[qc_cmd.attachmentscount].bonename = token;
+	qc_cmd.attachment[g_num_attachments].bonename = token;
 
 	// position
 	get_token(false, token);
-	qc_cmd.attachment[qc_cmd.attachmentscount].org[0] = std::stof(token);
+	qc_cmd.attachment[g_num_attachments].org[0] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.attachment[qc_cmd.attachmentscount].org[1] = std::stof(token);
+	qc_cmd.attachment[g_num_attachments].org[1] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.attachment[qc_cmd.attachmentscount].org[2] = std::stof(token);
+	qc_cmd.attachment[g_num_attachments].org[2] = std::stof(token);
 
 	if (token_available())
 		get_token(false, token);
@@ -2495,7 +2495,7 @@ int cmd_attachment(QC &qc_cmd, std::string &token)
 	if (token_available())
 		get_token(false, token);
 
-	qc_cmd.attachmentscount++;
+	g_num_attachments++;
 	return 0;
 }
 
@@ -2503,13 +2503,13 @@ void cmd_renamebone(QC &qc_cmd, std::string &token)
 {
 	// from
 	get_token(false, token);
-	qc_cmd.renamebone[qc_cmd.renamebonecount].from = token;
+	qc_cmd.renamebone[g_num_renamebone].from = token;
 
 	// to
 	get_token(false, token);
-	qc_cmd.renamebone[qc_cmd.renamebonecount].to = token;
+	qc_cmd.renamebone[g_num_renamebone].to = token;
 
-	qc_cmd.renamebonecount++;
+	g_num_renamebone++;
 }
 
 void cmd_texrendermode(std::string &token)
@@ -2733,8 +2733,8 @@ int main(int argc, char **argv)
         }
     }
 
-    std::strcpy(qc_cmd.sequencegroup[qc_cmd.sequencegroupcount].label, "default");
-    qc_cmd.sequencegroupcount = 1;
+    std::strcpy(qc_cmd.sequencegroup[g_num_sequencegroup].label, "default");
+    g_num_sequencegroup = 1;
 
     load_qc_file(path);       
     parse_qc_file(qc_cmd); 
