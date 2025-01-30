@@ -33,7 +33,7 @@ cmake --build .
 ## Usage
 
 ```bash
-studiomdl <input qc> [options]
+studiomdl++ <input qc> [options]
 
 [-f]                Invert normals
 [-a <angle>]        Set vertex normal blend angle override, in degrees
