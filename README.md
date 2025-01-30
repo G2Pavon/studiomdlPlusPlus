@@ -1,12 +1,15 @@
 ## studiomdl++
 
-C++ fork of fnky studiomdl
+C++ port of goldsrc studiomdl model compiler tool.
 
 - Removed unused code
+- Cleaned up a bit
 - 64 bit
-- UV shift correction (using DoomMusic's fix and removing texture resizing hack, didn't test too much to confirm if it works well tbh)
+- UV shift correction (didn't test too much to confirm if it works well tbh)
 - Flatshade texture mode
 
->Note: developed on linux
+>Note¹:
+>Developed on linux, cross platform is broken
 
->Note: Your QC and SMD files has to use LF (Unix) line-endings in order to work.
+>Note²:
+>Your QC and SMD files has to use LF (Unix) line-endings in order to work.
