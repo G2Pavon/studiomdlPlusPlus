@@ -991,32 +991,6 @@ int lookup_control(const char *string)
 	return -1;
 }
 
-// search case-insensitive for string2 in string
-char *stristr(const char *string, const char *string2)
-{
-	int c = tolower(*string2);
-	int len = strlen(string2);
-
-	while (string)
-	{
-		for (; *string && tolower(*string) != c; string++)
-			;
-		if (*string)
-		{
-			if (strnicmp(string, string2, len) == 0)
-			{
-				break;
-			}
-			string++;
-		}
-		else
-		{
-			return nullptr;
-		}
-	}
-	return (char *)string;
-}
-
 int find_texture_index(std::string texturename)
 {
 	int i;
@@ -1027,13 +1001,14 @@ int find_texture_index(std::string texturename)
 			return i;
 		}
 	}
-
 	g_textures[i].name = texturename;
 
 	// XDM: allow such names as "tex_chrome_bright" - chrome and full brightness effects
-	if (stristr(texturename.c_str(), "chrome") != nullptr)
+    std::string lower_texname = texturename;
+    std::transform(lower_texname.begin(), lower_texname.end(), lower_texname.begin(), ::tolower);
+	if (lower_texname.find("chrome") != std::string::npos)
 		g_textures[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_CHROME;
-	else if (stristr(texturename.c_str(), "bright") != nullptr)
+	else if (lower_texname.find("bright") != std::string::npos)
 		g_textures[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_FULLBRIGHT;
 	else
 		g_textures[i].flags = 0;
@@ -1284,7 +1259,7 @@ void grab_skin(QC &qc_cmd, Texture *ptexture)
 		textureFilePath = qc_cmd.cdAbsolute / ptexture->name;
 		if (!std::filesystem::exists(textureFilePath))
 		{
-			error("cannot find %s texture in \"%s\" nor \"%s\"\nor those path don't exist\n", ptexture->name, qc_cmd.cdtexture.c_str(), qc_cmd.cdAbsolute.c_str());
+			error("cannot find %s texture in \"%s\" nor \"%s\"\nor those path don't exist\n", ptexture->name.c_str(), qc_cmd.cdtexture.c_str(), qc_cmd.cdAbsolute.c_str());
 		}
 	}
 	if (textureFilePath.extension() == ".bmp")
