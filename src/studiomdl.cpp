@@ -1573,9 +1573,9 @@ int grab_smd_nodes(QC &qc_cmd, Node *pnodes)
 			pnodes[index].parent = parent;
 			numBones = index;
 			// check for mirrored bones;
-			for (int i = 0; i < g_num_mirrored; i++)
+			for (int i = 0; i < qc_cmd.mirroredbones.size(); i++)
 			{
-				if (std::strcmp(boneName, qc_cmd.mirrorbone[i].data()) == 0)
+				if (std::strcmp(boneName, qc_cmd.mirroredbones[i].data()) == 0)
 					pnodes[index].mirrored = 1;
 			}
 			if ((!pnodes[index].mirrored) && parent != -1)
@@ -2045,16 +2045,6 @@ void cmd_sequence_option_scale(QC &qc_cmd, std::string &token)
 	qc_cmd.scaleBodyAndSequenceOption = std::stof(token);
 }
 
-int cmd_sequencegroup(QC &qc_cmd, std::string &token)
-{
-	SequenceGroup newseqgroup;
-	get_token(false, token);
-	newseqgroup.label = token;
-	qc_cmd.sequencegroups.push_back(newseqgroup);
-
-	return 0;
-}
-
 int cmd_sequence_option_action(std::string &szActivity)
 {
 	for (int i = 0; activity_map[i].name; i++)
@@ -2091,7 +2081,7 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 
 	qc_cmd.rotate = qc_cmd.originRotation;
 	qc_cmd.sequence[g_num_sequence].fps = 30.0;
-	qc_cmd.sequence[g_num_sequence].seqgroup = qc_cmd.sequencegroups.size() - 1;
+	qc_cmd.sequence[g_num_sequence].seqgroup = 0; // 0 since $sequencegroup is deprecated
 	qc_cmd.sequence[g_num_sequence].blendstart[0] = 0.0;
 	qc_cmd.sequence[g_num_sequence].blendend[0] = 1.0;
 
@@ -2333,9 +2323,10 @@ void cmd_cbox(QC &qc_cmd, std::string &token)
 }
 
 void cmd_mirror(QC &qc_cmd, std::string &token)
-{
+{	
 	get_token(false, token);
-	strcpyn(qc_cmd.mirrorbone[g_num_mirrored++].data(), token.c_str());
+	std::string bonename = token;
+	qc_cmd.mirroredbones.push_back(bonename);
 }
 
 void cmd_gamma(QC &qc_cmd, std::string &token)
@@ -2575,10 +2566,6 @@ void parse_qc_file(QC &qc_cmd)
 		{
 			cmd_sequence(qc_cmd, token);
 		}
-		else if (token == "$sequencegroup")
-		{
-			cmd_sequencegroup(qc_cmd, token);
-		}
 		else if (token == "$eyeposition")
 		{
 			cmd_eyeposition(qc_cmd, token);
@@ -2700,9 +2687,6 @@ int main(int argc, char **argv)
             error("Error: Unexpected argument '%s'.\n", argv[i]);
         }
     }
-	SequenceGroup defaultseqgroup;
-    defaultseqgroup.label = "default";
-    qc_cmd.sequencegroups.push_back(defaultseqgroup);
 
     load_qc_file(path);       
     parse_qc_file(qc_cmd); 

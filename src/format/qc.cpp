@@ -14,7 +14,6 @@ int g_num_hitboxes = 0;
 int g_num_bonecontroller = 0; 
 int g_num_attachments = 0;
 int g_num_sequence = 0;
-int g_num_sequencegroup = 0;
 int g_num_submodels = 0;
 int g_num_bodygroup = 0;
 

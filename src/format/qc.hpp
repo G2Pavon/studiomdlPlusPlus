@@ -16,7 +16,6 @@
 // since array does not have .size() like vector
 // TODO: use vector instead
 
-extern int g_num_mirrored;
 extern int g_num_texturegroup; // unnecessary? since engine doesn't support multiple texturegroups
 extern int g_num_sequence;
 extern int g_num_submodels;
@@ -40,9 +39,7 @@ public:
 
     std::vector<RenameBone> renamebones; // $renamebone
     std::vector<HitGroup> hitgroups; // $hgroup
-
-    std::array<std::array<char, 64>, MAXSTUDIOSRCBONES> mirrorbone{}; // $mirrorbone
-
+    std::vector<std::string> mirroredbones; // $mirrorbone
     std::vector<Animation *> sequenceAnimationOption; // $sequence, each sequence can have 16 blends
 
     std::array<std::array<std::array<int, 32>, 32>, 32> texturegroup{}; // $texturegroup
@@ -58,8 +55,6 @@ public:
 
     std::array<Sequence, MAXSTUDIOSEQUENCES> sequence{}; // $sequence
 
-    std::vector<SequenceGroup> sequencegroups; // $sequencegroup TODO: remove this
-
     std::array<Model *, MAXSTUDIOMODELS> submodel{}; // $body
 
     std::array<BodyPart, MAXSTUDIOBODYPARTS> bodypart{}; // $bodygroup
@@ -70,7 +65,6 @@ public:
     QC()
     {
         // Initialize arrays with default values
-        mirrorbone.fill({});
         texturegroup.fill({});
         texturegrouplayers.fill(0);
         texturegroupreps.fill(0);

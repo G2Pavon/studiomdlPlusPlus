@@ -60,7 +60,6 @@ void cmd_sequence_option_animation(QC &qc_cmd, char *name, Animation *panim);
 void grab_option_animation(QC &qc_cmd, Animation *panim);
 void shift_option_animation(Animation *panim);
 int cmd_sequence_option_action(std::string &szActivity);
-int cmd_sequencegroup(QC &qc_cmd, std::string &token);
 void cmd_eyeposition(QC &qc_cmd, std::string &token);
 void cmd_origin(QC &qc_cmd, std::string &token);
 void cmd_bbox(QC &qc_cmd, std::string &token);

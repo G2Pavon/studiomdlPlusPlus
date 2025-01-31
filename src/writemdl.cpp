@@ -138,7 +138,6 @@ void write_sequence_info(QC &qc_cmd)
 {
 	int i, j;
 
-	StudioSequenceGroup *pseqgroup;
 	StudioSequenceDescription *pseqdesc;
 	std::uint8_t *ptransition;
 
@@ -217,17 +216,14 @@ void write_sequence_info(QC &qc_cmd)
 	}
 
 	// save sequence group info
-	pseqgroup = (StudioSequenceGroup *)g_currentposition;
-	g_studioheader->numseqgroups = qc_cmd.sequencegroups.size();
+	
+	StudioSequenceGroup *pseqgroup = (StudioSequenceGroup *)g_currentposition;
+	g_studioheader->numseqgroups = 1; // 1 since $sequencegroup is deprecated
 	g_studioheader->seqgroupindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_studioheader->numseqgroups * sizeof(StudioSequenceGroup);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
-
-	for (i = 0; i < qc_cmd.sequencegroups.size(); i++)
-	{
-		std::strcpy(pseqgroup[i].label, qc_cmd.sequencegroups[i].label.c_str());
-		std::strcpy(pseqgroup[i].name, qc_cmd.sequencegroups[i].name.c_str());
-	}
+	std::strcpy(pseqgroup[0].label, "default");
+	std::strcpy(pseqgroup[0].name, "");
 
 	// save transition graph
 	ptransition = (std::uint8_t *)g_currentposition;
@@ -493,37 +489,6 @@ void write_file(QC &qc_cmd)
 	g_bufferstart = (std::uint8_t *)std::calloc(1, FILEBUFFER);
 
 	strip_extension(qc_cmd.modelname);
-
-	for (int i = 1; i < qc_cmd.sequencegroups.size(); i++)
-	{
-		// write the non-default sequence group data to separate files
-		char groupname[128], localname[128];
-
-		sprintf(groupname, "%s%02d.mdl", qc_cmd.modelname, i);
-
-		printf("writing %s:\n", groupname);
-		modelouthandle = safe_open_write(groupname);
-
-		g_studiosequenceheader = (StudioSequenceGroupHeader *)g_bufferstart;
-		g_studiosequenceheader->id = IDSTUDIOSEQHEADER;
-		g_studiosequenceheader->version = STUDIO_VERSION;
-
-		g_currentposition = g_bufferstart + sizeof(StudioSequenceGroupHeader);
-
-		g_currentposition = write_animations(qc_cmd, g_currentposition, g_bufferstart, i);
-
-		extract_filebase(groupname, localname);
-		sprintf(const_cast<char*>(qc_cmd.sequencegroups[i].name.c_str()), "models\\%s.mdl", localname);
-		std::strcpy(g_studiosequenceheader->name, qc_cmd.sequencegroups[i].name.c_str());
-		g_studiosequenceheader->length = static_cast<int>(g_currentposition - g_bufferstart);
-
-		printf("total     %6d\n", g_studiosequenceheader->length);
-
-		safe_write(modelouthandle, g_bufferstart, g_studiosequenceheader->length);
-
-		fclose(modelouthandle);
-		std::memset(g_bufferstart, 0, g_studiosequenceheader->length);
-	}
 	//
 	// write the model output file
 	//

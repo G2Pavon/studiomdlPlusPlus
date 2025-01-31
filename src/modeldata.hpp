@@ -173,12 +173,6 @@ struct Sequence
     int nodeflags;
 };
 
-struct SequenceGroup
-{
-    std::string label;
-    std::string name;
-};
-
 struct RGB
 {
     std::uint8_t r, g, b;
