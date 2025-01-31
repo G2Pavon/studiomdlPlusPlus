@@ -24,7 +24,6 @@ constexpr int MAXSTUDIOGROUPS = 16;		  // sequence groups (e.g. barney01.mdl, ba
 constexpr int MAXSTUDIOANIMATIONS = 2048; // max frames per sequence
 constexpr int MAXSTUDIOMESHES = 256;	  // max textures per model
 constexpr int MAXSTUDIOEVENTS = 1024;	  // events per model
-constexpr int MAXSTUDIOPIVOTS = 256;	  // pivot points
 constexpr int MAXSTUDIOBLENDS = 16;		  // max anim blends
 constexpr int MAXSTUDIOCONTROLLERS = 8;	  // max controllers per model
 constexpr int MAXSTUDIOATTACHMENTS = 4;	  // max attachments per model
@@ -237,18 +236,6 @@ struct StudioAnimationEvent
 	int event;					   // event ID
 	int type;					   // Unused
 	char options[MAXEVENTOPTIONS]; // Additional event data
-};
-
-/**
- *  aka mstudiopivot_t
- *
- * Unused in Goldsrc?
- */
-struct StudioPivot
-{
-	Vector3 org; // pivot point
-	int start;
-	int end;
 };
 
 /**

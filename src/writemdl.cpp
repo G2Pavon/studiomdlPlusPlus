@@ -198,25 +198,9 @@ void write_sequence_info(QC &qc_cmd)
 			}
 			g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 		}
-
-		// save pivots
-		{
-			StudioPivot *ppivot = (StudioPivot *)g_currentposition; // Declare inside the block
-			pseqdesc->numpivots = qc_cmd.sequence[i].numpivots;
-			pseqdesc->pivotindex = static_cast<int>(g_currentposition - g_bufferstart);
-			g_currentposition += pseqdesc->numpivots * sizeof(StudioPivot);
-			for (j = 0; j < qc_cmd.sequence[i].numpivots; j++)
-			{
-				ppivot[j].org = qc_cmd.sequence[i].pivot[j].org;
-				ppivot[j].start = qc_cmd.sequence[i].pivot[j].start - qc_cmd.sequence[i].frameoffset;
-				ppivot[j].end = qc_cmd.sequence[i].pivot[j].end - qc_cmd.sequence[i].frameoffset;
-			}
-			g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
-		}
 	}
 
 	// save sequence group info
-	
 	StudioSequenceGroup *pseqgroup = (StudioSequenceGroup *)g_currentposition;
 	g_studioheader->numseqgroups = 1; // 1 since $sequencegroup is deprecated
 	g_studioheader->seqgroupindex = static_cast<int>(g_currentposition - g_bufferstart);

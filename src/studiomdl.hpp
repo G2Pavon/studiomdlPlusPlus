@@ -51,7 +51,6 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token);
 int cmd_body_option_blank(QC &qc_cmd);
 int cmd_sequence(QC &qc_cmd, std::string &token);
 int cmd_sequence_option_event(std::string &token, Sequence *psequence);
-int cmd_sequence_option_addpivot(std::string &token, Sequence *psequence);
 int cmd_sequence_option_fps(std::string &token, Sequence *psequence);
 void cmd_sequence_option_origin(QC &qc_cmd, std::string &token);
 void cmd_sequence_option_rotate(QC &qc_cmd, std::string &token);

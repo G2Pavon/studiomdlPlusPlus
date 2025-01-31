@@ -125,14 +125,6 @@ struct Event
     std::string options;
 };
 
-struct Pivot
-{
-    int index;
-    Vector3 org;
-    int start;
-    int end;
-};
-
 struct Sequence
 {
     int motiontype;
@@ -150,9 +142,6 @@ struct Sequence
 
     int numevents;
     Event event[MAXSTUDIOEVENTS];
-
-    int numpivots;
-    Pivot pivot[MAXSTUDIOPIVOTS];
 
     int numblends;
     Animation *panim[MAXSTUDIOGROUPS];

@@ -1968,27 +1968,6 @@ int cmd_sequence_option_fps(std::string &token, Sequence *psequence)
 	return 0;
 }
 
-int cmd_sequence_option_addpivot(std::string &token, Sequence *psequence)
-{
-	if (psequence->numpivots + 1 >= MAXSTUDIOPIVOTS)
-	{
-		printf("too many pivot points\n");
-		exit(0);
-	}
-
-	get_token(false, token);
-	psequence->pivot[psequence->numpivots].index = std::stoi(token);
-
-	get_token(false, token);
-	psequence->pivot[psequence->numpivots].start = std::stoi(token);
-
-	get_token(false, token);
-	psequence->pivot[psequence->numpivots].end = std::stoi(token);
-
-	psequence->numpivots++;
-
-	return 0;
-}
 
 void cmd_origin(QC &qc_cmd, std::string &token)
 {
@@ -2126,10 +2105,6 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		else if (token == "event")
 		{
 			depth -= cmd_sequence_option_event(token, &qc_cmd.sequence[g_num_sequence]);
-		}
-		else if (token == "pivot")
-		{
-			cmd_sequence_option_addpivot(token, &qc_cmd.sequence[g_num_sequence]);
 		}
 		else if (token == "fps")
 		{
