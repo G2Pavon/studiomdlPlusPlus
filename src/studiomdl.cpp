@@ -335,7 +335,7 @@ void simplify_model(QC &qc_cmd)
 	extract_motion(qc_cmd);
 	make_transitions(qc_cmd);
 
-	// find used bones
+	// find used bones TODO: find_used_bones()
 	for (i = 0; i < g_num_submodels; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
@@ -361,7 +361,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	// rename model bones if needed
+	// rename model bones if needed TODO: rename_submodel_bones()
 	for (i = 0; i < g_num_submodels; i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->numbones; j++)
@@ -377,7 +377,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	// union of all used bones
+	// union of all used bones TODO:create_bone_union()
 	g_bonescount = 0;
 	for (i = 0; i < g_num_submodels; i++)
 	{
@@ -447,7 +447,7 @@ void simplify_model(QC &qc_cmd)
 		error("Too many bones used in model, used %d, max %d\n", g_bonescount, MAXSTUDIOBONES);
 	}
 
-	// rename sequence bones if needed
+	// rename sequence bones if needed TODO: rename_sequence_bones()
 	for (i = 0; i < g_num_sequence; i++)
 	{
 		for (j = 0; j < qc_cmd.sequence[i].panim[0]->numbones; j++)
@@ -463,7 +463,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	// map each sequences bone list to master list
+	// map each sequences bone list to master list TODO: map_sequence_bones()
 	for (i = 0; i < g_num_sequence; i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
@@ -509,7 +509,7 @@ void simplify_model(QC &qc_cmd)
 		exit(1);
 	}
 
-	// link bonecontrollers
+	// link bonecontrollers TODO: link_bone_controllers()
 	for (i = 0; i < g_num_bonecontroller; i++)
 	{
 		for (j = 0; j < g_bonescount; j++)
@@ -524,7 +524,7 @@ void simplify_model(QC &qc_cmd)
 		qc_cmd.bonecontroller[i].bone = j;
 	}
 
-	// link attachments
+	// link attachments TODO: link_attachments()
 	for (i = 0; i < g_num_attachments; i++)
 	{
 		for (j = 0; j < g_bonescount; j++)
@@ -539,7 +539,7 @@ void simplify_model(QC &qc_cmd)
 		qc_cmd.attachment[i].bone = j;
 	}
 
-	// relink model
+	// relink model TODO: relink_model()
 	for (i = 0; i < g_num_submodels; i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->numverts; j++)
@@ -552,7 +552,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	// set hitgroups
+	// set hitgroups TODO: set_hit_groups()
 	for (k = 0; k < g_bonescount; k++)
 	{
 		g_bonetable[k].group = -9999;
@@ -581,7 +581,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	if (g_num_hitboxes == 0)
+	if (g_num_hitboxes == 0) // TODO: find_or_create_hitboxes()
 	{
 		// find intersection box volume for each bone
 		for (k = 0; k < g_bonescount; k++)
@@ -664,7 +664,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	// relink animations
+	// relink animations TODO: relink_animations()
 	for (i = 0; i < g_num_sequence; i++)
 	{
 		Vector3 *origpos[MAXSTUDIOSRCBONES] = {nullptr};
@@ -697,7 +697,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	// find scales for all bones
+	// find scales for all bones TODO: find_bone_scales()
 	for (j = 0; j < g_bonescount; j++)
 	{
 		for (k = 0; k < DEGREESOFFREEDOM; k++)
@@ -777,7 +777,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	// find bounding box for each sequence
+	// find bounding box for each sequence TODO: find_sequence_bounding_boxes()
 	for (i = 0; i < g_num_sequence; i++)
 	{
 		Vector3 bmin, bmax;
@@ -848,7 +848,7 @@ void simplify_model(QC &qc_cmd)
 		qc_cmd.sequence[i].bmax = bmax;
 	}
 
-	// reduce animations
+	// reduce animations TODO: reduce_animations()
 	{
 		int changes = 0;
 		int p;
