@@ -5,6 +5,7 @@
 #include <cstring>
 #include <array>
 #include <algorithm>
+#include <vector>
 
 #include "utils/cmdlib.hpp"
 #include "utils/mathlib.hpp"
@@ -15,14 +16,9 @@
 // since array does not have .size() like vector
 // TODO: use vector instead
 
-extern int g_num_renamebone;
-extern int g_num_hitgroups;
 extern int g_num_mirrored;
 extern int g_num_animation;
 extern int g_num_texturegroup; // unnecessary? since engine doesn't support multiple texturegroups
-extern int g_num_hitboxes;
-extern int g_num_bonecontroller; 
-extern int g_num_attachments;
 extern int g_num_sequence;
 extern int g_num_sequencegroup;
 extern int g_num_submodels;
@@ -44,9 +40,8 @@ public:
     Vector3 sequenceOrigin{};                              // $sequence <sequence name> <SMD path> {[origin <X> <Y> <Z>]}
     float gamma = 1.8f;                                    // $$gamma
 
-    std::array<RenameBone, MAXSTUDIOSRCBONES> renamebone{}; // $renamebone
-
-    std::array<HitGroup, MAXSTUDIOSRCBONES> hitgroup{}; // $hgroup
+    std::vector<RenameBone> renamebones; // $renamebone
+    std::vector<HitGroup> hitgroups; // $hgroup
 
     std::array<std::array<char, 64>, MAXSTUDIOSRCBONES> mirrorbone{}; // $mirrorbone
 
@@ -59,11 +54,9 @@ public:
     std::array<Vector3, 2> bbox{}; // $bbox
     std::array<Vector3, 2> cbox{}; // $cbox
 
-    std::array<HitBox, MAXSTUDIOSRCBONES> hitbox{}; // $hbox
-
-    std::array<BoneController, MAXSTUDIOSRCBONES> bonecontroller{}; // $$controller
-
-    std::array<Attachment, MAXSTUDIOSRCBONES> attachment{}; // $attachment
+    std::vector<HitBox> hitboxes; // $hbox
+    std::vector<BoneController> bonecontrollers; // $controller
+    std::vector<Attachment> attachments; // $attachment
 
     std::array<Sequence, MAXSTUDIOSEQUENCES> sequence{}; // $sequence
 
@@ -79,8 +72,6 @@ public:
     QC()
     {
         // Initialize arrays with default values
-        renamebone.fill(RenameBone{});
-        hitgroup.fill(HitGroup{});
         mirrorbone.fill({});
         animationSequenceOption.fill(nullptr);
         texturegroup.fill({});
@@ -88,9 +79,6 @@ public:
         texturegroupreps.fill(0);
         bbox.fill(Vector3{});
         cbox.fill(Vector3{});
-        hitbox.fill(HitBox{});
-        bonecontroller.fill(BoneController{});
-        attachment.fill(Attachment{});
         sequence.fill(Sequence{});
         sequencegroup.fill(SequenceGroup{});
         submodel.fill(nullptr);

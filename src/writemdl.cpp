@@ -61,10 +61,10 @@ void write_bone_info(QC &qc_cmd)
 		}
 	}
 
-	for (i = 0; i < g_num_bonecontroller; i++)
+	for (i = 0; i < qc_cmd.bonecontrollers.size(); i++)
 	{
-		j = qc_cmd.bonecontroller[i].bone;
-		switch (qc_cmd.bonecontroller[i].type & STUDIO_TYPES)
+		j = qc_cmd.bonecontrollers[i].bone;
+		switch (qc_cmd.bonecontrollers[i].type & STUDIO_TYPES)
 		{
 		case STUDIO_X:
 			pbone[j].bonecontroller[0] = i;
@@ -92,46 +92,46 @@ void write_bone_info(QC &qc_cmd)
 
 	// save bonecontroller info
 	pbonecontroller = (StudioBoneController *)g_currentposition;
-	g_studioheader->numbonecontrollers = g_num_bonecontroller;
+	g_studioheader->numbonecontrollers = qc_cmd.bonecontrollers.size();
 	g_studioheader->bonecontrollerindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < g_num_bonecontroller; i++)
+	for (i = 0; i < qc_cmd.bonecontrollers.size(); i++)
 	{
-		pbonecontroller[i].bone = qc_cmd.bonecontroller[i].bone;
-		pbonecontroller[i].index = qc_cmd.bonecontroller[i].index;
-		pbonecontroller[i].type = qc_cmd.bonecontroller[i].type;
-		pbonecontroller[i].start = qc_cmd.bonecontroller[i].start;
-		pbonecontroller[i].end = qc_cmd.bonecontroller[i].end;
+		pbonecontroller[i].bone = qc_cmd.bonecontrollers[i].bone;
+		pbonecontroller[i].index = qc_cmd.bonecontrollers[i].index;
+		pbonecontroller[i].type = qc_cmd.bonecontrollers[i].type;
+		pbonecontroller[i].start = qc_cmd.bonecontrollers[i].start;
+		pbonecontroller[i].end = qc_cmd.bonecontrollers[i].end;
 	}
-	g_currentposition += g_num_bonecontroller * sizeof(StudioBoneController);
+	g_currentposition += qc_cmd.bonecontrollers.size() * sizeof(StudioBoneController);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	// save attachment info
 	pattachment = (StudioAttachment *)g_currentposition;
-	g_studioheader->numattachments = g_num_attachments;
+	g_studioheader->numattachments = qc_cmd.attachments.size();
 	g_studioheader->attachmentindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < g_num_attachments; i++)
+	for (i = 0; i < qc_cmd.attachments.size(); i++)
 	{
-		pattachment[i].bone = qc_cmd.attachment[i].bone;
-		pattachment[i].org = qc_cmd.attachment[i].org;
+		pattachment[i].bone = qc_cmd.attachments[i].bone;
+		pattachment[i].org = qc_cmd.attachments[i].org;
 	}
-	g_currentposition += g_num_attachments * sizeof(StudioAttachment);
+	g_currentposition += qc_cmd.attachments.size() * sizeof(StudioAttachment);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	// save bbox info
 	pbbox = (StudioHitbox *)g_currentposition;
-	g_studioheader->numhitboxes = g_num_hitboxes;
+	g_studioheader->numhitboxes = qc_cmd.hitboxes.size();
 	g_studioheader->hitboxindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < g_num_hitboxes; i++)
+	for (i = 0; i < qc_cmd.hitboxes.size(); i++)
 	{
-		pbbox[i].bone = qc_cmd.hitbox[i].bone;
-		pbbox[i].group = qc_cmd.hitbox[i].group;
-		pbbox[i].bbmin = qc_cmd.hitbox[i].bmin;
-		pbbox[i].bbmax = qc_cmd.hitbox[i].bmax;
+		pbbox[i].bone = qc_cmd.hitboxes[i].bone;
+		pbbox[i].group = qc_cmd.hitboxes[i].group;
+		pbbox[i].bbmin = qc_cmd.hitboxes[i].bmin;
+		pbbox[i].bbmax = qc_cmd.hitboxes[i].bmax;
 	}
-	g_currentposition += g_num_hitboxes * sizeof(StudioHitbox);
+	g_currentposition += qc_cmd.hitboxes.size() * sizeof(StudioHitbox);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 }
 void write_sequence_info(QC &qc_cmd)

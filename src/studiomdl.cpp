@@ -366,11 +366,11 @@ void simplify_model(QC &qc_cmd)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->numbones; j++)
 		{
-			for (k = 0; k < g_num_renamebone; k++)
+			for (k = 0; k < qc_cmd.renamebones.size(); k++)
 			{
-				if (qc_cmd.submodel[i]->node[j].name == qc_cmd.renamebone[k].from)
+				if (qc_cmd.submodel[i]->node[j].name == qc_cmd.renamebones[k].from)
 				{
-					qc_cmd.submodel[i]->node[j].name = qc_cmd.renamebone[k].to;
+					qc_cmd.submodel[i]->node[j].name = qc_cmd.renamebones[k].to;
 					break;
 				}
 			}
@@ -452,11 +452,11 @@ void simplify_model(QC &qc_cmd)
 	{
 		for (j = 0; j < qc_cmd.sequence[i].panim[0]->numbones; j++)
 		{
-			for (k = 0; k < g_num_renamebone; k++)
+			for (k = 0; k < qc_cmd.renamebones.size(); k++)
 			{
-				if (qc_cmd.sequence[i].panim[0]->node[j].name == qc_cmd.renamebone[k].from)
+				if (qc_cmd.sequence[i].panim[0]->node[j].name == qc_cmd.renamebones[k].from)
 				{
-					qc_cmd.sequence[i].panim[0]->node[j].name = qc_cmd.renamebone[k].to;
+					qc_cmd.sequence[i].panim[0]->node[j].name = qc_cmd.renamebones[k].to;
 					break;
 				}
 			}
@@ -510,33 +510,33 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// link bonecontrollers TODO: link_bone_controllers()
-	for (i = 0; i < g_num_bonecontroller; i++)
+	for (i = 0; i < qc_cmd.bonecontrollers.size(); i++)
 	{
 		for (j = 0; j < g_bonescount; j++)
 		{
-			if (qc_cmd.bonecontroller[i].name == g_bonetable[j].name)
+			if (qc_cmd.bonecontrollers[i].name == g_bonetable[j].name)
 				break;
 		}
 		if (j >= g_bonescount)
 		{
-			error("unknown bonecontroller link '%s'\n", qc_cmd.bonecontroller[i].name);
+			error("unknown bonecontroller link '%s'\n", qc_cmd.bonecontrollers[i].name);
 		}
-		qc_cmd.bonecontroller[i].bone = j;
+		qc_cmd.bonecontrollers[i].bone = j;
 	}
 
 	// link attachments TODO: link_attachments()
-	for (i = 0; i < g_num_attachments; i++)
+	for (i = 0; i < qc_cmd.attachments.size(); i++)
 	{
 		for (j = 0; j < g_bonescount; j++)
 		{
-			if (qc_cmd.attachment[i].bonename == g_bonetable[j].name)
+			if (qc_cmd.attachments[i].bonename == g_bonetable[j].name)
 				break;
 		}
 		if (j >= g_bonescount)
 		{
-			error("unknown attachment link '%s'\n", qc_cmd.attachment[i].bonename);
+			error("unknown attachment link '%s'\n", qc_cmd.attachments[i].bonename);
 		}
-		qc_cmd.attachment[i].bone = j;
+		qc_cmd.attachments[i].bone = j;
 	}
 
 	// relink model TODO: relink_model()
@@ -557,18 +557,18 @@ void simplify_model(QC &qc_cmd)
 	{
 		g_bonetable[k].group = -9999;
 	}
-	for (j = 0; j < g_num_hitgroups; j++)
+	for (j = 0; j < qc_cmd.hitgroups.size(); j++)
 	{
 		for (k = 0; k < g_bonescount; k++)
 		{
-			if (g_bonetable[k].name == qc_cmd.hitgroup[j].name)
+			if (g_bonetable[k].name == qc_cmd.hitgroups[j].name)
 			{
-				g_bonetable[k].group = qc_cmd.hitgroup[j].group;
+				g_bonetable[k].group = qc_cmd.hitgroups[j].group;
 				break;
 			}
 		}
 		if (k >= g_bonescount)
-			error("cannot find bone %s for hitgroup %d\n", qc_cmd.hitgroup[j].name, qc_cmd.hitgroup[j].group);
+			error("cannot find bone %s for hitgroup %d\n", qc_cmd.hitgroups[j].name, qc_cmd.hitgroups[j].group);
 	}
 	for (k = 0; k < g_bonescount; k++)
 	{
@@ -581,7 +581,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	if (g_num_hitboxes == 0) // TODO: find_or_create_hitboxes()
+	if (qc_cmd.hitboxes.empty()) // TODO: find_or_create_hitboxes()
 	{
 		// find intersection box volume for each bone
 		for (k = 0; k < g_bonescount; k++)
@@ -639,28 +639,29 @@ void simplify_model(QC &qc_cmd)
 		{
 			if (g_bonetable[k].bmin[0] < g_bonetable[k].bmax[0] - 1 && g_bonetable[k].bmin[1] < g_bonetable[k].bmax[1] - 1 && g_bonetable[k].bmin[2] < g_bonetable[k].bmax[2] - 1)
 			{
-				qc_cmd.hitbox[g_num_hitboxes].bone = k;
-				qc_cmd.hitbox[g_num_hitboxes].group = g_bonetable[k].group;
-				qc_cmd.hitbox[g_num_hitboxes].bmin = g_bonetable[k].bmin;
-				qc_cmd.hitbox[g_num_hitboxes].bmax = g_bonetable[k].bmax;
-				g_num_hitboxes++;
+				HitBox genhbox;
+				genhbox.bone = k;
+				genhbox.group = g_bonetable[k].group;
+				genhbox.bmin = g_bonetable[k].bmin;
+				genhbox.bmax = g_bonetable[k].bmax;
+				qc_cmd.hitboxes.push_back(genhbox);
 			}
 		}
 	}
 	else
 	{
-		for (j = 0; j < g_num_hitboxes; j++)
+		for (j = 0; j < qc_cmd.hitboxes.size(); j++)
 		{
 			for (k = 0; k < g_bonescount; k++)
 			{
-				if (g_bonetable[k].name == qc_cmd.hitbox[j].name)
+				if (g_bonetable[k].name == qc_cmd.hitboxes[j].name)
 				{
-					qc_cmd.hitbox[j].bone = k;
+					qc_cmd.hitboxes[j].bone = k;
 					break;
 				}
 			}
 			if (k >= g_bonescount)
-				error("cannot find bone %s for bbox\n", qc_cmd.hitbox[j].name);
+				error("cannot find bone %s for bbox\n", qc_cmd.hitboxes[j].name);
 		}
 	}
 
@@ -2246,38 +2247,39 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 
 int cmd_controller(QC &qc_cmd, std::string &token)
 {
+	BoneController newbc;
 	if (get_token(false, token))
 	{
 		if (token == "mouth")
 		{
-			qc_cmd.bonecontroller[g_num_bonecontroller].index = 4;
+			newbc.index = 4;
 		}
 		else
 		{
-			qc_cmd.bonecontroller[g_num_bonecontroller].index = std::stoi(token);
+			newbc.index = std::stoi(token);
 		}
 		if (get_token(false, token))
 		{
-			qc_cmd.bonecontroller[g_num_bonecontroller].name = token;
+			newbc.name = token;
 			get_token(false, token);
-			if ((qc_cmd.bonecontroller[g_num_bonecontroller].type = lookup_control(token.c_str())) == -1)
+			if ((newbc.type = lookup_control(token.c_str())) == -1)
 			{
 				printf("unknown bonecontroller type '%s'\n", token);
 				return 0;
 			}
 			get_token(false, token);
-			qc_cmd.bonecontroller[g_num_bonecontroller].start = std::stof(token);
+			newbc.start = std::stof(token);
 			get_token(false, token);
-			qc_cmd.bonecontroller[g_num_bonecontroller].end = std::stof(token);
+			newbc.end = std::stof(token);
 
-			if (qc_cmd.bonecontroller[g_num_bonecontroller].type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
+			if (newbc.type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
 			{
-				if ((static_cast<int>(qc_cmd.bonecontroller[g_num_bonecontroller].start + 360) % 360) == (static_cast<int>(qc_cmd.bonecontroller[g_num_bonecontroller].end + 360) % 360))
+				if ((static_cast<int>(newbc.start + 360) % 360) == (static_cast<int>(newbc.end + 360) % 360))
 				{
-					qc_cmd.bonecontroller[g_num_bonecontroller].type |= STUDIO_RLOOP;
+					newbc.type |= STUDIO_RLOOP;
 				}
 			}
-			g_num_bonecontroller++;
+			qc_cmd.bonecontrollers.push_back(newbc);
 		}
 	}
 	return 1;
@@ -2399,56 +2401,59 @@ int cmd_texturegroup(QC &qc_cmd, std::string &token)
 
 int cmd_hitgroup(QC &qc_cmd, std::string &token)
 {
+	HitGroup newhg;
 	get_token(false, token);
-	qc_cmd.hitgroup[g_num_hitgroups].group = std::stoi(token);
+	newhg.group = std::stoi(token);
 	get_token(false, token);
-	qc_cmd.hitgroup[g_num_hitgroups].name = token;
-	g_num_hitgroups++;
+	newhg.name = token;
+	qc_cmd.hitgroups.push_back(newhg);
 
 	return 0;
 }
 
 int cmd_hitbox(QC &qc_cmd, std::string &token)
 {
+	HitBox newhb;
 	get_token(false, token);
-	qc_cmd.hitbox[g_num_hitboxes].group = std::stoi(token);
+	newhb.group = std::stoi(token);
 	get_token(false, token);
-	qc_cmd.hitbox[g_num_hitboxes].name = token;
+	newhb.name = token;
 	get_token(false, token);
-	qc_cmd.hitbox[g_num_hitboxes].bmin[0] = std::stof(token);
+	newhb.bmin[0] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.hitbox[g_num_hitboxes].bmin[1] = std::stof(token);
+	newhb.bmin[1] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.hitbox[g_num_hitboxes].bmin[2] = std::stof(token);
+	newhb.bmin[2] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.hitbox[g_num_hitboxes].bmax[0] = std::stof(token);
+	newhb.bmax[0] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.hitbox[g_num_hitboxes].bmax[1] = std::stof(token);
+	newhb.bmax[1] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.hitbox[g_num_hitboxes].bmax[2] = std::stof(token);
+	newhb.bmax[2] = std::stof(token);
 
-	g_num_hitboxes++;
+	qc_cmd.hitboxes.push_back(newhb);
 
 	return 0;
 }
 
 int cmd_attachment(QC &qc_cmd, std::string &token)
 {
+	Attachment newattach;
 	// index
 	get_token(false, token);
-	qc_cmd.attachment[g_num_attachments].index = std::stoi(token);
+	newattach.index = std::stoi(token);
 
 	// bone name
 	get_token(false, token);
-	qc_cmd.attachment[g_num_attachments].bonename = token;
+	newattach.bonename = token;
 
 	// position
 	get_token(false, token);
-	qc_cmd.attachment[g_num_attachments].org[0] = std::stof(token);
+	newattach.org[0] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.attachment[g_num_attachments].org[1] = std::stof(token);
+	newattach.org[1] = std::stof(token);
 	get_token(false, token);
-	qc_cmd.attachment[g_num_attachments].org[2] = std::stof(token);
+	newattach.org[2] = std::stof(token);
 
 	if (token_available())
 		get_token(false, token);
@@ -2456,21 +2461,18 @@ int cmd_attachment(QC &qc_cmd, std::string &token)
 	if (token_available())
 		get_token(false, token);
 
-	g_num_attachments++;
+	qc_cmd.attachments.push_back(newattach);
 	return 0;
 }
 
 void cmd_renamebone(QC &qc_cmd, std::string &token)
 {
-	// from
+	RenameBone rename;
 	get_token(false, token);
-	qc_cmd.renamebone[g_num_renamebone].from = token;
-
-	// to
+	rename.from = token;
 	get_token(false, token);
-	qc_cmd.renamebone[g_num_renamebone].to = token;
-
-	g_num_renamebone++;
+	rename.to = token;
+	qc_cmd.renamebones.push_back(rename);
 }
 
 void cmd_texrendermode(std::string &token)
