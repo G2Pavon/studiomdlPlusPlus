@@ -1109,20 +1109,6 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 	return i;
 }
 
-void adjust_vertex_to_origin(QC &qc_cmd, Vector3 org)
-{
-	org[0] = (org[0] - qc_cmd.sequenceOrigin[0]);
-	org[1] = (org[1] - qc_cmd.sequenceOrigin[1]);
-	org[2] = (org[2] - qc_cmd.sequenceOrigin[2]);
-}
-
-void scale_vertex(QC &qc_cmd, Vector3 org)
-{
-	org[0] = org[0] * qc_cmd.scaleBodyAndSequenceOption;
-	org[1] = org[1] * qc_cmd.scaleBodyAndSequenceOption;
-	org[2] = org[2] * qc_cmd.scaleBodyAndSequenceOption;
-}
-
 // Called for the base frame
 void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 {
@@ -1487,8 +1473,8 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 						if (triangleVertex.org[2] < vmin[2])
 							vmin[2] = triangleVertex.org[2];
 
-						adjust_vertex_to_origin(qc_cmd, triangleVertex.org);
-						scale_vertex(qc_cmd, triangleVertex.org);
+						triangleVertex.org -= qc_cmd.sequenceOrigin; // adjust vertex to origin
+						triangleVertex.org *= qc_cmd.scaleBodyAndSequenceOption; // scale vertex
 
 						// move vertex position to object space.
 						Vector3 tmp;
@@ -1544,7 +1530,7 @@ void grab_smd_skeleton(QC &qc_cmd, Node *pnodes, Bone *pbones)
 			pbones[node].pos[1] = posY;
 			pbones[node].pos[2] = posZ;
 
-			scale_vertex(qc_cmd, pbones[node].pos);
+			pbones[node].pos *= qc_cmd.scaleBodyAndSequenceOption; // scale vertex
 
 			if (pnodes[node].mirrored)
 				pbones[node].pos = pbones[node].pos * -1.0;
@@ -1817,7 +1803,7 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 			{
 				if (panim->node[index].parent == -1)
 				{
-					adjust_vertex_to_origin(qc_cmd, pos);
+					pos -= qc_cmd.sequenceOrigin; // adjust vertex to origin
 					panim->pos[index][t][0] = cz * pos[0] - sz * pos[1];
 					panim->pos[index][t][1] = sz * pos[0] + cz * pos[1];
 					panim->pos[index][t][2] = pos[2];
@@ -1836,7 +1822,7 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 				if (panim->node[index].mirrored)
 					panim->pos[index][t] = panim->pos[index][t] * -1.0;
 
-				scale_vertex(qc_cmd, panim->pos[index][t]);
+				panim->pos[index][t] *= qc_cmd.scaleBodyAndSequenceOption; // scale vertex
 
 				clip_rotations(rot);
 
