@@ -2291,45 +2291,45 @@ int cmd_controller(QC &qc_cmd, std::string &token)
 }
 
 void cmd_bbox(QC &qc_cmd, std::string &token)
-{
+{	// min
 	get_token(false, token);
-	qc_cmd.bbox[0][0] = std::stof(token);
+	qc_cmd.bbox[0].x = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.bbox[0][1] = std::stof(token);
+	qc_cmd.bbox[0].y = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.bbox[0][2] = std::stof(token);
+	qc_cmd.bbox[0].z = std::stof(token);
+	// max
+	get_token(false, token);
+	qc_cmd.bbox[1].x = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.bbox[1][0] = std::stof(token);
+	qc_cmd.bbox[1].y = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.bbox[1][1] = std::stof(token);
-
-	get_token(false, token);
-	qc_cmd.bbox[1][2] = std::stof(token);
+	qc_cmd.bbox[1].z = std::stof(token);
 }
 
 void cmd_cbox(QC &qc_cmd, std::string &token)
-{
+{	// min
 	get_token(false, token);
-	qc_cmd.cbox[0][0] = std::stof(token);
+	qc_cmd.cbox[0].x = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.cbox[0][1] = std::stof(token);
+	qc_cmd.cbox[0].y = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.cbox[0][2] = std::stof(token);
+	qc_cmd.cbox[0].z = std::stof(token);
+	// max
+	get_token(false, token);
+	qc_cmd.cbox[1].x = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.cbox[1][0] = std::stof(token);
+	qc_cmd.cbox[1].y = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.cbox[1][1] = std::stof(token);
-
-	get_token(false, token);
-	qc_cmd.cbox[1][2] = std::stof(token);
+	qc_cmd.cbox[1].z = std::stof(token);
 }
 
 void cmd_mirror(QC &qc_cmd, std::string &token)
@@ -2424,17 +2424,17 @@ int cmd_hitbox(QC &qc_cmd, std::string &token)
 	get_token(false, token);
 	newhb.name = token;
 	get_token(false, token);
-	newhb.bmin[0] = std::stof(token);
+	newhb.bmin.x = std::stof(token);
 	get_token(false, token);
-	newhb.bmin[1] = std::stof(token);
+	newhb.bmin.y = std::stof(token);
 	get_token(false, token);
-	newhb.bmin[2] = std::stof(token);
+	newhb.bmin.z = std::stof(token);
 	get_token(false, token);
-	newhb.bmax[0] = std::stof(token);
+	newhb.bmax.x = std::stof(token);
 	get_token(false, token);
-	newhb.bmax[1] = std::stof(token);
+	newhb.bmax.y = std::stof(token);
 	get_token(false, token);
-	newhb.bmax[2] = std::stof(token);
+	newhb.bmax.z = std::stof(token);
 
 	qc_cmd.hitboxes.push_back(newhb);
 
