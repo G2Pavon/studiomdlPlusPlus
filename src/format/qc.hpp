@@ -17,10 +17,8 @@
 // TODO: use vector instead
 
 extern int g_num_mirrored;
-extern int g_num_animation;
 extern int g_num_texturegroup; // unnecessary? since engine doesn't support multiple texturegroups
 extern int g_num_sequence;
-extern int g_num_sequencegroup;
 extern int g_num_submodels;
 extern int g_num_bodygroup;
 
@@ -45,7 +43,7 @@ public:
 
     std::array<std::array<char, 64>, MAXSTUDIOSRCBONES> mirrorbone{}; // $mirrorbone
 
-    std::array<Animation *, MAXSTUDIOSEQUENCES * MAXSTUDIOBLENDS> animationSequenceOption{}; // $sequence, each sequence can have 16 blends
+    std::vector<Animation *> sequenceAnimationOption; // $sequence, each sequence can have 16 blends
 
     std::array<std::array<std::array<int, 32>, 32>, 32> texturegroup{}; // $texturegroup
     std::array<int, 32> texturegrouplayers{};
@@ -60,7 +58,7 @@ public:
 
     std::array<Sequence, MAXSTUDIOSEQUENCES> sequence{}; // $sequence
 
-    std::array<SequenceGroup, MAXSTUDIOSEQUENCES> sequencegroup{}; // $sequencegroup
+    std::vector<SequenceGroup> sequencegroups; // $sequencegroup TODO: remove this
 
     std::array<Model *, MAXSTUDIOMODELS> submodel{}; // $body
 
@@ -73,14 +71,12 @@ public:
     {
         // Initialize arrays with default values
         mirrorbone.fill({});
-        animationSequenceOption.fill(nullptr);
         texturegroup.fill({});
         texturegrouplayers.fill(0);
         texturegroupreps.fill(0);
         bbox.fill(Vector3{});
         cbox.fill(Vector3{});
         sequence.fill(Sequence{});
-        sequencegroup.fill(SequenceGroup{});
         submodel.fill(nullptr);
         bodypart.fill(BodyPart{});
     }

@@ -218,15 +218,15 @@ void write_sequence_info(QC &qc_cmd)
 
 	// save sequence group info
 	pseqgroup = (StudioSequenceGroup *)g_currentposition;
-	g_studioheader->numseqgroups = g_num_sequencegroup;
+	g_studioheader->numseqgroups = qc_cmd.sequencegroups.size();
 	g_studioheader->seqgroupindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_studioheader->numseqgroups * sizeof(StudioSequenceGroup);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
-	for (i = 0; i < g_num_sequencegroup; i++)
+	for (i = 0; i < qc_cmd.sequencegroups.size(); i++)
 	{
-		std::strcpy(pseqgroup[i].label, qc_cmd.sequencegroup[i].label.c_str());
-		std::strcpy(pseqgroup[i].name, qc_cmd.sequencegroup[i].name.c_str());
+		std::strcpy(pseqgroup[i].label, qc_cmd.sequencegroups[i].label.c_str());
+		std::strcpy(pseqgroup[i].name, qc_cmd.sequencegroups[i].name.c_str());
 	}
 
 	// save transition graph
@@ -494,7 +494,7 @@ void write_file(QC &qc_cmd)
 
 	strip_extension(qc_cmd.modelname);
 
-	for (int i = 1; i < g_num_sequencegroup; i++)
+	for (int i = 1; i < qc_cmd.sequencegroups.size(); i++)
 	{
 		// write the non-default sequence group data to separate files
 		char groupname[128], localname[128];
@@ -513,8 +513,8 @@ void write_file(QC &qc_cmd)
 		g_currentposition = write_animations(qc_cmd, g_currentposition, g_bufferstart, i);
 
 		extract_filebase(groupname, localname);
-		sprintf(const_cast<char*>(qc_cmd.sequencegroup[i].name.c_str()), "models\\%s.mdl", localname);
-		std::strcpy(g_studiosequenceheader->name, qc_cmd.sequencegroup[i].name.c_str());
+		sprintf(const_cast<char*>(qc_cmd.sequencegroups[i].name.c_str()), "models\\%s.mdl", localname);
+		std::strcpy(g_studiosequenceheader->name, qc_cmd.sequencegroups[i].name.c_str());
 		g_studiosequenceheader->length = static_cast<int>(g_currentposition - g_bufferstart);
 
 		printf("total     %6d\n", g_studiosequenceheader->length);

@@ -2047,9 +2047,10 @@ void cmd_sequence_option_scale(QC &qc_cmd, std::string &token)
 
 int cmd_sequencegroup(QC &qc_cmd, std::string &token)
 {
+	SequenceGroup newseqgroup;
 	get_token(false, token);
-	qc_cmd.sequencegroup[g_num_sequencegroup].label = token;
-	g_num_sequencegroup++;
+	newseqgroup.label = token;
+	qc_cmd.sequencegroups.push_back(newseqgroup);
 
 	return 0;
 }
@@ -2090,7 +2091,7 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 
 	qc_cmd.rotate = qc_cmd.originRotation;
 	qc_cmd.sequence[g_num_sequence].fps = 30.0;
-	qc_cmd.sequence[g_num_sequence].seqgroup = g_num_sequencegroup - 1;
+	qc_cmd.sequence[g_num_sequence].seqgroup = qc_cmd.sequencegroups.size() - 1;
 	qc_cmd.sequence[g_num_sequence].blendstart[0] = 0.0;
 	qc_cmd.sequence[g_num_sequence].blendend[0] = 1.0;
 
@@ -2230,14 +2231,18 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 	}
 	for (i = 0; i < numblends; i++)
 	{
-		qc_cmd.animationSequenceOption[g_num_animation] = new Animation(); // FIXME: memory leak
-		qc_cmd.sequence[g_num_sequence].panim[i] = qc_cmd.animationSequenceOption[g_num_animation];
-		qc_cmd.sequence[g_num_sequence].panim[i]->startframe = start;
-		qc_cmd.sequence[g_num_sequence].panim[i]->endframe = end;
-		qc_cmd.sequence[g_num_sequence].panim[i]->flags = 0;
-		cmd_sequence_option_animation(qc_cmd, smdfilename[i], qc_cmd.animationSequenceOption[g_num_animation]);
-		g_num_animation++;
+		qc_cmd.sequenceAnimationOption.push_back(new Animation());
+		Animation* newAnim = qc_cmd.sequenceAnimationOption.back();
+		qc_cmd.sequence[g_num_sequence].panim[i] = newAnim;
+
+		newAnim->startframe = start;
+		newAnim->endframe = end;
+		newAnim->flags = 0;
+
+		cmd_sequence_option_animation(qc_cmd, smdfilename[i], newAnim);
+
 	}
+
 	qc_cmd.sequence[g_num_sequence].numblends = numblends;
 
 	g_num_sequence++;
@@ -2695,9 +2700,9 @@ int main(int argc, char **argv)
             error("Error: Unexpected argument '%s'.\n", argv[i]);
         }
     }
-
-    qc_cmd.sequencegroup[g_num_sequencegroup].label = "default";
-    g_num_sequencegroup = 1;
+	SequenceGroup defaultseqgroup;
+    defaultseqgroup.label = "default";
+    qc_cmd.sequencegroups.push_back(defaultseqgroup);
 
     load_qc_file(path);       
     parse_qc_file(qc_cmd); 
