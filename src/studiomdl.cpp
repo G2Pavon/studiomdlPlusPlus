@@ -1321,11 +1321,11 @@ void set_skin_values(QC &qc_cmd)
 			g_skinref[i][j] = j;
 		}
 	}
-	for (i = 0; i < qc_cmd.texturegrouplayers[0]; i++)
+	for (i = 0; i < qc_cmd.texturegroup_rows; i++)
 	{
-		for (j = 0; j < qc_cmd.texturegroupreps[0]; j++)
+		for (j = 0; j < qc_cmd.texturegroup_cols; j++)
 		{
-			g_skinref[i][qc_cmd.texturegroup[0][0][j]] = qc_cmd.texturegroup[0][i][j];
+			g_skinref[i][qc_cmd.texturegroup[0][j]] = qc_cmd.texturegroup[i][j];
 		}
 	}
 	if (i != 0)
@@ -2314,8 +2314,8 @@ int cmd_texturegroup(QC &qc_cmd, std::string &token)
 {
 	int i;
 	int depth = 0;
-	int index = 0;
-	int group = 0;
+	int col_index = 0;
+	int row_index = 0;
 
 	if (g_texturescount == 0)
 		error("texturegroups must follow model loading\n");
@@ -2350,22 +2350,20 @@ int cmd_texturegroup(QC &qc_cmd, std::string &token)
 			depth--;
 			if (depth == 0)
 				break;
-			group++;
-			index = 0;
+			row_index++;
+			col_index = 0;
 		}
 		else if (depth == 2)
 		{
 			i = find_texture_index(token);
-			qc_cmd.texturegroup[g_num_texturegroup][group][index] = i;
-			if (group != 0)
-				g_textures[i].parent = qc_cmd.texturegroup[g_num_texturegroup][0][index];
-			index++;
-			qc_cmd.texturegroupreps[g_num_texturegroup] = index;
-			qc_cmd.texturegrouplayers[g_num_texturegroup] = group + 1;
+			qc_cmd.texturegroup[row_index][col_index] = i;
+			if (row_index != 0)
+				g_textures[i].parent = qc_cmd.texturegroup[0][col_index];
+			col_index++;
+			qc_cmd.texturegroup_cols = col_index;
+			qc_cmd.texturegroup_rows = row_index + 1;
 		}
 	}
-
-	g_num_texturegroup++;
 
 	return 0;
 }

@@ -9,7 +9,6 @@ int g_num_renamebone = 0;
 int g_num_hitgroups = 0;
 int g_num_mirrored = 0;
 int g_num_animation = 0;
-int g_num_texturegroup = 0;
 int g_num_hitboxes = 0;
 int g_num_bonecontroller = 0; 
 int g_num_attachments = 0;

@@ -27,7 +27,6 @@ constexpr int MAXSTUDIOEVENTS = 1024;	  // events per model
 constexpr int MAXSTUDIOBLENDS = 16;		  // max anim blends
 constexpr int MAXSTUDIOCONTROLLERS = 8;	  // max controllers per model
 constexpr int MAXSTUDIOATTACHMENTS = 4;	  // max attachments per model
-constexpr int MAXSTUDIOTEXTUREGROUP = 0;  // actually 1 but 0 cus is the first index of an texturegroup array, since engine doesn't support multiple texturegroup
 
 // --- String Length Limits ---
 // Maximum lengths for various name strings within the MDL file

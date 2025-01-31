@@ -16,7 +16,6 @@
 // since array does not have .size() like vector
 // TODO: use vector instead
 
-extern int g_num_texturegroup; // unnecessary? since engine doesn't support multiple texturegroups
 extern int g_num_sequence;
 extern int g_num_submodels;
 extern int g_num_bodygroup;
@@ -42,9 +41,9 @@ public:
     std::vector<std::string> mirroredbones; // $mirrorbone
     std::vector<Animation *> sequenceAnimationOption; // $sequence, each sequence can have 16 blends
 
-    std::array<std::array<std::array<int, 32>, 32>, 32> texturegroup{}; // $texturegroup
-    std::array<int, 32> texturegrouplayers{};
-    std::array<int, 32> texturegroupreps{};
+    std::array<std::array<int, 32>, 32> texturegroup{}; // $texturegroup
+    int texturegroup_rows;
+    int texturegroup_cols;
 
     std::array<Vector3, 2> bbox{}; // $bbox
     std::array<Vector3, 2> cbox{}; // $cbox
@@ -66,8 +65,6 @@ public:
     {
         // Initialize arrays with default values
         texturegroup.fill({});
-        texturegrouplayers.fill(0);
-        texturegroupreps.fill(0);
         bbox.fill(Vector3{});
         cbox.fill(Vector3{});
         sequence.fill(Sequence{});
