@@ -27,9 +27,7 @@ char *qc_script_buffer; // Buffer holding the entire QC file data
 
 void load_qc_file(char *filename)
 {
-    int size;
-
-    size = load_file(filename, (void **)&qc_script_buffer);
+    int size = load_file(filename, (void **)&qc_script_buffer);
 
     printf("processing %s\n", filename);
 

@@ -1663,7 +1663,7 @@ void cmd_flags(QC &qc_cmd, std::string &token)
 void cmd_modelname(QC &qc_cmd, std::string &token)
 {
 	get_token(false, token);
-	strcpyn(qc_cmd.modelname, token.c_str());
+	qc_cmd.modelname = token;
 }
 
 void cmd_body_option_studio(QC &qc_cmd, std::string &token)

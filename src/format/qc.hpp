@@ -23,7 +23,7 @@ extern int g_num_bodygroup;
 class QC
 {
 public:
-    char modelname[1024];                                  // $modelname
+    std::string modelname;                                  // $modelname
     std::filesystem::path cd;                              // $cd
     std::filesystem::path cdAbsolute;                      // $cd
     std::filesystem::path cdtexture;                       // $cdtexture

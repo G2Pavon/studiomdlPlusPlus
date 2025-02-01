@@ -21,13 +21,9 @@ StudioSequenceGroupHeader *g_studiosequenceheader;
 void write_bone_info(QC &qc_cmd)
 {
 	int i, j;
-	StudioBone *pbone;
-	StudioBoneController *pbonecontroller;
-	StudioAttachment *pattachment;
-	StudioHitbox *pbbox;
 
 	// save bone info
-	pbone = (StudioBone *)g_currentposition;
+	StudioBone *pbone = (StudioBone *)g_currentposition;
 	g_studioheader->numbones = g_bonescount;
 	g_studioheader->boneindex = static_cast<int>(g_currentposition - g_bufferstart);
 
@@ -91,7 +87,7 @@ void write_bone_info(QC &qc_cmd)
 	}
 
 	// save bonecontroller info
-	pbonecontroller = (StudioBoneController *)g_currentposition;
+	StudioBoneController *pbonecontroller = (StudioBoneController *)g_currentposition;
 	g_studioheader->numbonecontrollers = qc_cmd.bonecontrollers.size();
 	g_studioheader->bonecontrollerindex = static_cast<int>(g_currentposition - g_bufferstart);
 
@@ -107,7 +103,7 @@ void write_bone_info(QC &qc_cmd)
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	// save attachment info
-	pattachment = (StudioAttachment *)g_currentposition;
+	StudioAttachment *pattachment = (StudioAttachment *)g_currentposition;
 	g_studioheader->numattachments = qc_cmd.attachments.size();
 	g_studioheader->attachmentindex = static_cast<int>(g_currentposition - g_bufferstart);
 
@@ -120,7 +116,7 @@ void write_bone_info(QC &qc_cmd)
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	// save bbox info
-	pbbox = (StudioHitbox *)g_currentposition;
+	StudioHitbox *pbbox = (StudioHitbox *)g_currentposition;
 	g_studioheader->numhitboxes = qc_cmd.hitboxes.size();
 	g_studioheader->hitboxindex = static_cast<int>(g_currentposition - g_bufferstart);
 
@@ -138,11 +134,8 @@ void write_sequence_info(QC &qc_cmd)
 {
 	int i, j;
 
-	StudioSequenceDescription *pseqdesc;
-	std::uint8_t *ptransition;
-
 	// save sequence info
-	pseqdesc = (StudioSequenceDescription *)g_currentposition;
+	StudioSequenceDescription *pseqdesc = (StudioSequenceDescription *)g_currentposition;
 	g_studioheader->numseq = g_num_sequence;
 	g_studioheader->seqindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_num_sequence * sizeof(StudioSequenceDescription);
@@ -210,7 +203,7 @@ void write_sequence_info(QC &qc_cmd)
 	std::strcpy(pseqgroup[0].name, "");
 
 	// save transition graph
-	ptransition = (std::uint8_t *)g_currentposition;
+	std::uint8_t *ptransition = (std::uint8_t *)g_currentposition;
 	g_studioheader->numtransitions = g_numxnodes;
 	g_studioheader->transitionindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_numxnodes * g_numxnodes * sizeof(std::uint8_t);
@@ -326,19 +319,12 @@ void write_model(QC &qc_cmd)
 {
 	int i, j, k;
 
-	StudioBodyPart *pbodypart;
-	StudioModel *pmodel;
-	// vec3_t			*bbox;
-	std::uint8_t *pbone;
-	TriangleVert *psrctri;
-	std::intptr_t cur;
-
-	pbodypart = (StudioBodyPart *)g_currentposition;
+	StudioBodyPart *pbodypart = (StudioBodyPart *)g_currentposition;
 	g_studioheader->numbodyparts = g_num_bodygroup;
 	g_studioheader->bodypartindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_num_bodygroup * sizeof(StudioBodyPart);
 
-	pmodel = (StudioModel *)g_currentposition;
+	StudioModel *pmodel = (StudioModel *)g_currentposition;
 	g_currentposition += g_num_submodels * sizeof(StudioModel);
 
 	for (i = 0, j = 0; i < g_num_bodygroup; i++)
@@ -351,7 +337,7 @@ void write_model(QC &qc_cmd)
 	}
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
-	cur = reinterpret_cast<std::intptr_t>(g_currentposition);
+	std::intptr_t cur = reinterpret_cast<std::intptr_t>(g_currentposition);
 	for (i = 0; i < g_num_submodels; i++)
 	{
 		int normmap[MAXSTUDIOVERTS];
@@ -378,7 +364,7 @@ void write_model(QC &qc_cmd)
 		}
 
 		// save vertice bones
-		pbone = g_currentposition;
+		std::uint8_t *pbone = g_currentposition;
 		pmodel[i].numverts = qc_cmd.submodel[i]->numverts;
 		pmodel[i].vertinfoindex = static_cast<int>(g_currentposition - g_bufferstart);
 		for (j = 0; j < pmodel[i].numverts; j++)
@@ -434,6 +420,7 @@ void write_model(QC &qc_cmd)
 
 			int total_tris = 0;
 			int total_strips = 0;
+			TriangleVert *psrctri;
 			for (j = 0; j < qc_cmd.submodel[i]->nummesh; j++)
 			{
 				int numCmdBytes;
@@ -467,26 +454,25 @@ void write_model(QC &qc_cmd)
 
 void write_file(QC &qc_cmd)
 {
-	FILE *modelouthandle;
 	int total = 0;
 
 	g_bufferstart = (std::uint8_t *)std::calloc(1, FILEBUFFER);
 
-	strip_extension(qc_cmd.modelname);
+	std::string file_name = strip_extension(qc_cmd.modelname);
 	//
 	// write the model output file
 	//
-	strcat(qc_cmd.modelname, ".mdl");
-
+	file_name += ".mdl";
 	printf("---------------------\n");
-	printf("writing %s:\n", qc_cmd.modelname);
-	modelouthandle = safe_open_write(qc_cmd.modelname);
+	printf("writing %s:\n", file_name.c_str());
+	FILE *modelouthandle = safe_open_write(const_cast<char *>(file_name.c_str()));
 
 	g_studioheader = (StudioHeader *)g_bufferstart;
 
 	g_studioheader->ident = IDSTUDIOHEADER;
 	g_studioheader->version = STUDIO_VERSION;
-	std::strcpy(g_studioheader->name, qc_cmd.modelname);
+	std::strcpy(g_studioheader->name, file_name.c_str());
+
 	g_studioheader->eyeposition = qc_cmd.eyeposition;
 	g_studioheader->min = qc_cmd.bbox[0];
 	g_studioheader->max = qc_cmd.bbox[1];
