@@ -1,5 +1,4 @@
 #include <cstring>
-#include <cstdlib>
 
 #include "writemdl.hpp"
 #include "format/mdl.hpp"

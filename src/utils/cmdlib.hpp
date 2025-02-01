@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdio>
 #include <string>
 
 int file_length(FILE *f);

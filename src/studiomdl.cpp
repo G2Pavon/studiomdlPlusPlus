@@ -1,13 +1,10 @@
 // studiomdl.c: generates a studio .mdl file from a .qc script
 // models/<scriptname>.mdl.
 
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include <cmath>
-#include <cctype>
 #include <string>
 #include <filesystem>
+#include <algorithm>
 
 
 #include "studiomdl.hpp"

@@ -1,5 +1,7 @@
 #pragma once
+
 #include <cstdint>
+
 #include "utils/cmdlib.hpp"
 #include "format/qc.hpp"
 
