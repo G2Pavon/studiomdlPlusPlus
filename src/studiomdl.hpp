@@ -11,8 +11,7 @@
 extern std::array<std::array<int, 100>, 100> g_xnode;
 extern int g_numxnodes; // Not initialized??
 
-extern std::array<BoneTable, MAXSTUDIOSRCBONES> g_bonetable;
-extern int g_bonescount;
+extern std::vector<BoneTable> g_bonetable;
 
 extern std::vector<Texture> g_textures;
 

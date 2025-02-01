@@ -23,10 +23,10 @@ void write_bone_info(QC &qc_cmd)
 
 	// save bone info
 	StudioBone *pbone = (StudioBone *)g_currentposition;
-	g_studioheader->numbones = g_bonescount;
+	g_studioheader->numbones = g_bonetable.size();
 	g_studioheader->boneindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < g_bonescount; i++)
+	for (i = 0; i < g_bonetable.size(); i++)
 	{
 		std::strcpy(pbone[i].name, g_bonetable[i].name.c_str());
 		pbone[i].parent = g_bonetable[i].parent;
@@ -44,11 +44,11 @@ void write_bone_info(QC &qc_cmd)
 		pbone[i].scale[4] = g_bonetable[i].rotscale[1];
 		pbone[i].scale[5] = g_bonetable[i].rotscale[2];
 	}
-	g_currentposition += g_bonescount * sizeof(StudioBone);
+	g_currentposition += g_bonetable.size() * sizeof(StudioBone);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	// map bonecontroller to bones
-	for (i = 0; i < g_bonescount; i++)
+	for (i = 0; i < g_bonetable.size(); i++)
 	{
 		for (j = 0; j < DEGREESOFFREEDOM; j++)
 		{
@@ -231,14 +231,14 @@ std::uint8_t *write_animations(QC &qc_cmd, std::uint8_t *pData, const std::uint8
 			// save animations
 			panim = (StudioAnimationFrameOffset *)pData;
 			qc_cmd.sequence[i].animindex = static_cast<int>(pData - pStart);
-			pData += qc_cmd.sequence[i].numblends * g_bonescount * sizeof(StudioAnimationFrameOffset);
+			pData += qc_cmd.sequence[i].numblends * g_bonetable.size() * sizeof(StudioAnimationFrameOffset);
 			pData = (std::uint8_t *)ALIGN(pData);
 
 			panimvalue = (StudioAnimationValue *)pData;
 			for (int blends = 0; blends < qc_cmd.sequence[i].numblends; blends++)
 			{
 				// save animation value info
-				for (int j = 0; j < g_bonescount; j++)
+				for (int j = 0; j < g_bonetable.size(); j++)
 				{
 					for (int k = 0; k < DEGREESOFFREEDOM; k++)
 					{
@@ -483,7 +483,7 @@ void write_file(QC &qc_cmd)
 	g_currentposition = (std::uint8_t *)g_studioheader + sizeof(StudioHeader);
 
 	write_bone_info(qc_cmd);
-	printf("bones     %6d bytes (%d)\n", g_currentposition - g_bufferstart - total, g_bonescount);
+	printf("bones     %6d bytes (%d)\n", g_currentposition - g_bufferstart - total, g_bonetable.size());
 	total = static_cast<int>(g_currentposition - g_bufferstart);
 
 	g_currentposition = write_animations(qc_cmd, g_currentposition, g_bufferstart, 0);

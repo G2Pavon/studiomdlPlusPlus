@@ -42,8 +42,7 @@ BoneFixUp g_bonefixup[MAXSTUDIOSRCBONES];
 std::array<std::array<int, 100>, 100> g_xnode;
 int g_numxnodes; // Not initialized??
 
-std::array<BoneTable, MAXSTUDIOSRCBONES> g_bonetable;
-int g_bonescount;
+std::vector<BoneTable> g_bonetable;
 
 std::vector<Texture> g_textures;
 
@@ -249,7 +248,7 @@ void optimize_animations(QC &qc_cmd)
 
 int find_node(std::string name)
 {
-	for (int k = 0; k < g_bonescount; k++)
+	for (int k = 0; k < g_bonetable.size(); k++)
 	{
 		if (g_bonetable[k].name == name)
 		{
@@ -374,7 +373,7 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// union of all used bones TODO:create_bone_union()
-	g_bonescount = 0;
+	g_bonetable.clear();
 	for (i = 0; i < qc_cmd.submodel.size(); i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
@@ -389,14 +388,15 @@ void simplify_model(QC &qc_cmd)
 				if (k == -1)
 				{
 					// create new bone
-					k = g_bonescount;
-					g_bonetable[k].name = qc_cmd.submodel[i]->node[j].name;
+					k = g_bonetable.size();
+					BoneTable newb;
+					newb.name = qc_cmd.submodel[i]->node[j].name;
 					if ((n = qc_cmd.submodel[i]->node[j].parent) != -1)
-						g_bonetable[k].parent = find_node(qc_cmd.submodel[i]->node[n].name);
+						newb.parent = find_node(qc_cmd.submodel[i]->node[n].name);
 					else
-						g_bonetable[k].parent = -1;
-					g_bonetable[k].bonecontroller = 0;
-					g_bonetable[k].flags = 0;
+						newb.parent = -1;
+					newb.bonecontroller = 0;
+					newb.flags = 0;
 					// set defaults
 					defaultpos[k] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 					defaultrot[k] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
@@ -405,9 +405,9 @@ void simplify_model(QC &qc_cmd)
 						defaultpos[k][n] = qc_cmd.submodel[i]->skeleton[j].pos;
 						defaultrot[k][n] = qc_cmd.submodel[i]->skeleton[j].rot;
 					}
-					g_bonetable[k].pos = qc_cmd.submodel[i]->skeleton[j].pos;
-					g_bonetable[k].rot = qc_cmd.submodel[i]->skeleton[j].rot;
-					g_bonescount++;
+					newb.pos = qc_cmd.submodel[i]->skeleton[j].pos;
+					newb.rot = qc_cmd.submodel[i]->skeleton[j].rot;
+					g_bonetable.push_back(newb);
 				}
 				else
 				{
@@ -438,9 +438,9 @@ void simplify_model(QC &qc_cmd)
 		exit(1);
 	}
 
-	if (g_bonescount >= MAXSTUDIOBONES)
+	if (g_bonetable.size() >= MAXSTUDIOBONES)
 	{
-		error("Too many bones used in model, used %d, max %d\n", g_bonescount, MAXSTUDIOBONES);
+		error("Too many bones used in model, used %d, max %d\n", g_bonetable.size(), MAXSTUDIOBONES);
 	}
 
 	// rename sequence bones if needed TODO: rename_sequence_bones()
@@ -508,12 +508,12 @@ void simplify_model(QC &qc_cmd)
 	// link bonecontrollers TODO: link_bone_controllers()
 	for (i = 0; i < qc_cmd.bonecontrollers.size(); i++)
 	{
-		for (j = 0; j < g_bonescount; j++)
+		for (j = 0; j < g_bonetable.size(); j++)
 		{
 			if (qc_cmd.bonecontrollers[i].name == g_bonetable[j].name)
 				break;
 		}
-		if (j >= g_bonescount)
+		if (j >= g_bonetable.size())
 		{
 			error("unknown bonecontroller link '%s'\n", qc_cmd.bonecontrollers[i].name);
 		}
@@ -523,12 +523,12 @@ void simplify_model(QC &qc_cmd)
 	// link attachments TODO: link_attachments()
 	for (i = 0; i < qc_cmd.attachments.size(); i++)
 	{
-		for (j = 0; j < g_bonescount; j++)
+		for (j = 0; j < g_bonetable.size(); j++)
 		{
 			if (qc_cmd.attachments[i].bonename == g_bonetable[j].name)
 				break;
 		}
-		if (j >= g_bonescount)
+		if (j >= g_bonetable.size())
 		{
 			error("unknown attachment link '%s'\n", qc_cmd.attachments[i].bonename);
 		}
@@ -549,13 +549,13 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// set hitgroups TODO: set_hit_groups()
-	for (k = 0; k < g_bonescount; k++)
+	for (k = 0; k < g_bonetable.size(); k++)
 	{
 		g_bonetable[k].group = -9999;
 	}
 	for (j = 0; j < qc_cmd.hitgroups.size(); j++)
 	{
-		for (k = 0; k < g_bonescount; k++)
+		for (k = 0; k < g_bonetable.size(); k++)
 		{
 			if (g_bonetable[k].name == qc_cmd.hitgroups[j].name)
 			{
@@ -563,10 +563,10 @@ void simplify_model(QC &qc_cmd)
 				break;
 			}
 		}
-		if (k >= g_bonescount)
+		if (k >= g_bonetable.size())
 			error("cannot find bone %s for hitgroup %d\n", qc_cmd.hitgroups[j].name, qc_cmd.hitgroups[j].group);
 	}
-	for (k = 0; k < g_bonescount; k++)
+	for (k = 0; k < g_bonetable.size(); k++)
 	{
 		if (g_bonetable[k].group == -9999)
 		{
@@ -580,7 +580,7 @@ void simplify_model(QC &qc_cmd)
 	if (qc_cmd.hitboxes.empty()) // TODO: find_or_create_hitboxes()
 	{
 		// find intersection box volume for each bone
-		for (k = 0; k < g_bonescount; k++)
+		for (k = 0; k < g_bonetable.size(); k++)
 		{
 			for (j = 0; j < 3; j++)
 			{
@@ -612,7 +612,7 @@ void simplify_model(QC &qc_cmd)
 			}
 		}
 		// add in all your children as well
-		for (k = 0; k < g_bonescount; k++)
+		for (k = 0; k < g_bonetable.size(); k++)
 		{
 			if ((j = g_bonetable[k].parent) != -1)
 			{
@@ -631,7 +631,7 @@ void simplify_model(QC &qc_cmd)
 			}
 		}
 
-		for (k = 0; k < g_bonescount; k++)
+		for (k = 0; k < g_bonetable.size(); k++)
 		{
 			if (g_bonetable[k].bmin[0] < g_bonetable[k].bmax[0] - 1 && g_bonetable[k].bmin[1] < g_bonetable[k].bmax[1] - 1 && g_bonetable[k].bmin[2] < g_bonetable[k].bmax[2] - 1)
 			{
@@ -648,7 +648,7 @@ void simplify_model(QC &qc_cmd)
 	{
 		for (j = 0; j < qc_cmd.hitboxes.size(); j++)
 		{
-			for (k = 0; k < g_bonescount; k++)
+			for (k = 0; k < g_bonetable.size(); k++)
 			{
 				if (g_bonetable[k].name == qc_cmd.hitboxes[j].name)
 				{
@@ -656,7 +656,7 @@ void simplify_model(QC &qc_cmd)
 					break;
 				}
 			}
-			if (k >= g_bonescount)
+			if (k >= g_bonetable.size())
 				error("cannot find bone %s for bbox\n", qc_cmd.hitboxes[j].name);
 		}
 	}
@@ -676,7 +676,7 @@ void simplify_model(QC &qc_cmd)
 				origrot[j] = qc_cmd.sequence[i].panim[q]->rot[j];
 			}
 
-			for (j = 0; j < g_bonescount; j++)
+			for (j = 0; j < g_bonetable.size(); j++)
 			{
 				if ((k = qc_cmd.sequence[i].panim[0]->boneimap[j]) >= 0)
 				{
@@ -695,7 +695,7 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// find scales for all bones TODO: find_bone_scales()
-	for (j = 0; j < g_bonescount; j++)
+	for (j = 0; j < g_bonetable.size(); j++)
 	{
 		for (k = 0; k < DEGREESOFFREEDOM; k++)
 		{
@@ -794,7 +794,7 @@ void simplify_model(QC &qc_cmd)
 				float bonematrix[3][4];					   // local transformation matrix
 				Vector3 pos;
 
-				for (j = 0; j < g_bonescount; j++)
+				for (j = 0; j < g_bonetable.size(); j++)
 				{
 
 					Vector3 angles;
@@ -854,7 +854,7 @@ void simplify_model(QC &qc_cmd)
 		{
 			for (q = 0; q < qc_cmd.sequence[i].numblends; q++)
 			{
-				for (j = 0; j < g_bonescount; j++)
+				for (j = 0; j < g_bonetable.size(); j++)
 				{
 					for (k = 0; k < DEGREESOFFREEDOM; k++)
 					{
