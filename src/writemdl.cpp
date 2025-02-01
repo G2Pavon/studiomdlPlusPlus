@@ -278,9 +278,9 @@ void write_textures()
 
 	// save bone info
 	ptexture = (StudioTexture *)g_currentposition;
-	g_studioheader->numtextures = g_texturescount;
+	g_studioheader->numtextures = g_textures.size();
 	g_studioheader->textureindex = static_cast<int>(g_currentposition - g_bufferstart);
-	g_currentposition += g_texturescount * sizeof(StudioTexture);
+	g_currentposition += g_textures.size() * sizeof(StudioTexture);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	g_studioheader->skinindex = static_cast<int>(g_currentposition - g_bufferstart);
@@ -301,7 +301,7 @@ void write_textures()
 
 	g_studioheader->texturedataindex = static_cast<int>(g_currentposition - g_bufferstart); // must be the end of the file!
 
-	for (i = 0; i < g_texturescount; i++)
+	for (i = 0; i < g_textures.size(); i++)
 	{
 		std::strcpy(ptexture[i].name, g_textures[i].name.c_str());
 		ptexture[i].flags = g_textures[i].flags;

@@ -45,8 +45,7 @@ int g_numxnodes; // Not initialized??
 std::array<BoneTable, MAXSTUDIOSRCBONES> g_bonetable;
 int g_bonescount;
 
-std::array<Texture, MAXSTUDIOSKINS> g_textures;
-int g_texturescount;
+std::vector<Texture> g_textures;
 
 std::array<std::array<int, MAXSTUDIOSKINS>, 256> g_skinref; // [skin][skinref], returns texture index
 int g_skinrefcount;
@@ -992,26 +991,27 @@ int lookup_control(const char *string)
 int find_texture_index(std::string texturename)
 {
 	int i;
-	for (i = 0; i < g_texturescount; i++)
+	for (i = 0; i < g_textures.size(); i++)
 	{
 		if (g_textures[i].name == texturename)
 		{
 			return i;
 		}
 	}
-	g_textures[i].name = texturename;
+	Texture newtexture;
+	newtexture.name = texturename;
 
 	// XDM: allow such names as "tex_chrome_bright" - chrome and full brightness effects
     std::string lower_texname = texturename;
     std::transform(lower_texname.begin(), lower_texname.end(), lower_texname.begin(), ::tolower);
 	if (lower_texname.find("chrome") != std::string::npos)
-		g_textures[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_CHROME;
+		newtexture.flags = STUDIO_NF_FLATSHADE | STUDIO_NF_CHROME;
 	else if (lower_texname.find("bright") != std::string::npos)
-		g_textures[i].flags = STUDIO_NF_FLATSHADE | STUDIO_NF_FULLBRIGHT;
+		newtexture.flags = STUDIO_NF_FLATSHADE | STUDIO_NF_FULLBRIGHT;
 	else
-		g_textures[i].flags = 0;
+		newtexture.flags = 0;
 
-	g_texturescount++;
+	g_textures.push_back(newtexture);
 	return i;
 }
 
@@ -1260,7 +1260,7 @@ void set_skin_values(QC &qc_cmd)
 {
 	int i, j;
 
-	for (i = 0; i < g_texturescount; i++)
+	for (i = 0; i < g_textures.size(); i++)
 	{
 		grab_skin(qc_cmd, &g_textures[i]);
 
@@ -1278,7 +1278,7 @@ void set_skin_values(QC &qc_cmd)
 		}
 	}
 
-	for (i = 0; i < g_texturescount; i++)
+	for (i = 0; i < g_textures.size(); i++)
 	{
 		if (g_textures[i].max_s < g_textures[i].min_s)
 		{
@@ -1332,7 +1332,7 @@ void set_skin_values(QC &qc_cmd)
 	else
 	{
 		g_skinfamiliescount = 1;
-		g_skinrefcount = g_texturescount;
+		g_skinrefcount = g_textures.size();
 	}
 }
 
@@ -2313,14 +2313,14 @@ int cmd_texturegroup(QC &qc_cmd, std::string &token)
 	int col_index = 0;
 	int row_index = 0;
 
-	if (g_texturescount == 0)
+	if (g_textures.empty())
 		error("texturegroups must follow model loading\n");
 
 	if (!get_token(false, token))
 		return 0;
 
 	if (g_skinrefcount == 0)
-		g_skinrefcount = g_texturescount;
+		g_skinrefcount = g_textures.size();
 
 	while (true)
 	{

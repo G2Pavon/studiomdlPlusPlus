@@ -14,8 +14,7 @@ extern int g_numxnodes; // Not initialized??
 extern std::array<BoneTable, MAXSTUDIOSRCBONES> g_bonetable;
 extern int g_bonescount;
 
-extern std::array<Texture, MAXSTUDIOSKINS> g_textures;
-extern int g_texturescount;
+extern std::vector<Texture> g_textures;
 
 extern std::array<std::array<int, MAXSTUDIOSKINS>, 256> g_skinref; // [skin][skinref], returns texture index
 extern int g_skinrefcount;
