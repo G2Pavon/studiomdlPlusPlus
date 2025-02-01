@@ -1,73 +1,55 @@
+// cmdlib.cpp
+#include "cmdlib.hpp"
+#include <iostream>
 #include <cstdarg>
 #include <cstring>
-#include <string>
 
-#include "cmdlib.hpp"
-
-// For abnormal program terminations
-void error(char *error, ...)
+[[noreturn]] void error(const std::string& message)
 {
-	va_list argptr;
-	printf("\n************ ERROR ************\n");
-	va_start(argptr, error);
-	vprintf(error, argptr);
-	va_end(argptr);
-	printf("\n");
-	exit(1);
+    throw std::runtime_error("ERROR: " + message);
 }
 
-//  MISC FUNCTIONS
-
-int file_length(FILE *f)
+int file_length(std::ifstream& file)
 {
-	int pos = ftell(f);
-	fseek(f, 0, SEEK_END);
-	int end = ftell(f);
-	fseek(f, pos, SEEK_SET);
-
-	return end;
+    file.seekg(0, std::ios::end);
+    int length = file.tellg();
+    file.seekg(0, std::ios::beg);
+    return length;
 }
 
-FILE *safe_open_write(char *filename)
+std::unique_ptr<std::ofstream> safe_open_write(const std::filesystem::path& filename)
 {
-	FILE *f = fopen(filename, "wb");
-	if (!f)
-		error("Error opening %s: %s", filename, strerror(errno));
-
-	return f;
+    auto file = std::make_unique<std::ofstream>(filename, std::ios::binary);
+    if (!file || !file->is_open())
+        error("Error opening " + filename.string());
+    return file;
 }
 
-void safe_read(FILE *f, void *buffer, int count)
+void safe_read(std::ifstream& file, void* buffer, std::size_t count)
 {
-	if (fread(buffer, 1, count, f) != (size_t)count)
-		error("File read failure");
+    if (!file.read(reinterpret_cast<char*>(buffer), count))
+        error("File read failure");
 }
 
-void safe_write(FILE *f, void *buffer, int count)
+void safe_write(std::ofstream& file, const void* buffer, std::size_t count)
 {
-	if (fwrite(buffer, 1, count, f) != (size_t)count)
-		error("File read failure");
+    if (!file.write(reinterpret_cast<const char*>(buffer), count))
+        error("File write failure");
 }
 
-int load_file(char *filename, void **bufferptr)
+std::vector<char> load_file(const std::filesystem::path& filename)
 {
-	FILE *f = fopen(filename, "rb");
-	if (!f)
-		error("Error opening %s: %s", filename, strerror(errno));
-	int length = file_length(f);
-	void *buffer = malloc(length + 1);
-	((char *)buffer)[length] = 0;
-	safe_read(f, buffer, length);
-	fclose(f);
-
-	*bufferptr = buffer;
-	return length;
+    std::ifstream file(filename, std::ios::binary);
+    if (!file.is_open())
+        error("Error opening " + filename.string());
+    
+    int length = file_length(file);
+    std::vector<char> buffer(length + 1, '\0');
+    safe_read(file, buffer.data(), length);
+    return buffer;
 }
 
-std::string strip_extension(const std::string& filename) {
-    size_t dotPosition = filename.find_last_of('.');
-    if (dotPosition == std::string::npos) {
-        return filename;
-    }
-    return filename.substr(0, dotPosition);
+std::string strip_extension(const std::string& filename)
+{
+    return std::filesystem::path(filename).stem().string();
 }

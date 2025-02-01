@@ -71,9 +71,9 @@ public:
 
 
 extern bool end_of_qc_file;
-extern char *qc_script_buffer;
+extern std::vector<char> qc_script_buffer;
 
-void load_qc_file(char *filename);
+void load_qc_file(const std::filesystem::path& filename);
 
 bool get_token(bool crossline, std::string &token);
 bool token_available(void);

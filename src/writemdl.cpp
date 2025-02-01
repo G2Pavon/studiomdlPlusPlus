@@ -257,7 +257,7 @@ std::uint8_t *write_animations(QC &qc_cmd, std::uint8_t *pData, const std::uint8
 						}
 					}
 					if (((std::uint8_t *)panimvalue - (std::uint8_t *)panim) > 65535)
-						error("sequence \"%s\" is greate than 64K\n", qc_cmd.sequence[i].name);
+						error("sequence "+  qc_cmd.sequence[i].name +" is greate than 64K\n");
 					panim++;
 				}
 			}
@@ -464,7 +464,11 @@ void write_file(QC &qc_cmd)
 	file_name += ".mdl";
 	printf("---------------------\n");
 	printf("writing %s:\n", file_name.c_str());
-	FILE *modelouthandle = safe_open_write(const_cast<char *>(file_name.c_str()));
+	std::unique_ptr<std::ofstream> modelouthandle = safe_open_write(file_name);
+	if (!modelouthandle) {
+		error("Failed to open file: " + file_name);
+	}
+
 
 	g_studioheader = (StudioHeader *)g_bufferstart;
 
@@ -503,7 +507,5 @@ void write_file(QC &qc_cmd)
 
 	printf("total     %6d\n", g_studioheader->length);
 
-	safe_write(modelouthandle, g_bufferstart, g_studioheader->length);
-
-	fclose(modelouthandle);
+	safe_write(*modelouthandle, g_bufferstart, g_studioheader->length);
 }

@@ -440,7 +440,7 @@ void simplify_model(QC &qc_cmd)
 
 	if (g_bonetable.size() >= MAXSTUDIOBONES)
 	{
-		error("Too many bones used in model, used %d, max %d\n", g_bonetable.size(), MAXSTUDIOBONES);
+		error("Too many bones used in model, used " + std::to_string(g_bonetable.size()) + ", max " + std::to_string(MAXSTUDIOBONES) + "\n");
 	}
 
 	// rename sequence bones if needed TODO: rename_sequence_bones()
@@ -515,7 +515,7 @@ void simplify_model(QC &qc_cmd)
 		}
 		if (j >= g_bonetable.size())
 		{
-			error("unknown bonecontroller link '%s'\n", qc_cmd.bonecontrollers[i].name);
+			error("unknown bonecontroller link '" + qc_cmd.bonecontrollers[i].name + "'\n");
 		}
 		qc_cmd.bonecontrollers[i].bone = j;
 	}
@@ -530,7 +530,7 @@ void simplify_model(QC &qc_cmd)
 		}
 		if (j >= g_bonetable.size())
 		{
-			error("unknown attachment link '%s'\n", qc_cmd.attachments[i].bonename);
+			error("unknown attachment link '" + qc_cmd.attachments[i].bonename + "'\n");
 		}
 		qc_cmd.attachments[i].bone = j;
 	}
@@ -564,7 +564,7 @@ void simplify_model(QC &qc_cmd)
 			}
 		}
 		if (k >= g_bonetable.size())
-			error("cannot find bone %s for hitgroup %d\n", qc_cmd.hitgroups[j].name, qc_cmd.hitgroups[j].group);
+			error("cannot find bone " + qc_cmd.hitgroups[j].name + " for hitgroup " + std::to_string(qc_cmd.hitgroups[j].group) + "\n");
 	}
 	for (k = 0; k < g_bonetable.size(); k++)
 	{
@@ -657,7 +657,7 @@ void simplify_model(QC &qc_cmd)
 				}
 			}
 			if (k >= g_bonetable.size())
-				error("cannot find bone %s for bbox\n", qc_cmd.hitboxes[j].name);
+				error("cannot find bone " + qc_cmd.hitboxes[j].name + " for bbox\n");
 		}
 	}
 
@@ -885,7 +885,7 @@ void simplify_model(QC &qc_cmd)
 							}
 						}
 						if (n == 0)
-							error("no animation frames: \"%s\"\n", qc_cmd.sequence[i].name);
+							error("no animation frames: " + qc_cmd.sequence[i].name + "\n");
 
 						qc_cmd.sequence[i].panim[q]->numanim[j][k] = 0;
 
@@ -1030,7 +1030,7 @@ Mesh *find_mesh_by_texture(Model *pmodel, char *texturename)
 
 	if (i >= MAXSTUDIOMESHES)
 	{
-		error("too many textures in model: \"%s\"\n", pmodel->name);
+		error("too many textures in model: \"" + std::string(pmodel->name) + "\"\n");
 	}
 
 	pmodel->nummesh = i + 1;
@@ -1072,7 +1072,7 @@ int find_vertex_normal_index(Model *pmodel, Normal *pnormal)
 	}
 	if (i >= MAXSTUDIOVERTS)
 	{
-		error("too many normals in model: \"%s\"\n", pmodel->name);
+		error("too many normals in model: \"" + std::string(pmodel->name) + "\"\n");
 	}
 	pmodel->normal[i].org = pnormal->org;
 	pmodel->normal[i].bone = pnormal->bone;
@@ -1099,7 +1099,7 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 	}
 	if (i >= MAXSTUDIOVERTS)
 	{
-		error("too many vertices in model: \"%s\"\n", pmodel->name);
+		error("too many vertices in model: \"" + std::string(pmodel->name) + "\"\n");
 	}
 	pmodel->vert[i].org = pv->org;
 	pmodel->vert[i].bone = pv->bone;
@@ -1168,7 +1168,7 @@ void grab_bmp(const char *filename, Texture *ptexture)
 {
 	if (int result = load_bmp(filename, &ptexture->ppicture, (std::uint8_t **)&ptexture->ppal, &ptexture->srcwidth, &ptexture->srcheight))
 	{
-		error("error %d reading BMP image \"%s\"\n", result, filename);
+		error("error " + std::to_string(result) + " reading BMP image \"" + filename + "\"\n");
 	}
 }
 
@@ -1243,7 +1243,7 @@ void grab_skin(QC &qc_cmd, Texture *ptexture)
 		textureFilePath = qc_cmd.cdAbsolute / ptexture->name;
 		if (!std::filesystem::exists(textureFilePath))
 		{
-			error("cannot find %s texture in \"%s\" nor \"%s\"\nor those path don't exist\n", ptexture->name.c_str(), qc_cmd.cdtexture.c_str(), qc_cmd.cdAbsolute.c_str());
+			error("cannot find " + ptexture->name + " texture in \"" + qc_cmd.cdtexture.string() + "\" nor \"" + qc_cmd.cdAbsolute.string() + "\"\nor those paths don't exist\n");
 		}
 	}
 	if (textureFilePath.extension() == ".bmp")
@@ -1252,7 +1252,7 @@ void grab_skin(QC &qc_cmd, Texture *ptexture)
 	}
 	else
 	{
-		error(const_cast<char *>("unknown graphics type: \"%s\"\n"), textureFilePath.string().c_str());
+		error("unknown graphics type: \"" + textureFilePath.string() + "\"\n");
 	}
 }
 
@@ -1492,7 +1492,7 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 					}
 					else
 					{
-						error("%s: error on line %d: %s", g_smdpath, g_smdlinecount, g_currentsmdline);
+						error("Error on line " + std::to_string(g_smdlinecount) + ": " + g_currentsmdline);
 					}
 				}
 			}
@@ -1585,7 +1585,7 @@ int grab_smd_nodes(QC &qc_cmd, Node *pnodes)
 			return numBones + 1;
 		}
 	}
-	error("Unexpected EOF at line %d\n", g_smdlinecount);
+	error("Unexpected EOF at line " + std::to_string(g_smdlinecount) + "\n");
 	return 0;
 }
 
@@ -1596,7 +1596,7 @@ void parse_smd(QC &qc_cmd, Model *pmodel)
 
 	g_smdpath = qc_cmd.cdAbsolute / (std::string(pmodel->name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
-		error("%s doesn't exist", g_smdpath.c_str());
+		error(g_smdpath.string() + " doesn't exist");
 
 	printf("grabbing %s\n", g_smdpath.c_str());
 
@@ -1841,15 +1841,15 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 			}
 			else
 			{
-				error("Error(%d) : %s", g_smdlinecount, g_currentsmdline);
+				error("Error(" + std::to_string(g_smdlinecount) + ") : " + g_currentsmdline);
 			}
 		}
 		else
 		{
-			error("Error(%d) : %s", g_smdlinecount, g_currentsmdline);
+			error("Error(" + std::to_string(g_smdlinecount) + ") : " + g_currentsmdline);
 		}
 	}
-	error("unexpected EOF: %s\n", panim->name);
+	error("unexpected EOF: " + std::string(panim->name));
 }
 
 void shift_option_animation(Animation *panim)
@@ -1881,7 +1881,7 @@ void cmd_sequence_option_animation(QC &qc_cmd, std::string &name, Animation *pan
 
 	g_smdpath = qc_cmd.cdAbsolute / (std::string(panim->name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
-		error("%s doesn't exist", g_smdpath.c_str());
+		error(g_smdpath.string() + " doesn't exist");
 
 	printf("grabbing %s\n", g_smdpath.c_str());
 
@@ -2589,7 +2589,7 @@ void parse_qc_file(QC &qc_cmd)
 		}
 		else
 		{
-			error("Incorrect/Unsupported command %s\n", token.c_str());
+			error("Incorrect/Unsupported command " + token + "\n");
 		}
 	}
 }
@@ -2597,7 +2597,7 @@ void parse_qc_file(QC &qc_cmd)
 
 int main(int argc, char **argv)
 {
-    char path[1024] = {0};
+    std::filesystem::path path;
     static QC qc_cmd;
 
     g_flaginvertnormals = false;
@@ -2618,7 +2618,7 @@ int main(int argc, char **argv)
     {
         error("Error: The first argument must be a .qc file\n");
     }
-    std::strcpy(path, argv[1]);
+    path = argv[1];
 
     for (int i = 2; i < argc; i++)
     {
@@ -2648,12 +2648,12 @@ int main(int argc, char **argv)
                 g_flagkeepallbones = true;
                 break;
             default:
-                error("Error: Unknown flag '%s'.\n", argv[i]);
+				error("Error: Unknown flag.\n");
             }
         }
         else
         {
-            error("Error: Unexpected argument '%s'.\n", argv[i]);
+            error("Error: Unexpected argument" + std::string(argv[i]) + "\n");
         }
     }
 

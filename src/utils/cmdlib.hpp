@@ -1,14 +1,19 @@
+// cmdlib.hpp
 #pragma once
 
 #include <string>
+#include <vector>
+#include <filesystem>
+#include <stdexcept>
+#include <fstream>
+#include <memory>
 
-int file_length(FILE *f);
-void error(char *error, ...);
+int file_length(std::ifstream& file);
+[[noreturn]] void error(const std::string& message);
 
-FILE *safe_open_write(char *filename);
-void safe_read(FILE *f, void *buffer, int count);
-void safe_write(FILE *f, void *buffer, int count);
+std::unique_ptr<std::ofstream> safe_open_write(const std::filesystem::path& filename);
+void safe_read(std::ifstream& file, void* buffer, std::size_t count);
+void safe_write(std::ofstream& file, const void* buffer, std::size_t count);
 
-int load_file(char *filename, void **bufferptr);
-
+std::vector<char> load_file(const std::filesystem::path& filename);
 std::string strip_extension(const std::string& filename);
