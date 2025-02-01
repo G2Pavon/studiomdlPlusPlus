@@ -7,24 +7,20 @@
 #include "utils/mathlib.hpp"
 #include "utils/stripification.hpp"
 
-int g_totalframes = 0;
-float g_totalseconds = 0;
 constexpr int FILEBUFFER = 16 * 1024 * 1024;
 extern int g_numcommandnodes;
 
 std::uint8_t *g_currentposition;
 std::uint8_t *g_bufferstart;
-StudioHeader *g_studioheader;
-StudioSequenceGroupHeader *g_studiosequenceheader;
 
-void write_bone_info(QC &qc_cmd)
+void write_bone_info(StudioHeader *header, QC &qc_cmd)
 {
 	int i, j;
 
 	// save bone info
 	StudioBone *pbone = (StudioBone *)g_currentposition;
-	g_studioheader->numbones = g_bonetable.size();
-	g_studioheader->boneindex = static_cast<int>(g_currentposition - g_bufferstart);
+	header->numbones = g_bonetable.size();
+	header->boneindex = static_cast<int>(g_currentposition - g_bufferstart);
 
 	for (i = 0; i < g_bonetable.size(); i++)
 	{
@@ -87,8 +83,8 @@ void write_bone_info(QC &qc_cmd)
 
 	// save bonecontroller info
 	StudioBoneController *pbonecontroller = (StudioBoneController *)g_currentposition;
-	g_studioheader->numbonecontrollers = qc_cmd.bonecontrollers.size();
-	g_studioheader->bonecontrollerindex = static_cast<int>(g_currentposition - g_bufferstart);
+	header->numbonecontrollers = qc_cmd.bonecontrollers.size();
+	header->bonecontrollerindex = static_cast<int>(g_currentposition - g_bufferstart);
 
 	for (i = 0; i < qc_cmd.bonecontrollers.size(); i++)
 	{
@@ -103,8 +99,8 @@ void write_bone_info(QC &qc_cmd)
 
 	// save attachment info
 	StudioAttachment *pattachment = (StudioAttachment *)g_currentposition;
-	g_studioheader->numattachments = qc_cmd.attachments.size();
-	g_studioheader->attachmentindex = static_cast<int>(g_currentposition - g_bufferstart);
+	header->numattachments = qc_cmd.attachments.size();
+	header->attachmentindex = static_cast<int>(g_currentposition - g_bufferstart);
 
 	for (i = 0; i < qc_cmd.attachments.size(); i++)
 	{
@@ -116,8 +112,8 @@ void write_bone_info(QC &qc_cmd)
 
 	// save bbox info
 	StudioHitbox *pbbox = (StudioHitbox *)g_currentposition;
-	g_studioheader->numhitboxes = qc_cmd.hitboxes.size();
-	g_studioheader->hitboxindex = static_cast<int>(g_currentposition - g_bufferstart);
+	header->numhitboxes = qc_cmd.hitboxes.size();
+	header->hitboxindex = static_cast<int>(g_currentposition - g_bufferstart);
 
 	for (i = 0; i < qc_cmd.hitboxes.size(); i++)
 	{
@@ -129,14 +125,14 @@ void write_bone_info(QC &qc_cmd)
 	g_currentposition += qc_cmd.hitboxes.size() * sizeof(StudioHitbox);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 }
-void write_sequence_info(QC &qc_cmd)
+void write_sequence_info(StudioHeader *header, QC &qc_cmd, int &frames, float &seconds)
 {
 	int i, j;
 
 	// save sequence info
 	StudioSequenceDescription *pseqdesc = (StudioSequenceDescription *)g_currentposition;
-	g_studioheader->numseq = g_num_sequence;
-	g_studioheader->seqindex = static_cast<int>(g_currentposition - g_bufferstart);
+	header->numseq = g_num_sequence;
+	header->seqindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_num_sequence * sizeof(StudioSequenceDescription);
 
 	for (i = 0; i < g_num_sequence; i++, pseqdesc++)
@@ -173,8 +169,8 @@ void write_sequence_info(QC &qc_cmd)
 		pseqdesc->exitnode = qc_cmd.sequence[i].exitnode;
 		pseqdesc->nodeflags = qc_cmd.sequence[i].nodeflags;
 
-		g_totalframes += qc_cmd.sequence[i].numframes;
-		g_totalseconds += static_cast<float>(qc_cmd.sequence[i].numframes) / qc_cmd.sequence[i].fps;
+		frames += qc_cmd.sequence[i].numframes;
+		seconds += static_cast<float>(qc_cmd.sequence[i].numframes) / qc_cmd.sequence[i].fps;
 
 		// save events
 		{
@@ -194,17 +190,17 @@ void write_sequence_info(QC &qc_cmd)
 
 	// save sequence group info
 	StudioSequenceGroup *pseqgroup = (StudioSequenceGroup *)g_currentposition;
-	g_studioheader->numseqgroups = 1; // 1 since $sequencegroup is deprecated
-	g_studioheader->seqgroupindex = static_cast<int>(g_currentposition - g_bufferstart);
-	g_currentposition += g_studioheader->numseqgroups * sizeof(StudioSequenceGroup);
+	header->numseqgroups = 1; // 1 since $sequencegroup is deprecated
+	header->seqgroupindex = static_cast<int>(g_currentposition - g_bufferstart);
+	g_currentposition += header->numseqgroups * sizeof(StudioSequenceGroup);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 	std::strcpy(pseqgroup[0].label, "default");
 	std::strcpy(pseqgroup[0].name, "");
 
 	// save transition graph
 	std::uint8_t *ptransition = (std::uint8_t *)g_currentposition;
-	g_studioheader->numtransitions = g_numxnodes;
-	g_studioheader->transitionindex = static_cast<int>(g_currentposition - g_bufferstart);
+	header->numtransitions = g_numxnodes;
+	header->transitionindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_numxnodes * g_numxnodes * sizeof(std::uint8_t);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 	for (i = 0; i < g_numxnodes; i++)
@@ -270,7 +266,7 @@ std::uint8_t *write_animations(QC &qc_cmd, std::uint8_t *pData, const std::uint8
 	return pData;
 }
 
-void write_textures()
+void write_textures(StudioHeader *header)
 {
 	int i;
 	StudioTexture *ptexture;
@@ -278,19 +274,19 @@ void write_textures()
 
 	// save bone info
 	ptexture = (StudioTexture *)g_currentposition;
-	g_studioheader->numtextures = g_textures.size();
-	g_studioheader->textureindex = static_cast<int>(g_currentposition - g_bufferstart);
+	header->numtextures = g_textures.size();
+	header->textureindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_textures.size() * sizeof(StudioTexture);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
-	g_studioheader->skinindex = static_cast<int>(g_currentposition - g_bufferstart);
-	g_studioheader->numskinref = g_skinrefcount;
-	g_studioheader->numskinfamilies = g_skinfamiliescount;
+	header->skinindex = static_cast<int>(g_currentposition - g_bufferstart);
+	header->numskinref = g_skinrefcount;
+	header->numskinfamilies = g_skinfamiliescount;
 	pref = (short *)g_currentposition;
 
-	for (i = 0; i < g_studioheader->numskinfamilies; i++)
+	for (i = 0; i < header->numskinfamilies; i++)
 	{
-		for (int j = 0; j < g_studioheader->numskinref; j++)
+		for (int j = 0; j < header->numskinref; j++)
 		{
 			*pref = static_cast<short>(g_skinref[i][j]);
 			pref++;
@@ -299,7 +295,7 @@ void write_textures()
 	g_currentposition = (std::uint8_t *)pref;
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
-	g_studioheader->texturedataindex = static_cast<int>(g_currentposition - g_bufferstart); // must be the end of the file!
+	header->texturedataindex = static_cast<int>(g_currentposition - g_bufferstart); // must be the end of the file!
 
 	for (i = 0; i < g_textures.size(); i++)
 	{
@@ -314,13 +310,13 @@ void write_textures()
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 }
 
-void write_model(QC &qc_cmd)
+void write_model(StudioHeader *header, QC &qc_cmd)
 {
 	int i, j, k;
 
 	StudioBodyPart *pbodypart = (StudioBodyPart *)g_currentposition;
-	g_studioheader->numbodyparts = g_num_bodygroup;
-	g_studioheader->bodypartindex = static_cast<int>(g_currentposition - g_bufferstart);
+	header->numbodyparts = g_num_bodygroup;
+	header->bodypartindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_num_bodygroup * sizeof(StudioBodyPart);
 
 	StudioModel *pmodel = (StudioModel *)g_currentposition;
@@ -469,43 +465,44 @@ void write_file(QC &qc_cmd)
 		error("Failed to open file: " + file_name);
 	}
 
+	StudioHeader *studioheader = (StudioHeader *)g_bufferstart;
 
-	g_studioheader = (StudioHeader *)g_bufferstart;
+	studioheader->ident = IDSTUDIOHEADER;
+	studioheader->version = STUDIO_VERSION;
+	std::strcpy(studioheader->name, file_name.c_str());
 
-	g_studioheader->ident = IDSTUDIOHEADER;
-	g_studioheader->version = STUDIO_VERSION;
-	std::strcpy(g_studioheader->name, file_name.c_str());
+	studioheader->eyeposition = qc_cmd.eyeposition;
+	studioheader->min = qc_cmd.bbox[0];
+	studioheader->max = qc_cmd.bbox[1];
+	studioheader->bbmin = qc_cmd.cbox[0];
+	studioheader->bbmax = qc_cmd.cbox[1];
 
-	g_studioheader->eyeposition = qc_cmd.eyeposition;
-	g_studioheader->min = qc_cmd.bbox[0];
-	g_studioheader->max = qc_cmd.bbox[1];
-	g_studioheader->bbmin = qc_cmd.cbox[0];
-	g_studioheader->bbmax = qc_cmd.cbox[1];
+	studioheader->flags = qc_cmd.flags;
 
-	g_studioheader->flags = qc_cmd.flags;
+	g_currentposition = (std::uint8_t *)studioheader + sizeof(StudioHeader);
 
-	g_currentposition = (std::uint8_t *)g_studioheader + sizeof(StudioHeader);
-
-	write_bone_info(qc_cmd);
+	write_bone_info(studioheader, qc_cmd);
 	printf("bones     %6d bytes (%d)\n", g_currentposition - g_bufferstart - total, g_bonetable.size());
 	total = static_cast<int>(g_currentposition - g_bufferstart);
 
 	g_currentposition = write_animations(qc_cmd, g_currentposition, g_bufferstart, 0);
 
-	write_sequence_info(qc_cmd);
-	printf("sequences %6d bytes (%d frames) [%d:%02d]\n", g_currentposition - g_bufferstart - total, g_totalframes, static_cast<int>(g_totalseconds) / 60, static_cast<int>(g_totalseconds) % 60);
+	int total_frames = 0;
+	float total_seconds = 0;
+	write_sequence_info(studioheader, qc_cmd, total_frames, total_seconds);
+	printf("sequences %6d bytes (%d frames) [%d:%02d]\n", g_currentposition - g_bufferstart - total, total_frames, static_cast<int>(total_seconds) / 60, static_cast<int>(total_seconds) % 60);
 	total = static_cast<int>(g_currentposition - g_bufferstart);
 
-	write_model(qc_cmd);
+	write_model(studioheader, qc_cmd);
 	printf("models    %6d bytes\n", g_currentposition - g_bufferstart - total);
 	total = static_cast<int>(g_currentposition - g_bufferstart);
 
-	write_textures();
+	write_textures(studioheader);
 	printf("textures  %6d bytes\n", g_currentposition - g_bufferstart - total);
 
-	g_studioheader->length = static_cast<int>(g_currentposition - g_bufferstart);
+	studioheader->length = static_cast<int>(g_currentposition - g_bufferstart);
 
-	printf("total     %6d\n", g_studioheader->length);
+	printf("total     %6d\n", studioheader->length);
 
-	safe_write(*modelouthandle, g_bufferstart, g_studioheader->length);
+	safe_write(*modelouthandle, g_bufferstart, studioheader->length);
 }
