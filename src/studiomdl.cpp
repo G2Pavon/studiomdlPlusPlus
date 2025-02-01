@@ -333,7 +333,7 @@ void simplify_model(QC &qc_cmd)
 	make_transitions(qc_cmd);
 
 	// find used bones TODO: find_used_bones()
-	for (i = 0; i < g_num_submodels; i++)
+	for (i = 0; i < qc_cmd.submodel.size(); i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -359,7 +359,7 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// rename model bones if needed TODO: rename_submodel_bones()
-	for (i = 0; i < g_num_submodels; i++)
+	for (i = 0; i < qc_cmd.submodel.size(); i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->numbones; j++)
 		{
@@ -376,7 +376,7 @@ void simplify_model(QC &qc_cmd)
 
 	// union of all used bones TODO:create_bone_union()
 	g_bonescount = 0;
-	for (i = 0; i < g_num_submodels; i++)
+	for (i = 0; i < qc_cmd.submodel.size(); i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -537,7 +537,7 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// relink model TODO: relink_model()
-	for (i = 0; i < g_num_submodels; i++)
+	for (i = 0; i < qc_cmd.submodel.size(); i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->numverts; j++)
 		{
@@ -590,7 +590,7 @@ void simplify_model(QC &qc_cmd)
 			}
 		}
 		// try all the connect vertices
-		for (i = 0; i < g_num_submodels; i++)
+		for (i = 0; i < qc_cmd.submodel.size(); i++)
 		{
 			Vector3 p;
 			for (j = 0; j < qc_cmd.submodel[i]->numverts; j++)
@@ -819,7 +819,7 @@ void simplify_model(QC &qc_cmd)
 					}
 				}
 
-				for (k = 0; k < g_num_submodels; k++)
+				for (k = 0; k < qc_cmd.submodel.size(); k++)
 				{
 					for (j = 0; j < qc_cmd.submodel[k]->numverts; j++)
 					{
@@ -1270,7 +1270,7 @@ void set_skin_values(QC &qc_cmd)
 		g_textures[i].min_t = 9999999;
 	}
 
-	for (i = 0; i < g_num_submodels; i++)
+	for (i = 0; i < qc_cmd.submodel.size(); i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->nummesh; j++)
 		{
@@ -1302,7 +1302,7 @@ void set_skin_values(QC &qc_cmd)
 		resize_texture(qc_cmd, &g_textures[i]);
 	}
 
-	for (i = 0; i < g_num_submodels; i++)
+	for (i = 0; i < qc_cmd.submodel.size(); i++)
 	{
 		for (j = 0; j < qc_cmd.submodel[i]->nummesh; j++)
 		{
@@ -1668,10 +1668,10 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	qc_cmd.submodel[g_num_submodels] = new Model();
-	qc_cmd.bodypart[g_num_bodygroup].pmodel[qc_cmd.bodypart[g_num_bodygroup].nummodels] = qc_cmd.submodel[g_num_submodels];
+	Model* newmodel = new Model();
+	qc_cmd.bodypart[g_num_bodygroup].pmodel[qc_cmd.bodypart[g_num_bodygroup].nummodels] = newmodel;
 
-	qc_cmd.submodel[g_num_submodels]->name = token;
+	newmodel->name = token;
 
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 
@@ -1689,23 +1689,23 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 		}
 	}
 
-	parse_smd(qc_cmd, qc_cmd.submodel[g_num_submodels]);
+	parse_smd(qc_cmd, newmodel);
 
 	qc_cmd.bodypart[g_num_bodygroup].nummodels++;
-	g_num_submodels++;
+	qc_cmd.submodel.push_back(newmodel);
 
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 }
 
 int cmd_body_option_blank(QC &qc_cmd)
 {
-	qc_cmd.submodel[g_num_submodels] = new Model();
-	qc_cmd.bodypart[g_num_bodygroup].pmodel[qc_cmd.bodypart[g_num_bodygroup].nummodels] = qc_cmd.submodel[g_num_submodels];
+	Model* newmodel = new Model();
+	qc_cmd.bodypart[g_num_bodygroup].pmodel[qc_cmd.bodypart[g_num_bodygroup].nummodels] = newmodel;
 
-	qc_cmd.submodel[g_num_submodels]->name = "blank";
+	newmodel->name = "blank";
 
 	qc_cmd.bodypart[g_num_bodygroup].nummodels++;
-	g_num_submodels++;
+	qc_cmd.submodel.push_back(newmodel);
 	return 0;
 }
 

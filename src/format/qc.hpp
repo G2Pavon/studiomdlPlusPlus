@@ -15,7 +15,6 @@
 // TODO: use vector instead
 
 extern int g_num_sequence;
-extern int g_num_submodels;
 extern int g_num_bodygroup;
 
 class QC
@@ -52,7 +51,7 @@ public:
 
     std::array<Sequence, MAXSTUDIOSEQUENCES> sequence{}; // $sequence
 
-    std::array<Model *, MAXSTUDIOMODELS> submodel{}; // $body
+    std::vector<Model*> submodel; // $body
 
     std::array<BodyPart, MAXSTUDIOBODYPARTS> bodypart{}; // $bodygroup
 
@@ -66,7 +65,6 @@ public:
         bbox.fill(Vector3{});
         cbox.fill(Vector3{});
         sequence.fill(Sequence{});
-        submodel.fill(nullptr);
         bodypart.fill(BodyPart{});
     }
 };

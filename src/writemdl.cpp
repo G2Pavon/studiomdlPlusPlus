@@ -324,7 +324,7 @@ void write_model(QC &qc_cmd)
 	g_currentposition += g_num_bodygroup * sizeof(StudioBodyPart);
 
 	StudioModel *pmodel = (StudioModel *)g_currentposition;
-	g_currentposition += g_num_submodels * sizeof(StudioModel);
+	g_currentposition += qc_cmd.submodel.size() * sizeof(StudioModel);
 
 	for (i = 0, j = 0; i < g_num_bodygroup; i++)
 	{
@@ -337,7 +337,7 @@ void write_model(QC &qc_cmd)
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	std::intptr_t cur = reinterpret_cast<std::intptr_t>(g_currentposition);
-	for (i = 0; i < g_num_submodels; i++)
+	for (i = 0; i < qc_cmd.submodel.size(); i++)
 	{
 		int normmap[MAXSTUDIOVERTS];
 		int normimap[MAXSTUDIOVERTS];
