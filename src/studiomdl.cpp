@@ -1872,7 +1872,7 @@ void shift_option_animation(Animation *panim)
 	}
 }
 
-void cmd_sequence_option_animation(QC &qc_cmd, char *name, Animation *panim)
+void cmd_sequence_option_animation(QC &qc_cmd, std::string &name, Animation *panim)
 {
 	char cmd[1024];
 	int option;
@@ -2041,9 +2041,8 @@ int cmd_sequence_option_action(std::string &szActivity)
 int cmd_sequence(QC &qc_cmd, std::string &token)
 {
 	int depth = 0;
-	char smdfilename[MAXSTUDIOBLENDS][1024];
+	std::vector<std::string> smd_files;
 	int i;
-	int numblends = 0;
 	int start = 0;
 	int end = MAXSTUDIOANIMATIONS - 1;
 
@@ -2166,7 +2165,7 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		else if (token == "animation")
 		{
 			get_token(false, token);
-			strcpyn(smdfilename[numblends++], token.c_str());
+			smd_files.push_back(token);
 		}
 		else if ((i = cmd_sequence_option_action(token)) != 0)
 		{
@@ -2176,7 +2175,7 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		}
 		else
 		{
-			strcpyn(smdfilename[numblends++], token.c_str());
+			smd_files.push_back(token);
 		}
 
 		if (depth < 0)
@@ -2186,12 +2185,12 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		}
 	};
 
-	if (numblends == 0)
+	if (smd_files.size() == 0)
 	{
 		printf("no animations found\n");
 		exit(1);
 	}
-	for (i = 0; i < numblends; i++)
+	for (i = 0; i < smd_files.size(); i++)
 	{
 		qc_cmd.sequenceAnimationOption.push_back(new Animation());
 		Animation* newAnim = qc_cmd.sequenceAnimationOption.back();
@@ -2201,11 +2200,11 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		newAnim->endframe = end;
 		newAnim->flags = 0;
 
-		cmd_sequence_option_animation(qc_cmd, smdfilename[i], newAnim);
+		cmd_sequence_option_animation(qc_cmd, smd_files[i], newAnim);
 
 	}
 
-	qc_cmd.sequence[g_num_sequence].numblends = numblends;
+	qc_cmd.sequence[g_num_sequence].numblends = smd_files.size(); // MAXSTUDIOBLENDS
 
 	g_num_sequence++;
 
