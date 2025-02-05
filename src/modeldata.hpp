@@ -220,5 +220,4 @@ struct BodyPart
     std::string name;
     int nummodels;
     int base;
-    Model *pmodel[MAXSTUDIOMODELS];
 };

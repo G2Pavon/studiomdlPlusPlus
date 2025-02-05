@@ -1633,7 +1633,6 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 		return;
 
 	Model* newmodel = new Model();
-	qc_cmd.bodypart[g_num_bodygroup].pmodel[qc_cmd.bodypart[g_num_bodygroup].nummodels] = newmodel;
 
 	newmodel->name = token;
 
@@ -1664,7 +1663,6 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 int cmd_body_option_blank(QC &qc_cmd)
 {
 	Model* newmodel = new Model();
-	qc_cmd.bodypart[g_num_bodygroup].pmodel[qc_cmd.bodypart[g_num_bodygroup].nummodels] = newmodel;
 
 	newmodel->name = "blank";
 
