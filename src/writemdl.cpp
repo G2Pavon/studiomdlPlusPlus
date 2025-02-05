@@ -345,9 +345,9 @@ void write_model(StudioHeader *header, QC &qc_cmd)
 		// remap normals to be sorted by skin reference
 		for (j = 0; j < qc_cmd.submodel[i]->nummesh; j++)
 		{
-			for (k = 0; k < qc_cmd.submodel[i]->numnorms; k++)
+			for (k = 0; k < qc_cmd.submodel[i]->normals.size(); k++)
 			{
-				if (qc_cmd.submodel[i]->normal[k].skinref == qc_cmd.submodel[i]->pmesh[j]->skinref)
+				if (qc_cmd.submodel[i]->normals[k].skinref == qc_cmd.submodel[i]->pmesh[j]->skinref)
 				{
 					normmap[k] = n;
 					normimap[n] = k;
@@ -368,11 +368,11 @@ void write_model(StudioHeader *header, QC &qc_cmd)
 		pbone = (std::uint8_t *)ALIGN(pbone);
 
 		// save normal bones
-		pmodel[i].numnorms = qc_cmd.submodel[i]->numnorms;
+		pmodel[i].numnorms = qc_cmd.submodel[i]->normals.size();
 		pmodel[i].norminfoindex = static_cast<int>((std::uint8_t *)pbone - g_bufferstart);
 		for (j = 0; j < pmodel[i].numnorms; j++)
 		{
-			*pbone++ = static_cast<std::uint8_t>(qc_cmd.submodel[i]->normal[normimap[j]].bone);
+			*pbone++ = static_cast<std::uint8_t>(qc_cmd.submodel[i]->normals[normimap[j]].bone);
 		}
 		pbone = (std::uint8_t *)ALIGN(pbone);
 
@@ -386,7 +386,7 @@ void write_model(StudioHeader *header, QC &qc_cmd)
 			g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 			Vector3 *pnorm = (Vector3 *)g_currentposition;
-			g_currentposition += qc_cmd.submodel[i]->numnorms * sizeof(Vector3);
+			g_currentposition += qc_cmd.submodel[i]->normals.size() * sizeof(Vector3);
 			pmodel[i].normindex = static_cast<int>((std::uint8_t *)pnorm - g_bufferstart);
 			g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
@@ -395,11 +395,11 @@ void write_model(StudioHeader *header, QC &qc_cmd)
 				pvert[j] = qc_cmd.submodel[i]->verts[j].org;
 			}
 
-			for (j = 0; j < qc_cmd.submodel[i]->numnorms; j++)
+			for (j = 0; j < qc_cmd.submodel[i]->normals.size(); j++)
 			{
-				pnorm[j] = qc_cmd.submodel[i]->normal[normimap[j]].org;
+				pnorm[j] = qc_cmd.submodel[i]->normals[normimap[j]].org;
 			}
-			printf("vertices  %6d bytes (%d vertices, %d normals)\n", g_currentposition - cur, qc_cmd.submodel[i]->verts.size(), qc_cmd.submodel[i]->numnorms);
+			printf("vertices  %6d bytes (%d vertices, %d normals)\n", g_currentposition - cur, qc_cmd.submodel[i]->verts.size(), qc_cmd.submodel[i]->normals.size());
 			cur = reinterpret_cast<std::intptr_t>(g_currentposition);
 		}
 		// save mesh info

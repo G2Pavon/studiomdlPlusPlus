@@ -205,8 +205,7 @@ struct Model
 
     std::vector<Vertex> verts;
 
-    int numnorms;
-    Normal normal[MAXSTUDIOVERTS];
+    std::vector<Normal> normals;
 
     int nummesh;
     Mesh *pmesh[MAXSTUDIOMESHES];

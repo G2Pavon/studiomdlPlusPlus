@@ -506,9 +506,9 @@ void simplify_model(QC &qc_cmd)
 		{
 			qc_cmd.submodel[i]->verts[j].bone = qc_cmd.submodel[i]->bonemap[qc_cmd.submodel[i]->verts[j].bone];
 		}
-		for (j = 0; j < qc_cmd.submodel[i]->numnorms; j++)
+		for (j = 0; j < qc_cmd.submodel[i]->normals.size(); j++)
 		{
-			qc_cmd.submodel[i]->normal[j].bone = qc_cmd.submodel[i]->bonemap[qc_cmd.submodel[i]->normal[j].bone];
+			qc_cmd.submodel[i]->normals[j].bone = qc_cmd.submodel[i]->bonemap[qc_cmd.submodel[i]->normals[j].bone];
 		}
 	}
 
@@ -1027,9 +1027,9 @@ TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index)
 int find_vertex_normal_index(Model *pmodel, Normal *pnormal)
 {
 	int i;
-	for (i = 0; i < pmodel->numnorms; i++)
+	for (i = 0; i < pmodel->normals.size(); i++)
 	{
-		if (pmodel->normal[i].org.dot(pnormal->org) > g_flagnormalblendangle && pmodel->normal[i].bone == pnormal->bone && pmodel->normal[i].skinref == pnormal->skinref)
+		if (pmodel->normals[i].org.dot(pnormal->org) > g_flagnormalblendangle && pmodel->normals[i].bone == pnormal->bone && pmodel->normals[i].skinref == pnormal->skinref)
 		{
 			return i;
 		}
@@ -1038,10 +1038,7 @@ int find_vertex_normal_index(Model *pmodel, Normal *pnormal)
 	{
 		error("too many normals in model: \"" + std::string(pmodel->name) + "\"\n");
 	}
-	pmodel->normal[i].org = pnormal->org;
-	pmodel->normal[i].bone = pnormal->bone;
-	pmodel->normal[i].skinref = pnormal->skinref;
-	pmodel->numnorms = i + 1;
+	pmodel->normals.push_back(*pnormal);
 	return i;
 }
 
