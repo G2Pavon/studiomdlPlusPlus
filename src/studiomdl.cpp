@@ -304,9 +304,9 @@ void simplify_model(QC &qc_cmd)
 		{
 			qc_cmd.submodel[i]->boneref[k] = g_flagkeepallbones;
 		}
-		for (j = 0; j < qc_cmd.submodel[i]->numverts; j++)
+		for (j = 0; j < qc_cmd.submodel[i]->verts.size(); j++)
 		{
-			qc_cmd.submodel[i]->boneref[qc_cmd.submodel[i]->vert[j].bone] = 1;
+			qc_cmd.submodel[i]->boneref[qc_cmd.submodel[i]->verts[j].bone] = 1;
 		}
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -502,9 +502,9 @@ void simplify_model(QC &qc_cmd)
 	// relink model TODO: relink_model()
 	for (i = 0; i < qc_cmd.submodel.size(); i++)
 	{
-		for (j = 0; j < qc_cmd.submodel[i]->numverts; j++)
+		for (j = 0; j < qc_cmd.submodel[i]->verts.size(); j++)
 		{
-			qc_cmd.submodel[i]->vert[j].bone = qc_cmd.submodel[i]->bonemap[qc_cmd.submodel[i]->vert[j].bone];
+			qc_cmd.submodel[i]->verts[j].bone = qc_cmd.submodel[i]->bonemap[qc_cmd.submodel[i]->verts[j].bone];
 		}
 		for (j = 0; j < qc_cmd.submodel[i]->numnorms; j++)
 		{
@@ -556,10 +556,10 @@ void simplify_model(QC &qc_cmd)
 		for (i = 0; i < qc_cmd.submodel.size(); i++)
 		{
 			Vector3 p;
-			for (j = 0; j < qc_cmd.submodel[i]->numverts; j++)
+			for (j = 0; j < qc_cmd.submodel[i]->verts.size(); j++)
 			{
-				p = qc_cmd.submodel[i]->vert[j].org;
-				k = qc_cmd.submodel[i]->vert[j].bone;
+				p = qc_cmd.submodel[i]->verts[j].org;
+				k = qc_cmd.submodel[i]->verts[j].bone;
 
 				if (p[0] < g_bonetable[k].bmin[0])
 					g_bonetable[k].bmin[0] = p[0];
@@ -784,9 +784,9 @@ void simplify_model(QC &qc_cmd)
 
 				for (k = 0; k < qc_cmd.submodel.size(); k++)
 				{
-					for (j = 0; j < qc_cmd.submodel[k]->numverts; j++)
+					for (j = 0; j < qc_cmd.submodel[k]->verts.size(); j++)
 					{
-						vector_transform(qc_cmd.submodel[k]->vert[j].org, bonetransform[qc_cmd.submodel[k]->vert[j].bone], pos);
+						vector_transform(qc_cmd.submodel[k]->verts[j].org, bonetransform[qc_cmd.submodel[k]->verts[j].bone], pos);
 
 						if (pos[0] < bmin[0])
 							bmin[0] = pos[0];
@@ -1054,20 +1054,18 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 	pv->org[1] = static_cast<int>(pv->org[1] * 100.0f) / 100.0f;
 	pv->org[2] = static_cast<int>(pv->org[2] * 100.0f) / 100.0f;
 
-	for (i = 0; i < pmodel->numverts; i++)
+	for (i = 0; i < pmodel->verts.size(); i++)
 	{
-		if ((pmodel->vert[i].org == pv->org) && pmodel->vert[i].bone == pv->bone)
+		if ((pmodel->verts[i].org == pv->org) && pmodel->verts[i].bone == pv->bone)
 		{
 			return i;
 		}
 	}
-	if (i >= MAXSTUDIOVERTS)
-	{
-		error("too many vertices in model: \"" + std::string(pmodel->name) + "\"\n");
-	}
-	pmodel->vert[i].org = pv->org;
-	pmodel->vert[i].bone = pv->bone;
-	pmodel->numverts = i + 1;
+    if (pmodel->verts.size() >= MAXSTUDIOVERTS)
+    {
+        error("too many vertices in model: \"" + pmodel->name + "\"\n");
+    }
+	pmodel->verts.push_back(*pv);
 	return i;
 }
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "utils/mathlib.hpp"
 #include "format/mdl.hpp"
@@ -202,8 +203,7 @@ struct Model
     int bonemap[MAXSTUDIOSRCBONES];  // local bone to world bone mapping
     int boneimap[MAXSTUDIOSRCBONES]; // world bone to local bone mapping
 
-    int numverts;
-    Vertex vert[MAXSTUDIOVERTS];
+    std::vector<Vertex> verts;
 
     int numnorms;
     Normal normal[MAXSTUDIOVERTS];
