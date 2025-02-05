@@ -1632,9 +1632,9 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	Model* newmodel = new Model();
+	Model* new_submodel = new Model();
 
-	newmodel->name = token;
+	new_submodel->name = token;
 
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 
@@ -1652,22 +1652,22 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 		}
 	}
 
-	parse_smd(qc_cmd, newmodel);
+	parse_smd(qc_cmd, new_submodel);
 
-	qc_cmd.bodypart[g_num_bodygroup].nummodels++;
-	qc_cmd.submodel.push_back(newmodel);
+	qc_cmd.bodypart.back().num_submodels++;
+	qc_cmd.submodel.push_back(new_submodel);
 
 	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
 }
 
 int cmd_body_option_blank(QC &qc_cmd)
 {
-	Model* newmodel = new Model();
+	Model* new_submodel = new Model();
 
-	newmodel->name = "blank";
+	new_submodel->name = "blank";
 
-	qc_cmd.bodypart[g_num_bodygroup].nummodels++;
-	qc_cmd.submodel.push_back(newmodel);
+	qc_cmd.bodypart.back().num_submodels++;
+	qc_cmd.submodel.push_back(new_submodel);
 	return 0;
 }
 
@@ -1676,16 +1676,19 @@ void cmd_bodygroup(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	if (g_num_bodygroup == 0)
+	BodyPart newbp;
+
+	if (qc_cmd.bodypart.empty())
 	{
-		qc_cmd.bodypart[g_num_bodygroup].base = 1;
+		newbp.base = 1;
 	}
 	else
 	{
-		qc_cmd.bodypart[g_num_bodygroup].base = qc_cmd.bodypart[g_num_bodygroup - 1].base * qc_cmd.bodypart[g_num_bodygroup - 1].nummodels;
+		BodyPart &lastbp = qc_cmd.bodypart.back();
+		newbp.base = lastbp.base * lastbp.num_submodels;
 	}
-	qc_cmd.bodypart[g_num_bodygroup].name = token;
-
+	newbp.name = token;
+	qc_cmd.bodypart.push_back(newbp);
 	while (true)
 	{
 		int is_started = 0;
@@ -1710,8 +1713,6 @@ void cmd_bodygroup(QC &qc_cmd, std::string &token)
 			cmd_body_option_blank(qc_cmd);
 		}
 	}
-
-	g_num_bodygroup++;
 	return;
 }
 
@@ -1720,19 +1721,21 @@ void cmd_body(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	if (g_num_bodygroup == 0)
+	BodyPart newbp;
+	newbp.name = token;
+
+	if (qc_cmd.bodypart.empty())
 	{
-		qc_cmd.bodypart[g_num_bodygroup].base = 1;
+		newbp.base = 1;
 	}
 	else
 	{
-		qc_cmd.bodypart[g_num_bodygroup].base = qc_cmd.bodypart[g_num_bodygroup - 1].base * qc_cmd.bodypart[g_num_bodygroup - 1].nummodels;
+		BodyPart &lastbp = qc_cmd.bodypart.back();
+		newbp.base = lastbp.base * lastbp.num_submodels;
 	}
-	qc_cmd.bodypart[g_num_bodygroup].name = token;
 
+	qc_cmd.bodypart.push_back(newbp);
 	cmd_body_option_studio(qc_cmd, token);
-
-	g_num_bodygroup++;
 }
 
 void grab_option_animation(QC &qc_cmd, Animation *panim)

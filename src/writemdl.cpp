@@ -314,20 +314,20 @@ void write_model(StudioHeader *header, QC &qc_cmd)
 	int i, j, k;
 
 	StudioBodyPart *pbodypart = (StudioBodyPart *)g_currentposition;
-	header->numbodyparts = g_num_bodygroup;
+	header->numbodyparts = qc_cmd.bodypart.size();
 	header->bodypartindex = static_cast<int>(g_currentposition - g_bufferstart);
-	g_currentposition += g_num_bodygroup * sizeof(StudioBodyPart);
+	g_currentposition += qc_cmd.bodypart.size() * sizeof(StudioBodyPart);
 
 	StudioModel *pmodel = (StudioModel *)g_currentposition;
 	g_currentposition += qc_cmd.submodel.size() * sizeof(StudioModel);
 
-	for (i = 0, j = 0; i < g_num_bodygroup; i++)
+	for (i = 0, j = 0; i < qc_cmd.bodypart.size(); i++)
 	{
 		std::strcpy(pbodypart[i].name, qc_cmd.bodypart[i].name.c_str());
-		pbodypart[i].nummodels = qc_cmd.bodypart[i].nummodels;
+		pbodypart[i].nummodels = qc_cmd.bodypart[i].num_submodels;
 		pbodypart[i].base = qc_cmd.bodypart[i].base;
 		pbodypart[i].modelindex = static_cast<int>((std::uint8_t *)&pmodel[j] - g_bufferstart);
-		j += qc_cmd.bodypart[i].nummodels;
+		j += qc_cmd.bodypart[i].num_submodels;
 	}
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 

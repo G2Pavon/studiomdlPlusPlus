@@ -218,6 +218,6 @@ struct Model
 struct BodyPart
 {
     std::string name;
-    int nummodels;
+    int num_submodels;
     int base;
 };
