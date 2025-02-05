@@ -26,7 +26,6 @@ void write_bone_info(StudioHeader *header, QC &qc_cmd)
 	{
 		std::strcpy(pbone[i].name, g_bonetable[i].name.c_str());
 		pbone[i].parent = g_bonetable[i].parent;
-		pbone[i].flags = g_bonetable[i].flags;
 		pbone[i].value[0] = g_bonetable[i].pos[0];
 		pbone[i].value[1] = g_bonetable[i].pos[1];
 		pbone[i].value[2] = g_bonetable[i].pos[2];

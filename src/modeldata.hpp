@@ -35,16 +35,12 @@ struct BoneFixUp
     Vector3 worldorg;
     float m[3][4];
     float im[3][4];
-    float length;
 };
 
 struct BoneTable
 {
     std::string name; // bone name for symbolic links. TODO: Check name length limits
     int parent;                   // parent bone
-    int bonecontroller;           // -1 == 0
-    int flags;                    // X, Y, Z, XR, YR, ZR
-    // short		value[6];	// default DoF values
     Vector3 pos;        // default pos
     Vector3 posscale;   // pos values scale
     Vector3 rot;        // default pos
@@ -64,13 +60,11 @@ struct HitBox
     std::string name; // bone name
     int bone;
     int group; // hitgroup
-    int model;
     Vector3 bmin, bmax; // bounding box
 };
 
 struct HitGroup
 {
-    int models;
     int group;
     std::string name; // bone name
 };
@@ -87,11 +81,8 @@ struct BoneController
 
 struct Attachment
 {
-    std::string name;
     std::string bonename;
-    int index;
     int bone;
-    int type;
     Vector3 org;
 };
 
@@ -107,10 +98,8 @@ struct Animation
     std::string name; // before: name[64]
     int startframe;
     int endframe;
-    int flags;
     int numbones;
     Node node[MAXSTUDIOSRCBONES];
-    int bonemap[MAXSTUDIOSRCBONES];
     int boneimap[MAXSTUDIOSRCBONES];
     Vector3 *pos[MAXSTUDIOSRCBONES];
     Vector3 *rot[MAXSTUDIOSRCBONES];
@@ -149,9 +138,6 @@ struct Sequence
     float blendstart[MAXSEQUENCEBLEND];
     float blendend[MAXSEQUENCEBLEND];
 
-    Vector3 automovepos[MAXSTUDIOANIMATIONS];
-    Vector3 automoveangle[MAXSTUDIOANIMATIONS];
-
     int seqgroup;
     int animindex;
 
@@ -184,10 +170,6 @@ struct Texture
     int skinleft;
     int skinwidth;
     int skinheight;
-    float fskintop;
-    float fskinleft;
-    float fskinwidth;
-    float fskinheight;
     int size;
     void *pdata;
     int parent;
@@ -220,8 +202,6 @@ struct Model
     int bonemap[MAXSTUDIOSRCBONES];  // local bone to world bone mapping
     int boneimap[MAXSTUDIOSRCBONES]; // world bone to local bone mapping
 
-    Vector3 boundingbox[MAXSTUDIOSRCBONES][2];
-
     Mesh *trimesh[MAXSTUDIOTRIANGLES];
     int trimap[MAXSTUDIOTRIANGLES];
 
@@ -233,12 +213,6 @@ struct Model
 
     int nummesh;
     Mesh *pmesh[MAXSTUDIOMESHES];
-
-    float boundingradius;
-
-    int numframes;
-    float interval;
-    struct Model *next;
 };
 
 struct BodyPart

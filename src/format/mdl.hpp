@@ -129,7 +129,7 @@ struct StudioBone
 {
 	char name[MAXBONENAMELENGTH];
 	int parent;							  // index of the parent bone (-1 for root)
-	int flags;							  // Unused.
+	int flags = 0;							  // Unused.
 	int bonecontroller[DEGREESOFFREEDOM]; // Bone controller indices for each degree of freedom (X, Y, Z, rotX, rotY, rotZ). -1 indicates no controller
 	float value[DEGREESOFFREEDOM];		  // Default values for each degree of freedom
 	float scale[DEGREESOFFREEDOM];		  // Scale values used for compressed animation data

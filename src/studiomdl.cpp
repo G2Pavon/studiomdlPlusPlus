@@ -152,39 +152,6 @@ void extract_motion(QC &qc_cmd)
 			}
 		}
 	}
-
-	// extract auto motion
-	for (i = 0; i < g_num_sequence; i++)
-	{
-		// assume 0 for now.
-		Vector3 *ptrAutoPos;
-		Vector3 *ptrAutoRot;
-		Vector3 motion{0, 0, 0};
-		Vector3 angles{0, 0, 0};
-
-		int typeAutoMotion = qc_cmd.sequence[i].motiontype;
-		for (j = 0; j < qc_cmd.sequence[i].numframes; j++)
-		{
-			ptrAutoPos = qc_cmd.sequence[i].panim[0]->pos[0];
-			ptrAutoRot = qc_cmd.sequence[i].panim[0]->rot[0];
-
-			if (typeAutoMotion & STUDIO_AX)
-				motion[0] = ptrAutoPos[j][0] - ptrAutoPos[0][0];
-			if (typeAutoMotion & STUDIO_AY)
-				motion[1] = ptrAutoPos[j][1] - ptrAutoPos[0][1];
-			if (typeAutoMotion & STUDIO_AZ)
-				motion[2] = ptrAutoPos[j][2] - ptrAutoPos[0][2];
-			if (typeAutoMotion & STUDIO_AXR)
-				angles[0] = ptrAutoRot[j][0] - ptrAutoRot[0][0];
-			if (typeAutoMotion & STUDIO_AYR)
-				angles[1] = ptrAutoRot[j][1] - ptrAutoRot[0][1];
-			if (typeAutoMotion & STUDIO_AZR)
-				angles[2] = ptrAutoRot[j][2] - ptrAutoRot[0][2];
-
-			qc_cmd.sequence[i].automovepos[j] = motion;
-			qc_cmd.sequence[i].automoveangle[j] = angles;
-		}
-	}
 }
 
 void optimize_animations(QC &qc_cmd)
@@ -395,8 +362,6 @@ void simplify_model(QC &qc_cmd)
 						newb.parent = find_node(qc_cmd.submodel[i]->node[n].name);
 					else
 						newb.parent = -1;
-					newb.bonecontroller = 0;
-					newb.flags = 0;
 					// set defaults
 					defaultpos[k] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 					defaultrot[k] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
@@ -472,7 +437,7 @@ void simplify_model(QC &qc_cmd)
 
 			if (k == -1)
 			{
-				qc_cmd.sequence[i].panim[0]->bonemap[j] = -1;
+				continue;
 			}
 			else
 			{
@@ -495,7 +460,6 @@ void simplify_model(QC &qc_cmd)
 						   szNode);
 					iError++;
 				}
-				qc_cmd.sequence[i].panim[0]->bonemap[j] = k;
 				qc_cmd.sequence[i].panim[0]->boneimap[k] = j;
 			}
 		}
@@ -2198,7 +2162,6 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 
 		newAnim->startframe = start;
 		newAnim->endframe = end;
-		newAnim->flags = 0;
 
 		cmd_sequence_option_animation(qc_cmd, smd_files[i], newAnim);
 
@@ -2405,8 +2368,7 @@ int cmd_attachment(QC &qc_cmd, std::string &token)
 {
 	Attachment newattach;
 	// index
-	get_token(false, token);
-	newattach.index = std::stoi(token);
+	get_token(false, token); // unused
 
 	// bone name
 	get_token(false, token);
