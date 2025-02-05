@@ -1341,7 +1341,6 @@ void build_reference(Model *pmodel)
 void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 {
 	int i;
-	int trianglesCount = 0;
 	Vector3 vmin{99999, 99999, 99999};
 	Vector3 vmax{-99999, -99999, -99999};
 
@@ -1461,9 +1460,7 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 				}
 			}
 
-			pmodel->trimesh[trianglesCount] = pmesh;
-			pmodel->trimap[trianglesCount] = pmesh->numtris++;
-			trianglesCount++;
+			pmesh->numtris++;
 		}
 		else
 		{

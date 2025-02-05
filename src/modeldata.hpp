@@ -202,9 +202,6 @@ struct Model
     int bonemap[MAXSTUDIOSRCBONES];  // local bone to world bone mapping
     int boneimap[MAXSTUDIOSRCBONES]; // world bone to local bone mapping
 
-    Mesh *trimesh[MAXSTUDIOTRIANGLES];
-    int trimap[MAXSTUDIOTRIANGLES];
-
     int numverts;
     Vertex vert[MAXSTUDIOVERTS];
 
