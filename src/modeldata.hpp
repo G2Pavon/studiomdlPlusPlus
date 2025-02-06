@@ -100,7 +100,7 @@ struct Animation
     int startframe;
     int endframe;
     int numbones;
-    Node node[MAXSTUDIOSRCBONES];
+    std::vector<Node> nodes;
     int boneimap[MAXSTUDIOSRCBONES];
     Vector3 *pos[MAXSTUDIOSRCBONES];
     Vector3 *rot[MAXSTUDIOSRCBONES];
@@ -196,7 +196,7 @@ struct Model
     std::string name;
 
     int numbones;
-    Node node[MAXSTUDIOSRCBONES];
+    std::vector<Node> nodes;
     Bone skeleton[MAXSTUDIOSRCBONES];
     int boneref[MAXSTUDIOSRCBONES];  // is local bone (or child) referenced with a vertex
     int bonemap[MAXSTUDIOSRCBONES];  // local bone to world bone mapping

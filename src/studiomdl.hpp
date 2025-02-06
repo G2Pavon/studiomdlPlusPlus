@@ -76,8 +76,8 @@ void parse_qc_file(QC &qc_cmd);
 // SMD Parser
 void parse_smd(QC &qc_cmd, Model *pmodel);
 void grab_smd_triangles(QC &qc_cmd, Model *pmodel);
-void grab_smd_skeleton(QC &qc_cmd, Node *pnodes, Bone *pbones);
-int grab_smd_nodes(QC &qc_cmd, Node *pnodes);
+void grab_smd_skeleton(QC &qc_cmd, std::vector<Node> &nodes, Bone *pbones);
+int grab_smd_nodes(QC &qc_cmd, std::vector<Node> &nodes);
 void build_reference(Model *pmodel);
 Mesh *find_mesh_by_texture(Model *pmodel, char *texturename);
 TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index);

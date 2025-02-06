@@ -92,7 +92,7 @@ void extract_motion(QC &qc_cmd)
 				Vector3 adjustedPosition;
 				for (k = 0; k < qc_cmd.sequence[i].panim[0]->numbones; k++)
 				{
-					if (qc_cmd.sequence[i].panim[0]->node[k].parent == -1)
+					if (qc_cmd.sequence[i].panim[0]->nodes[k].parent == -1)
 					{
 						ptrPos = qc_cmd.sequence[i].panim[0]->pos[k];
 
@@ -119,7 +119,7 @@ void extract_motion(QC &qc_cmd)
 		int typeUnusedMotion = qc_cmd.sequence[i].motiontype;
 		for (k = 0; k < qc_cmd.sequence[i].panim[0]->numbones; k++)
 		{
-			if (qc_cmd.sequence[i].panim[0]->node[k].parent == -1)
+			if (qc_cmd.sequence[i].panim[0]->nodes[k].parent == -1)
 			{
 				for (blendIndex = 0; blendIndex < qc_cmd.sequence[i].numblends; blendIndex++)
 				{
@@ -313,11 +313,11 @@ void simplify_model(QC &qc_cmd)
 			// tag parent bones as used if child has been used
 			if (qc_cmd.submodel[i]->boneref[k])
 			{
-				n = qc_cmd.submodel[i]->node[k].parent;
+				n = qc_cmd.submodel[i]->nodes[k].parent;
 				while (n != -1 && !qc_cmd.submodel[i]->boneref[n])
 				{
 					qc_cmd.submodel[i]->boneref[n] = 1;
-					n = qc_cmd.submodel[i]->node[n].parent;
+					n = qc_cmd.submodel[i]->nodes[n].parent;
 				}
 			}
 		}
@@ -330,9 +330,9 @@ void simplify_model(QC &qc_cmd)
 		{
 			for (k = 0; k < qc_cmd.renamebones.size(); k++)
 			{
-				if (qc_cmd.submodel[i]->node[j].name == qc_cmd.renamebones[k].from)
+				if (qc_cmd.submodel[i]->nodes[j].name == qc_cmd.renamebones[k].from)
 				{
-					qc_cmd.submodel[i]->node[j].name = qc_cmd.renamebones[k].to;
+					qc_cmd.submodel[i]->nodes[j].name = qc_cmd.renamebones[k].to;
 					break;
 				}
 			}
@@ -351,15 +351,15 @@ void simplify_model(QC &qc_cmd)
 		{
 			if (qc_cmd.submodel[i]->boneref[j])
 			{
-				k = find_node(qc_cmd.submodel[i]->node[j].name);
+				k = find_node(qc_cmd.submodel[i]->nodes[j].name);
 				if (k == -1)
 				{
 					// create new bone
 					k = g_bonetable.size();
 					BoneTable newb;
-					newb.name = qc_cmd.submodel[i]->node[j].name;
-					if ((n = qc_cmd.submodel[i]->node[j].parent) != -1)
-						newb.parent = find_node(qc_cmd.submodel[i]->node[n].name);
+					newb.name = qc_cmd.submodel[i]->nodes[j].name;
+					if ((n = qc_cmd.submodel[i]->nodes[j].parent) != -1)
+						newb.parent = find_node(qc_cmd.submodel[i]->nodes[n].name);
 					else
 						newb.parent = -1;
 					// set defaults
@@ -377,16 +377,16 @@ void simplify_model(QC &qc_cmd)
 				else
 				{
 					// double check parent assignments
-					n = qc_cmd.submodel[i]->node[j].parent;
+					n = qc_cmd.submodel[i]->nodes[j].parent;
 					if (n != -1)
-						n = find_node(qc_cmd.submodel[i]->node[n].name);
+						n = find_node(qc_cmd.submodel[i]->nodes[n].name);
 					m = g_bonetable[k].parent;
 
 					if (n != m)
 					{
 						printf("illegal parent bone replacement in model \"%s\"\n\t\"%s\" has \"%s\", previously was \"%s\"\n",
 							   qc_cmd.submodel[i]->name,
-							   qc_cmd.submodel[i]->node[j].name,
+							   qc_cmd.submodel[i]->nodes[j].name,
 							   (n != -1) ? g_bonetable[n].name : "ROOT",
 							   (m != -1) ? g_bonetable[m].name : "ROOT");
 						iError++;
@@ -415,9 +415,9 @@ void simplify_model(QC &qc_cmd)
 		{
 			for (k = 0; k < qc_cmd.renamebones.size(); k++)
 			{
-				if (qc_cmd.sequence[i].panim[0]->node[j].name == qc_cmd.renamebones[k].from)
+				if (qc_cmd.sequence[i].panim[0]->nodes[j].name == qc_cmd.renamebones[k].from)
 				{
-					qc_cmd.sequence[i].panim[0]->node[j].name = qc_cmd.renamebones[k].to;
+					qc_cmd.sequence[i].panim[0]->nodes[j].name = qc_cmd.renamebones[k].to;
 					break;
 				}
 			}
@@ -433,7 +433,7 @@ void simplify_model(QC &qc_cmd)
 		}
 		for (j = 0; j < qc_cmd.sequence[i].panim[0]->numbones; j++)
 		{
-			k = find_node(qc_cmd.sequence[i].panim[0]->node[j].name);
+			k = find_node(qc_cmd.sequence[i].panim[0]->nodes[j].name);
 
 			if (k == -1)
 			{
@@ -445,8 +445,8 @@ void simplify_model(QC &qc_cmd)
 				char *szNode = "ROOT";
 
 				// whoa, check parent connections!
-				if (qc_cmd.sequence[i].panim[0]->node[j].parent != -1)
-					szAnim = const_cast<char*>((qc_cmd.sequence[i].panim[0]->node[qc_cmd.sequence[i].panim[0]->node[j].parent].name).c_str());
+				if (qc_cmd.sequence[i].panim[0]->nodes[j].parent != -1)
+					szAnim = const_cast<char*>((qc_cmd.sequence[i].panim[0]->nodes[qc_cmd.sequence[i].panim[0]->nodes[j].parent].name).c_str());
 
 				if (g_bonetable[k].parent != -1)
 					szNode = const_cast<char*>(g_bonetable[g_bonetable[k].parent].name.c_str());
@@ -455,7 +455,7 @@ void simplify_model(QC &qc_cmd)
 				{
 					printf("illegal parent bone replacement in sequence \"%s\"\n\t\"%s\" has \"%s\", reference has \"%s\"\n",
 						   qc_cmd.sequence[i].name,
-						   qc_cmd.sequence[i].panim[0]->node[j].name,
+						   qc_cmd.sequence[i].panim[0]->nodes[j].name,
 						   szAnim,
 						   szNode);
 					iError++;
@@ -1306,7 +1306,7 @@ void build_reference(Model *pmodel)
 		boneAngle[1] = to_degrees(pmodel->skeleton[i].rot[1]);
 		boneAngle[2] = to_degrees(pmodel->skeleton[i].rot[2]);
 
-		int parent = pmodel->node[i].parent;
+		int parent = pmodel->nodes[i].parent;
 		if (parent == -1)
 		{
 			// scale the done pos.
@@ -1469,7 +1469,7 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 	}
 }
 
-void grab_smd_skeleton(QC &qc_cmd, Node *pnodes, Bone *pbones)
+void grab_smd_skeleton(QC &qc_cmd, std::vector<Node> &nodes, Bone *pbones)
 {
 	float posX, posY, posZ, rotX, rotY, rotZ;
 	char cmd[1024];
@@ -1486,7 +1486,7 @@ void grab_smd_skeleton(QC &qc_cmd, Node *pnodes, Bone *pbones)
 
 			pbones[node].pos *= qc_cmd.scaleBodyAndSequenceOption; // scale vertex
 
-			if (pnodes[node].mirrored)
+			if (nodes[node].mirrored)
 				pbones[node].pos = pbones[node].pos * -1.0;
 
 			pbones[node].rot[0] = rotX;
@@ -1509,40 +1509,41 @@ void grab_smd_skeleton(QC &qc_cmd, Node *pnodes, Bone *pbones)
 	}
 }
 
-int grab_smd_nodes(QC &qc_cmd, Node *pnodes)
+int grab_smd_nodes(QC &qc_cmd, std::vector<Node> &nodes)
 {
-	int index;
-	char boneName[1024];
-	int parent;
-	int numBones = 0;
+    int index;
+    char bone_name[1024];
+    int parent;
 
-	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
-	{
-		g_smdlinecount++;
-		if (sscanf(g_currentsmdline, "%d \"%[^\"]\" %d", &index, boneName, &parent) == 3)
-		{
+    while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
+    {
+        g_smdlinecount++;
+        if (sscanf(g_currentsmdline, "%d \"%[^\"]\" %d", &index, bone_name, &parent) == 3)
+        {
+            nodes.emplace_back();
+            nodes.back().name = bone_name;
+            nodes.back().parent = parent;
 
-			pnodes[index].name = boneName;
-			pnodes[index].parent = parent;
-			numBones = index;
-			// check for mirrored bones;
-			for (int i = 0; i < qc_cmd.mirroredbones.size(); i++)
+            // Check for mirrored bones
+            for (int i = 0; i < qc_cmd.mirroredbones.size(); i++)
 			{
-				if (std::strcmp(boneName, qc_cmd.mirroredbones[i].data()) == 0)
-					pnodes[index].mirrored = 1;
-			}
-			if ((!pnodes[index].mirrored) && parent != -1)
-			{
-				pnodes[index].mirrored = pnodes[pnodes[index].parent].mirrored;
-			}
-		}
-		else
-		{
-			return numBones + 1;
-		}
-	}
-	error("Unexpected EOF at line " + std::to_string(g_smdlinecount) + "\n");
-	return 0;
+                if (std::strcmp(bone_name, qc_cmd.mirroredbones[i].data()) == 0) {
+                    nodes.back().mirrored = 1;
+                    break;
+                }
+            }
+
+            if ((!nodes.back().mirrored) && parent != -1) {
+                nodes.back().mirrored = nodes[parent].mirrored;
+            }
+        }
+        else
+        {
+            return nodes.size();
+        }
+    }
+    error("Unexpected EOF at line " + std::to_string(g_smdlinecount) + "\n");
+    return 0;
 }
 
 void parse_smd(QC &qc_cmd, Model *pmodel)
@@ -1575,11 +1576,11 @@ void parse_smd(QC &qc_cmd, Model *pmodel)
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			pmodel->numbones = grab_smd_nodes(qc_cmd, pmodel->node);
+			pmodel->numbones = grab_smd_nodes(qc_cmd, pmodel->nodes);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
-			grab_smd_skeleton(qc_cmd, pmodel->node, pmodel->skeleton);
+			grab_smd_skeleton(qc_cmd, pmodel->nodes, pmodel->skeleton);
 		}
 		else if (std::strcmp(cmd, "triangles") == 0)
 		{
@@ -1756,7 +1757,7 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 		{
 			if (t >= panim->startframe && t <= panim->endframe)
 			{
-				if (panim->node[index].parent == -1)
+				if (panim->nodes[index].parent == -1)
 				{
 					pos -= qc_cmd.sequenceOrigin; // adjust vertex to origin
 					panim->pos[index][t][0] = cz * pos[0] - sz * pos[1];
@@ -1774,7 +1775,7 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 				if (t < start)
 					start = t;
 
-				if (panim->node[index].mirrored)
+				if (panim->nodes[index].mirrored)
 					panim->pos[index][t] = panim->pos[index][t] * -1.0;
 
 				panim->pos[index][t] *= qc_cmd.scaleBodyAndSequenceOption; // scale vertex
@@ -1862,7 +1863,7 @@ void cmd_sequence_option_animation(QC &qc_cmd, std::string &name, Animation *pan
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			panim->numbones = grab_smd_nodes(qc_cmd, panim->node);
+			panim->numbones = grab_smd_nodes(qc_cmd, panim->nodes);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
