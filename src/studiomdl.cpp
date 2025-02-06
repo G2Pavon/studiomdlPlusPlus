@@ -1,5 +1,4 @@
-// studiomdl.c: generates a studio .mdl file from a .qc script
-// models/<scriptname>.mdl.
+// studiomdl.cpp: generates a studio .mdl file from a .qc script
 
 #include <cstring>
 #include <string>
@@ -20,7 +19,6 @@
 
 #define strnicmp strncasecmp
 #define stricmp strcasecmp
-#define strcpyn(a, b) std::strncpy(a, b, sizeof(a))
 
 // studiomdl.exe args -----------
 bool g_flaginvertnormals;
@@ -108,8 +106,8 @@ void extract_motion(QC &qc)
 			qc.sequences[i].linearmovement = motion;
 		}
 		else
-		{ //
-			qc.sequences[i].linearmovement = qc.sequences[i].linearmovement - qc.sequences[i].linearmovement;
+		{
+			qc.sequences[i].linearmovement = Vector3(0, 0, 0);
 		}
 	}
 
@@ -133,14 +131,6 @@ void extract_motion(QC &qc)
 
 					for (j = 0; j < qc.sequences[i].numframes; j++)
 					{
-						/*
-						if (typeUnusedMotion & STUDIO_X)
-							sequence[i].panim[blendIndex]->pos[k][j][0] = motion[0];
-						if (typeUnusedMotion & STUDIO_Y)
-							sequence[i].panim[blendIndex]->pos[k][j][1] = motion[1];
-						if (typeUnusedMotion & STUDIO_Z)
-							sequence[i].panim[blendIndex]->pos[k][j][2] = motion[2];
-						*/
 						if (typeUnusedMotion & STUDIO_XR)
 							qc.sequences[i].anims[blendIndex].rot[k][j][0] = motion[3];
 						if (typeUnusedMotion & STUDIO_YR)
@@ -965,7 +955,6 @@ int find_texture_index(std::string texturename)
 	Texture newtexture;
 	newtexture.name = texturename;
 
-	// XDM: allow such names as "tex_chrome_bright" - chrome and full brightness effects
     std::string lower_texname = texturename;
     std::transform(lower_texname.begin(), lower_texname.end(), lower_texname.begin(), ::tolower);
 	if (lower_texname.find("chrome") != std::string::npos)
@@ -1356,7 +1345,6 @@ void grab_smd_triangles(QC &qc, Model *pmodel)
 
 			g_smdlinecount++;
 
-			// check for end
 			if (std::strcmp("end\n", g_currentsmdline) == 0)
 				return;
 
@@ -1444,9 +1432,6 @@ void grab_smd_triangles(QC &qc, Model *pmodel)
 
 						ptriangleVert->normindex = find_vertex_normal_index(pmodel, &triangleNormal);
 						ptriangleVert->vertindex = find_vertex_index(pmodel, &triangleVertex);
-
-						// tag bone as being used
-						// pmodel->bone[bone].ref = 1;
 					}
 					else
 					{
@@ -1492,11 +1477,7 @@ void grab_smd_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bone
 		}
 		else if (sscanf(g_currentsmdline, "%s %d", cmd, &node)) // Delete this
 		{
-			if (std::strcmp(cmd, "time") == 0)
-			{
-				// pbones = pnode->bones[index] = std::calloc(1, sizeof( s_bones_t ));
-			}
-			else if (std::strcmp(cmd, "end") == 0)
+			if (std::strcmp(cmd, "end") == 0)
 			{
 				return;
 			}
@@ -1533,7 +1514,7 @@ int grab_smd_nodes(QC &qc, std::vector<Node> &nodes)
         }
         else
         {
-            return nodes.size();
+            return 1;
         }
     }
     error("Unexpected EOF at line " + std::to_string(g_smdlinecount) + "\n");
@@ -1807,7 +1788,6 @@ void grab_option_animation(QC &qc, Animation &anim)
 void shift_option_animation(Animation &anim)
 {
 	int size = (anim.endframe - anim.startframe + 1) * sizeof(Vector3);
-	// shift
 	for (int j = 0; j < anim.nodes.size(); j++)
 	{
 		Vector3 *ppos = (Vector3 *)std::calloc(1, size);
@@ -1912,7 +1892,6 @@ int cmd_sequence_option_event(std::string &token, Sequence *psequence)
 int cmd_sequence_option_fps(std::string &token, Sequence *psequence)
 {
 	get_token(false, token);
-
 	psequence->fps = std::stof(token);
 
 	return 0;
@@ -1983,7 +1962,6 @@ int cmd_sequence_option_action(std::string &szActivity)
 			return activity_map[i].type;
 		}
 	}
-	// match ACT_#
 	if (strnicmp(szActivity.c_str(), "ACT_", 4) == 0)
 	{
 		return std::stoi(&szActivity[4]);
@@ -2437,7 +2415,6 @@ void parse_qc_file(QC &qc)
 				get_token(false, token);
 		}
 
-		// Process recognized commands
 		if (token == "$modelname")
 		{
 			cmd_modelname(qc, token);
