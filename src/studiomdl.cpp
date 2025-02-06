@@ -1469,7 +1469,7 @@ void grab_smd_triangles(QC &qc, Model *pmodel)
 	}
 }
 
-void grab_smd_skeleton(QC &qc, std::vector<Node> &nodes, Bone *pbones)
+void grab_smd_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones)
 {
 	float posX, posY, posZ, rotX, rotY, rotZ;
 	char cmd[1024];
@@ -1480,20 +1480,15 @@ void grab_smd_skeleton(QC &qc, std::vector<Node> &nodes, Bone *pbones)
 		g_smdlinecount++;
 		if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f", &node, &posX, &posY, &posZ, &rotX, &rotY, &rotZ) == 7)
 		{
-			pbones[node].pos[0] = posX;
-			pbones[node].pos[1] = posY;
-			pbones[node].pos[2] = posZ;
-
-			pbones[node].pos *= qc.scaleBodyAndSequenceOption; // scale vertex
+			bones.emplace_back();
+			bones.back().pos = Vector3(posX, posY, posZ);
+			bones.back().pos *= qc.scaleBodyAndSequenceOption; // scale vertex
 
 			if (nodes[node].mirrored)
-				pbones[node].pos = pbones[node].pos * -1.0;
+				bones.back().pos *= -1.0;
 
-			pbones[node].rot[0] = rotX;
-			pbones[node].rot[1] = rotY;
-			pbones[node].rot[2] = rotZ;
-
-			clip_rotations(pbones[node].rot);
+			bones.back().rot = Vector3(rotX, rotY, rotZ);
+			clip_rotations(bones.back().rot);
 		}
 		else if (sscanf(g_currentsmdline, "%s %d", cmd, &node)) // Delete this
 		{

@@ -195,7 +195,7 @@ struct Model
     std::string name;
 
     std::vector<Node> nodes;
-    Bone skeleton[MAXSTUDIOSRCBONES];
+    std::vector<Bone> skeleton;
     int boneref[MAXSTUDIOSRCBONES];  // is local bone (or child) referenced with a vertex
     int bonemap[MAXSTUDIOSRCBONES];  // local bone to world bone mapping
     int boneimap[MAXSTUDIOSRCBONES]; // world bone to local bone mapping
