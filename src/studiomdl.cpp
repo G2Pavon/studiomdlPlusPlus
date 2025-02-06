@@ -1725,7 +1725,7 @@ void cmd_body(QC &qc, std::string &token)
 	cmd_body_option_studio(qc, token);
 }
 
-void grab_option_animation(QC &qc, Animation &panim)
+void grab_option_animation(QC &qc, Animation &anim)
 {
 	Vector3 pos;
 	Vector3 rot;
@@ -1735,10 +1735,10 @@ void grab_option_animation(QC &qc, Animation &panim)
 	int start = 99999;
 	int end = 0;
 
-	for (index = 0; index < panim.nodes.size(); index++)
+	for (index = 0; index < anim.nodes.size(); index++)
 	{
-		panim.pos[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
-		panim.rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
+		anim.pos[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
+		anim.rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 	}
 
 	float cz = cosf(qc.rotate);
@@ -1749,34 +1749,34 @@ void grab_option_animation(QC &qc, Animation &panim)
 		g_smdlinecount++;
 		if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f", &index, &pos[0], &pos[1], &pos[2], &rot[0], &rot[1], &rot[2]) == 7)
 		{
-			if (t >= panim.startframe && t <= panim.endframe)
+			if (t >= anim.startframe && t <= anim.endframe)
 			{
-				if (panim.nodes[index].parent == -1)
+				if (anim.nodes[index].parent == -1)
 				{
 					pos -= qc.sequenceOrigin; // adjust vertex to origin
-					panim.pos[index][t][0] = cz * pos[0] - sz * pos[1];
-					panim.pos[index][t][1] = sz * pos[0] + cz * pos[1];
-					panim.pos[index][t][2] = pos[2];
+					anim.pos[index][t][0] = cz * pos[0] - sz * pos[1];
+					anim.pos[index][t][1] = sz * pos[0] + cz * pos[1];
+					anim.pos[index][t][2] = pos[2];
 					// rotate model
 					rot[2] += qc.rotate;
 				}
 				else
 				{
-					panim.pos[index][t] = pos;
+					anim.pos[index][t] = pos;
 				}
 				if (t > end)
 					end = t;
 				if (t < start)
 					start = t;
 
-				if (panim.nodes[index].mirrored)
-					panim.pos[index][t] = panim.pos[index][t] * -1.0;
+				if (anim.nodes[index].mirrored)
+					anim.pos[index][t] = anim.pos[index][t] * -1.0;
 
-				panim.pos[index][t] *= qc.scaleBodyAndSequenceOption; // scale vertex
+				anim.pos[index][t] *= qc.scaleBodyAndSequenceOption; // scale vertex
 
 				clip_rotations(rot);
 
-				panim.rot[index][t] = rot;
+				anim.rot[index][t] = rot;
 			}
 		}
 		else if (sscanf(g_currentsmdline, "%s %d", cmd, &index))
@@ -1787,8 +1787,8 @@ void grab_option_animation(QC &qc, Animation &panim)
 			}
 			else if (std::strcmp(cmd, "end") == 0)
 			{
-				panim.startframe = start;
-				panim.endframe = end;
+				anim.startframe = start;
+				anim.endframe = end;
 				return;
 			}
 			else
@@ -1801,7 +1801,7 @@ void grab_option_animation(QC &qc, Animation &panim)
 			error("Error(" + std::to_string(g_smdlinecount) + ") : " + g_currentsmdline);
 		}
 	}
-	error("unexpected EOF: " + std::string(panim.name));
+	error("unexpected EOF: " + std::string(anim.name));
 }
 
 void shift_option_animation(Animation &anim)

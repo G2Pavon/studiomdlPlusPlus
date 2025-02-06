@@ -55,7 +55,7 @@ void cmd_sequence_option_rotate(QC &qc, std::string &token);
 void cmd_sequence_option_scale(QC &qc, std::string &token);
 void cmd_sequence_option_animation(QC &qc, char *name, Animation &anim);
 void grab_option_animation(QC &qc, Animation &anim);
-void shift_option_animation(Animation &panim);
+void shift_option_animation(Animation &anim);
 int cmd_sequence_option_action(std::string &szActivity);
 void cmd_eyeposition(QC &qc, std::string &token);
 void cmd_origin(QC &qc, std::string &token);
