@@ -71,14 +71,14 @@ void extract_motion(QC &qc)
 	// extract linear motion
 	for (i = 0; i < g_num_sequence; i++)
 	{
-		if (qc.sequence[i].numframes > 1)
+		if (qc.sequences[i].numframes > 1)
 		{
 			// assume 0 for now.
 			Vector3 motion{0, 0, 0};
-			int typeMotion = qc.sequence[i].motiontype;
-			Vector3 *ptrPos = qc.sequence[i].panim[0]->pos[0];
+			int typeMotion = qc.sequences[i].motiontype;
+			Vector3 *ptrPos = qc.sequences[i].panims[0]->pos[0];
 
-			k = qc.sequence[i].numframes - 1;
+			k = qc.sequences[i].numframes - 1;
 
 			if (typeMotion & STUDIO_LX)
 				motion[0] = ptrPos[k][0] - ptrPos[0][0];
@@ -87,51 +87,51 @@ void extract_motion(QC &qc)
 			if (typeMotion & STUDIO_LZ)
 				motion[2] = ptrPos[k][2] - ptrPos[0][2];
 
-			for (j = 0; j < qc.sequence[i].numframes; j++)
+			for (j = 0; j < qc.sequences[i].numframes; j++)
 			{
 				Vector3 adjustedPosition;
-				for (k = 0; k < qc.sequence[i].panim[0]->nodes.size(); k++)
+				for (k = 0; k < qc.sequences[i].panims[0]->nodes.size(); k++)
 				{
-					if (qc.sequence[i].panim[0]->nodes[k].parent == -1)
+					if (qc.sequences[i].panims[0]->nodes[k].parent == -1)
 					{
-						ptrPos = qc.sequence[i].panim[0]->pos[k];
+						ptrPos = qc.sequences[i].panims[0]->pos[k];
 
-						adjustedPosition = motion * (static_cast<float>(j) / static_cast<float>(qc.sequence[i].numframes - 1));
-						for (blendIndex = 0; blendIndex < qc.sequence[i].numblends; blendIndex++)
+						adjustedPosition = motion * (static_cast<float>(j) / static_cast<float>(qc.sequences[i].numframes - 1));
+						for (blendIndex = 0; blendIndex < qc.sequences[i].numblends; blendIndex++)
 						{
-							qc.sequence[i].panim[blendIndex]->pos[k][j] = qc.sequence[i].panim[blendIndex]->pos[k][j] - adjustedPosition;
+							qc.sequences[i].panims[blendIndex]->pos[k][j] = qc.sequences[i].panims[blendIndex]->pos[k][j] - adjustedPosition;
 						}
 					}
 				}
 			}
 
-			qc.sequence[i].linearmovement = motion;
+			qc.sequences[i].linearmovement = motion;
 		}
 		else
 		{ //
-			qc.sequence[i].linearmovement = qc.sequence[i].linearmovement - qc.sequence[i].linearmovement;
+			qc.sequences[i].linearmovement = qc.sequences[i].linearmovement - qc.sequences[i].linearmovement;
 		}
 	}
 
 	// extract unused motion
 	for (i = 0; i < g_num_sequence; i++)
 	{
-		int typeUnusedMotion = qc.sequence[i].motiontype;
-		for (k = 0; k < qc.sequence[i].panim[0]->nodes.size(); k++)
+		int typeUnusedMotion = qc.sequences[i].motiontype;
+		for (k = 0; k < qc.sequences[i].panims[0]->nodes.size(); k++)
 		{
-			if (qc.sequence[i].panim[0]->nodes[k].parent == -1)
+			if (qc.sequences[i].panims[0]->nodes[k].parent == -1)
 			{
-				for (blendIndex = 0; blendIndex < qc.sequence[i].numblends; blendIndex++)
+				for (blendIndex = 0; blendIndex < qc.sequences[i].numblends; blendIndex++)
 				{
 					float motion[6];
-					motion[0] = qc.sequence[i].panim[blendIndex]->pos[k][0][0];
-					motion[1] = qc.sequence[i].panim[blendIndex]->pos[k][0][1];
-					motion[2] = qc.sequence[i].panim[blendIndex]->pos[k][0][2];
-					motion[3] = qc.sequence[i].panim[blendIndex]->rot[k][0][0];
-					motion[4] = qc.sequence[i].panim[blendIndex]->rot[k][0][1];
-					motion[5] = qc.sequence[i].panim[blendIndex]->rot[k][0][2];
+					motion[0] = qc.sequences[i].panims[blendIndex]->pos[k][0][0];
+					motion[1] = qc.sequences[i].panims[blendIndex]->pos[k][0][1];
+					motion[2] = qc.sequences[i].panims[blendIndex]->pos[k][0][2];
+					motion[3] = qc.sequences[i].panims[blendIndex]->rot[k][0][0];
+					motion[4] = qc.sequences[i].panims[blendIndex]->rot[k][0][1];
+					motion[5] = qc.sequences[i].panims[blendIndex]->rot[k][0][2];
 
-					for (j = 0; j < qc.sequence[i].numframes; j++)
+					for (j = 0; j < qc.sequences[i].numframes; j++)
 					{
 						/*
 						if (typeUnusedMotion & STUDIO_X)
@@ -142,11 +142,11 @@ void extract_motion(QC &qc)
 							sequence[i].panim[blendIndex]->pos[k][j][2] = motion[2];
 						*/
 						if (typeUnusedMotion & STUDIO_XR)
-							qc.sequence[i].panim[blendIndex]->rot[k][j][0] = motion[3];
+							qc.sequences[i].panims[blendIndex]->rot[k][j][0] = motion[3];
 						if (typeUnusedMotion & STUDIO_YR)
-							qc.sequence[i].panim[blendIndex]->rot[k][j][1] = motion[4];
+							qc.sequences[i].panims[blendIndex]->rot[k][j][1] = motion[4];
 						if (typeUnusedMotion & STUDIO_ZR)
-							qc.sequence[i].panim[blendIndex]->rot[k][j][2] = motion[5];
+							qc.sequences[i].panims[blendIndex]->rot[k][j][2] = motion[5];
 					}
 				}
 			}
@@ -163,22 +163,22 @@ void optimize_animations(QC &qc)
 	// optimize animations
 	for (int i = 0; i < g_num_sequence; i++)
 	{
-		qc.sequence[i].numframes = qc.sequence[i].panim[0]->endframe - qc.sequence[i].panim[0]->startframe + 1;
+		qc.sequences[i].numframes = qc.sequences[i].panims[0]->endframe - qc.sequences[i].panims[0]->startframe + 1;
 
 		// force looping animations to be looping
-		if (qc.sequence[i].flags & STUDIO_LOOPING)
+		if (qc.sequences[i].flags & STUDIO_LOOPING)
 		{
-			for (int j = 0; j < qc.sequence[i].panim[0]->nodes.size(); j++)
+			for (int j = 0; j < qc.sequences[i].panims[0]->nodes.size(); j++)
 			{
-				for (int blends = 0; blends < qc.sequence[i].numblends; blends++)
+				for (int blends = 0; blends < qc.sequences[i].numblends; blends++)
 				{
-					Vector3 *ppos = qc.sequence[i].panim[blends]->pos[j];
-					Vector3 *prot = qc.sequence[i].panim[blends]->rot[j];
+					Vector3 *ppos = qc.sequences[i].panims[blends]->pos[j];
+					Vector3 *prot = qc.sequences[i].panims[blends]->rot[j];
 
 					startFrame = 0;								 // sequence[i].panim[q]->startframe;
-					endFrame = qc.sequence[i].numframes - 1; // sequence[i].panim[q]->endframe;
+					endFrame = qc.sequences[i].numframes - 1; // sequence[i].panim[q]->endframe;
 
-					typeMotion = qc.sequence[i].motiontype;
+					typeMotion = qc.sequences[i].motiontype;
 					if (!(typeMotion & STUDIO_LX))
 						ppos[endFrame][0] = ppos[startFrame][0];
 					if (!(typeMotion & STUDIO_LY))
@@ -193,23 +193,23 @@ void optimize_animations(QC &qc)
 			}
 		}
 
-		for (int j = 0; j < qc.sequence[i].events.size(); j++)
+		for (int j = 0; j < qc.sequences[i].events.size(); j++)
 		{
-			if (qc.sequence[i].events[j].frame < qc.sequence[i].panim[0]->startframe)
+			if (qc.sequences[i].events[j].frame < qc.sequences[i].panims[0]->startframe)
 			{
-				printf("sequence %s has event (%d) before first frame (%d)\n", qc.sequence[i].name, qc.sequence[i].events[j].frame, qc.sequence[i].panim[0]->startframe);
-				qc.sequence[i].events[j].frame = qc.sequence[i].panim[0]->startframe;
+				printf("sequence %s has event (%d) before first frame (%d)\n", qc.sequences[i].name, qc.sequences[i].events[j].frame, qc.sequences[i].panims[0]->startframe);
+				qc.sequences[i].events[j].frame = qc.sequences[i].panims[0]->startframe;
 				iError++;
 			}
-			if (qc.sequence[i].events[j].frame > qc.sequence[i].panim[0]->endframe)
+			if (qc.sequences[i].events[j].frame > qc.sequences[i].panims[0]->endframe)
 			{
-				printf("sequence %s has event (%d) after last frame (%d)\n", qc.sequence[i].name, qc.sequence[i].events[j].frame, qc.sequence[i].panim[0]->endframe);
-				qc.sequence[i].events[j].frame = qc.sequence[i].panim[0]->endframe;
+				printf("sequence %s has event (%d) after last frame (%d)\n", qc.sequences[i].name, qc.sequences[i].events[j].frame, qc.sequences[i].panims[0]->endframe);
+				qc.sequences[i].events[j].frame = qc.sequences[i].panims[0]->endframe;
 				iError++;
 			}
 		}
 
-		qc.sequence[i].frameoffset = qc.sequence[i].panim[0]->startframe;
+		qc.sequences[i].frameoffset = qc.sequences[i].panims[0]->startframe;
 	}
 }
 
@@ -233,16 +233,16 @@ void make_transitions(QC &qc)
 	// Add in direct node transitions
 	for (i = 0; i < g_num_sequence; i++)
 	{
-		if (qc.sequence[i].entrynode != qc.sequence[i].exitnode)
+		if (qc.sequences[i].entrynode != qc.sequences[i].exitnode)
 		{
-			g_xnode[qc.sequence[i].entrynode - 1][qc.sequence[i].exitnode - 1] = qc.sequence[i].exitnode;
-			if (qc.sequence[i].nodeflags)
+			g_xnode[qc.sequences[i].entrynode - 1][qc.sequences[i].exitnode - 1] = qc.sequences[i].exitnode;
+			if (qc.sequences[i].nodeflags)
 			{
-				g_xnode[qc.sequence[i].exitnode - 1][qc.sequence[i].entrynode - 1] = qc.sequence[i].entrynode;
+				g_xnode[qc.sequences[i].exitnode - 1][qc.sequences[i].entrynode - 1] = qc.sequences[i].entrynode;
 			}
 		}
-		if (qc.sequence[i].entrynode > g_numxnodes)
-			g_numxnodes = qc.sequence[i].entrynode;
+		if (qc.sequences[i].entrynode > g_numxnodes)
+			g_numxnodes = qc.sequences[i].entrynode;
 	}
 
 	// Add multi-stage transitions
@@ -298,41 +298,41 @@ void simplify_model(QC &qc)
 	make_transitions(qc);
 
 	// find used bones TODO: find_used_bones()
-	for (i = 0; i < qc.submodel.size(); i++)
+	for (i = 0; i < qc.submodels.size(); i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			qc.submodel[i]->boneref[k] = g_flagkeepallbones;
+			qc.submodels[i]->boneref[k] = g_flagkeepallbones;
 		}
-		for (j = 0; j < qc.submodel[i]->verts.size(); j++)
+		for (j = 0; j < qc.submodels[i]->verts.size(); j++)
 		{
-			qc.submodel[i]->boneref[qc.submodel[i]->verts[j].bone] = 1;
+			qc.submodels[i]->boneref[qc.submodels[i]->verts[j].bone] = 1;
 		}
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
 			// tag parent bones as used if child has been used
-			if (qc.submodel[i]->boneref[k])
+			if (qc.submodels[i]->boneref[k])
 			{
-				n = qc.submodel[i]->nodes[k].parent;
-				while (n != -1 && !qc.submodel[i]->boneref[n])
+				n = qc.submodels[i]->nodes[k].parent;
+				while (n != -1 && !qc.submodels[i]->boneref[n])
 				{
-					qc.submodel[i]->boneref[n] = 1;
-					n = qc.submodel[i]->nodes[n].parent;
+					qc.submodels[i]->boneref[n] = 1;
+					n = qc.submodels[i]->nodes[n].parent;
 				}
 			}
 		}
 	}
 
 	// rename model bones if needed TODO: rename_submodel_bones()
-	for (i = 0; i < qc.submodel.size(); i++)
+	for (i = 0; i < qc.submodels.size(); i++)
 	{
-		for (j = 0; j < qc.submodel[i]->nodes.size(); j++)
+		for (j = 0; j < qc.submodels[i]->nodes.size(); j++)
 		{
 			for (k = 0; k < qc.renamebones.size(); k++)
 			{
-				if (qc.submodel[i]->nodes[j].name == qc.renamebones[k].from)
+				if (qc.submodels[i]->nodes[j].name == qc.renamebones[k].from)
 				{
-					qc.submodel[i]->nodes[j].name = qc.renamebones[k].to;
+					qc.submodels[i]->nodes[j].name = qc.renamebones[k].to;
 					break;
 				}
 			}
@@ -341,25 +341,25 @@ void simplify_model(QC &qc)
 
 	// union of all used bones TODO:create_bone_union()
 	g_bonetable.clear();
-	for (i = 0; i < qc.submodel.size(); i++)
+	for (i = 0; i < qc.submodels.size(); i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			qc.submodel[i]->boneimap[k] = -1;
+			qc.submodels[i]->boneimap[k] = -1;
 		}
-		for (j = 0; j < qc.submodel[i]->nodes.size(); j++)
+		for (j = 0; j < qc.submodels[i]->nodes.size(); j++)
 		{
-			if (qc.submodel[i]->boneref[j])
+			if (qc.submodels[i]->boneref[j])
 			{
-				k = find_node(qc.submodel[i]->nodes[j].name);
+				k = find_node(qc.submodels[i]->nodes[j].name);
 				if (k == -1)
 				{
 					// create new bone
 					k = g_bonetable.size();
 					BoneTable newb;
-					newb.name = qc.submodel[i]->nodes[j].name;
-					if ((n = qc.submodel[i]->nodes[j].parent) != -1)
-						newb.parent = find_node(qc.submodel[i]->nodes[n].name);
+					newb.name = qc.submodels[i]->nodes[j].name;
+					if ((n = qc.submodels[i]->nodes[j].parent) != -1)
+						newb.parent = find_node(qc.submodels[i]->nodes[n].name);
 					else
 						newb.parent = -1;
 					// set defaults
@@ -367,33 +367,33 @@ void simplify_model(QC &qc)
 					defaultrot[k] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 					for (n = 0; n < MAXSTUDIOANIMATIONS; n++)
 					{
-						defaultpos[k][n] = qc.submodel[i]->skeleton[j].pos;
-						defaultrot[k][n] = qc.submodel[i]->skeleton[j].rot;
+						defaultpos[k][n] = qc.submodels[i]->skeleton[j].pos;
+						defaultrot[k][n] = qc.submodels[i]->skeleton[j].rot;
 					}
-					newb.pos = qc.submodel[i]->skeleton[j].pos;
-					newb.rot = qc.submodel[i]->skeleton[j].rot;
+					newb.pos = qc.submodels[i]->skeleton[j].pos;
+					newb.rot = qc.submodels[i]->skeleton[j].rot;
 					g_bonetable.push_back(newb);
 				}
 				else
 				{
 					// double check parent assignments
-					n = qc.submodel[i]->nodes[j].parent;
+					n = qc.submodels[i]->nodes[j].parent;
 					if (n != -1)
-						n = find_node(qc.submodel[i]->nodes[n].name);
+						n = find_node(qc.submodels[i]->nodes[n].name);
 					m = g_bonetable[k].parent;
 
 					if (n != m)
 					{
 						printf("illegal parent bone replacement in model \"%s\"\n\t\"%s\" has \"%s\", previously was \"%s\"\n",
-							   qc.submodel[i]->name,
-							   qc.submodel[i]->nodes[j].name,
+							   qc.submodels[i]->name,
+							   qc.submodels[i]->nodes[j].name,
 							   (n != -1) ? g_bonetable[n].name : "ROOT",
 							   (m != -1) ? g_bonetable[m].name : "ROOT");
 						iError++;
 					}
 				}
-				qc.submodel[i]->bonemap[j] = k;
-				qc.submodel[i]->boneimap[k] = j;
+				qc.submodels[i]->bonemap[j] = k;
+				qc.submodels[i]->boneimap[k] = j;
 			}
 		}
 	}
@@ -411,13 +411,13 @@ void simplify_model(QC &qc)
 	// rename sequence bones if needed TODO: rename_sequence_bones()
 	for (i = 0; i < g_num_sequence; i++)
 	{
-		for (j = 0; j < qc.sequence[i].panim[0]->nodes.size(); j++)
+		for (j = 0; j < qc.sequences[i].panims[0]->nodes.size(); j++)
 		{
 			for (k = 0; k < qc.renamebones.size(); k++)
 			{
-				if (qc.sequence[i].panim[0]->nodes[j].name == qc.renamebones[k].from)
+				if (qc.sequences[i].panims[0]->nodes[j].name == qc.renamebones[k].from)
 				{
-					qc.sequence[i].panim[0]->nodes[j].name = qc.renamebones[k].to;
+					qc.sequences[i].panims[0]->nodes[j].name = qc.renamebones[k].to;
 					break;
 				}
 			}
@@ -429,11 +429,11 @@ void simplify_model(QC &qc)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			qc.sequence[i].panim[0]->boneimap[k] = -1;
+			qc.sequences[i].panims[0]->boneimap[k] = -1;
 		}
-		for (j = 0; j < qc.sequence[i].panim[0]->nodes.size(); j++)
+		for (j = 0; j < qc.sequences[i].panims[0]->nodes.size(); j++)
 		{
-			k = find_node(qc.sequence[i].panim[0]->nodes[j].name);
+			k = find_node(qc.sequences[i].panims[0]->nodes[j].name);
 
 			if (k == -1)
 			{
@@ -445,8 +445,8 @@ void simplify_model(QC &qc)
 				char *szNode = "ROOT";
 
 				// whoa, check parent connections!
-				if (qc.sequence[i].panim[0]->nodes[j].parent != -1)
-					szAnim = const_cast<char*>((qc.sequence[i].panim[0]->nodes[qc.sequence[i].panim[0]->nodes[j].parent].name).c_str());
+				if (qc.sequences[i].panims[0]->nodes[j].parent != -1)
+					szAnim = const_cast<char*>((qc.sequences[i].panims[0]->nodes[qc.sequences[i].panims[0]->nodes[j].parent].name).c_str());
 
 				if (g_bonetable[k].parent != -1)
 					szNode = const_cast<char*>(g_bonetable[g_bonetable[k].parent].name.c_str());
@@ -454,13 +454,13 @@ void simplify_model(QC &qc)
 				if (std::strcmp(szAnim, szNode))
 				{
 					printf("illegal parent bone replacement in sequence \"%s\"\n\t\"%s\" has \"%s\", reference has \"%s\"\n",
-						   qc.sequence[i].name,
-						   qc.sequence[i].panim[0]->nodes[j].name,
+						   qc.sequences[i].name,
+						   qc.sequences[i].panims[0]->nodes[j].name,
 						   szAnim,
 						   szNode);
 					iError++;
 				}
-				qc.sequence[i].panim[0]->boneimap[k] = j;
+				qc.sequences[i].panims[0]->boneimap[k] = j;
 			}
 		}
 	}
@@ -500,15 +500,15 @@ void simplify_model(QC &qc)
 	}
 
 	// relink model TODO: relink_model()
-	for (i = 0; i < qc.submodel.size(); i++)
+	for (i = 0; i < qc.submodels.size(); i++)
 	{
-		for (j = 0; j < qc.submodel[i]->verts.size(); j++)
+		for (j = 0; j < qc.submodels[i]->verts.size(); j++)
 		{
-			qc.submodel[i]->verts[j].bone = qc.submodel[i]->bonemap[qc.submodel[i]->verts[j].bone];
+			qc.submodels[i]->verts[j].bone = qc.submodels[i]->bonemap[qc.submodels[i]->verts[j].bone];
 		}
-		for (j = 0; j < qc.submodel[i]->normals.size(); j++)
+		for (j = 0; j < qc.submodels[i]->normals.size(); j++)
 		{
-			qc.submodel[i]->normals[j].bone = qc.submodel[i]->bonemap[qc.submodel[i]->normals[j].bone];
+			qc.submodels[i]->normals[j].bone = qc.submodels[i]->bonemap[qc.submodels[i]->normals[j].bone];
 		}
 	}
 
@@ -553,13 +553,13 @@ void simplify_model(QC &qc)
 			}
 		}
 		// try all the connect vertices
-		for (i = 0; i < qc.submodel.size(); i++)
+		for (i = 0; i < qc.submodels.size(); i++)
 		{
 			Vector3 p;
-			for (j = 0; j < qc.submodel[i]->verts.size(); j++)
+			for (j = 0; j < qc.submodels[i]->verts.size(); j++)
 			{
-				p = qc.submodel[i]->verts[j].org;
-				k = qc.submodel[i]->verts[j].bone;
+				p = qc.submodels[i]->verts[j].org;
+				k = qc.submodels[i]->verts[j].bone;
 
 				if (p[0] < g_bonetable[k].bmin[0])
 					g_bonetable[k].bmin[0] = p[0];
@@ -631,28 +631,28 @@ void simplify_model(QC &qc)
 		Vector3 *origpos[MAXSTUDIOSRCBONES] = {nullptr};
 		Vector3 *origrot[MAXSTUDIOSRCBONES] = {nullptr};
 
-		for (q = 0; q < qc.sequence[i].numblends; q++)
+		for (q = 0; q < qc.sequences[i].numblends; q++)
 		{
 			// save pointers to original animations
-			for (j = 0; j < qc.sequence[i].panim[q]->nodes.size(); j++)
+			for (j = 0; j < qc.sequences[i].panims[q]->nodes.size(); j++)
 			{
-				origpos[j] = qc.sequence[i].panim[q]->pos[j];
-				origrot[j] = qc.sequence[i].panim[q]->rot[j];
+				origpos[j] = qc.sequences[i].panims[q]->pos[j];
+				origrot[j] = qc.sequences[i].panims[q]->rot[j];
 			}
 
 			for (j = 0; j < g_bonetable.size(); j++)
 			{
-				if ((k = qc.sequence[i].panim[0]->boneimap[j]) >= 0)
+				if ((k = qc.sequences[i].panims[0]->boneimap[j]) >= 0)
 				{
 					// link to original animations
-					qc.sequence[i].panim[q]->pos[j] = origpos[k];
-					qc.sequence[i].panim[q]->rot[j] = origrot[k];
+					qc.sequences[i].panims[q]->pos[j] = origpos[k];
+					qc.sequences[i].panims[q]->rot[j] = origrot[k];
 				}
 				else
 				{
 					// link to dummy animations
-					qc.sequence[i].panim[q]->pos[j] = defaultpos[j];
-					qc.sequence[i].panim[q]->rot[j] = defaultrot[j];
+					qc.sequences[i].panims[q]->pos[j] = defaultpos[j];
+					qc.sequences[i].panims[q]->rot[j] = defaultrot[j];
 				}
 			}
 		}
@@ -678,9 +678,9 @@ void simplify_model(QC &qc)
 
 			for (i = 0; i < g_num_sequence; i++)
 			{
-				for (q = 0; q < qc.sequence[i].numblends; q++)
+				for (q = 0; q < qc.sequences[i].numblends; q++)
 				{
-					for (n = 0; n < qc.sequence[i].numframes; n++)
+					for (n = 0; n < qc.sequences[i].numframes; n++)
 					{
 						float v;
 						switch (k)
@@ -688,12 +688,12 @@ void simplify_model(QC &qc)
 						case 0:
 						case 1:
 						case 2:
-							v = (qc.sequence[i].panim[q]->pos[j][n][k] - g_bonetable[j].pos[k]);
+							v = (qc.sequences[i].panims[q]->pos[j][n][k] - g_bonetable[j].pos[k]);
 							break;
 						case 3:
 						case 4:
 						case 5:
-							v = (qc.sequence[i].panim[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
+							v = (qc.sequences[i].panims[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
 							if (v >= Q_PI)
 								v -= Q_PI * 2;
 							if (v < -Q_PI)
@@ -750,9 +750,9 @@ void simplify_model(QC &qc)
 			bmax[j] = -9999.0;
 		}
 
-		for (q = 0; q < qc.sequence[i].numblends; q++)
+		for (q = 0; q < qc.sequences[i].numblends; q++)
 		{
-			for (n = 0; n < qc.sequence[i].numframes; n++)
+			for (n = 0; n < qc.sequences[i].numframes; n++)
 			{
 				float bonetransform[MAXSTUDIOBONES][3][4]; // bone transformation matrix
 				float bonematrix[3][4];					   // local transformation matrix
@@ -762,15 +762,15 @@ void simplify_model(QC &qc)
 				{
 
 					Vector3 angles;
-					angles.x = to_degrees(qc.sequence[i].panim[q]->rot[j][n][0]);
-					angles.y = to_degrees(qc.sequence[i].panim[q]->rot[j][n][1]);
-					angles.z = to_degrees(qc.sequence[i].panim[q]->rot[j][n][2]);
+					angles.x = to_degrees(qc.sequences[i].panims[q]->rot[j][n][0]);
+					angles.y = to_degrees(qc.sequences[i].panims[q]->rot[j][n][1]);
+					angles.z = to_degrees(qc.sequences[i].panims[q]->rot[j][n][2]);
 
 					angle_matrix(angles, bonematrix);
 
-					bonematrix[0][3] = qc.sequence[i].panim[q]->pos[j][n][0];
-					bonematrix[1][3] = qc.sequence[i].panim[q]->pos[j][n][1];
-					bonematrix[2][3] = qc.sequence[i].panim[q]->pos[j][n][2];
+					bonematrix[0][3] = qc.sequences[i].panims[q]->pos[j][n][0];
+					bonematrix[1][3] = qc.sequences[i].panims[q]->pos[j][n][1];
+					bonematrix[2][3] = qc.sequences[i].panims[q]->pos[j][n][2];
 
 					if (g_bonetable[j].parent == -1)
 					{
@@ -782,11 +782,11 @@ void simplify_model(QC &qc)
 					}
 				}
 
-				for (k = 0; k < qc.submodel.size(); k++)
+				for (k = 0; k < qc.submodels.size(); k++)
 				{
-					for (j = 0; j < qc.submodel[k]->verts.size(); j++)
+					for (j = 0; j < qc.submodels[k]->verts.size(); j++)
 					{
-						vector_transform(qc.submodel[k]->verts[j].org, bonetransform[qc.submodel[k]->verts[j].bone], pos);
+						vector_transform(qc.submodels[k]->verts[j].org, bonetransform[qc.submodels[k]->verts[j].bone], pos);
 
 						if (pos[0] < bmin[0])
 							bmin[0] = pos[0];
@@ -805,8 +805,8 @@ void simplify_model(QC &qc)
 			}
 		}
 
-		qc.sequence[i].bmin = bmin;
-		qc.sequence[i].bmax = bmax;
+		qc.sequences[i].bmin = bmin;
+		qc.sequences[i].bmax = bmax;
 	}
 
 	// reduce animations TODO: reduce_animations()
@@ -816,7 +816,7 @@ void simplify_model(QC &qc)
 
 		for (i = 0; i < g_num_sequence; i++)
 		{
-			for (q = 0; q < qc.sequence[i].numblends; q++)
+			for (q = 0; q < qc.sequences[i].numblends; q++)
 			{
 				for (j = 0; j < g_bonetable.size(); j++)
 				{
@@ -826,19 +826,19 @@ void simplify_model(QC &qc)
 						short value[MAXSTUDIOANIMATIONS];
 						StudioAnimationValue data[MAXSTUDIOANIMATIONS];
 
-						for (n = 0; n < qc.sequence[i].numframes; n++)
+						for (n = 0; n < qc.sequences[i].numframes; n++)
 						{
 							switch (k)
 							{
 							case 0:
 							case 1:
 							case 2:
-								value[n] = static_cast<short>((qc.sequence[i].panim[q]->pos[j][n][k] - g_bonetable[j].pos[k]) / g_bonetable[j].posscale[k]);
+								value[n] = static_cast<short>((qc.sequences[i].panims[q]->pos[j][n][k] - g_bonetable[j].pos[k]) / g_bonetable[j].posscale[k]);
 								break;
 							case 3:
 							case 4:
 							case 5:
-								v = (qc.sequence[i].panim[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
+								v = (qc.sequences[i].panims[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
 								if (v >= Q_PI)
 									v -= Q_PI * 2;
 								if (v < -Q_PI)
@@ -849,9 +849,9 @@ void simplify_model(QC &qc)
 							}
 						}
 						if (n == 0)
-							error("no animation frames: " + qc.sequence[i].name + "\n");
+							error("no animation frames: " + qc.sequences[i].name + "\n");
 
-						qc.sequence[i].panim[q]->numanim[j][k] = 0;
+						qc.sequences[i].panims[q]->numanim[j][k] = 0;
 
 						std::memset(data, 0, sizeof(data));
 						StudioAnimationValue *pcount = data;
@@ -900,15 +900,15 @@ void simplify_model(QC &qc)
 							pcount->num.total++;
 						}
 
-						qc.sequence[i].panim[q]->numanim[j][k] = static_cast<int>(pvalue - data);
-						if (qc.sequence[i].panim[q]->numanim[j][k] == 2 && value[0] == 0)
+						qc.sequences[i].panims[q]->numanim[j][k] = static_cast<int>(pvalue - data);
+						if (qc.sequences[i].panims[q]->numanim[j][k] == 2 && value[0] == 0)
 						{
-							qc.sequence[i].panim[q]->numanim[j][k] = 0;
+							qc.sequences[i].panims[q]->numanim[j][k] = 0;
 						}
 						else
 						{
-							qc.sequence[i].panim[q]->anim[j][k] = (StudioAnimationValue *)std::calloc(pvalue - data, sizeof(StudioAnimationValue));
-							std::memcpy(qc.sequence[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(StudioAnimationValue));
+							qc.sequences[i].panims[q]->anims[j][k] = (StudioAnimationValue *)std::calloc(pvalue - data, sizeof(StudioAnimationValue));
+							std::memcpy(qc.sequences[i].panims[q]->anims[j][k], data, (pvalue - data) * sizeof(StudioAnimationValue));
 						}
 					}
 				}
@@ -986,9 +986,9 @@ Mesh *find_mesh_by_texture(Model *pmodel, char *texturename)
 
 	for (i = 0; i < pmodel->nummesh; i++)
 	{
-		if (pmodel->pmesh[i]->skinref == j)
+		if (pmodel->pmeshes[i]->skinref == j)
 		{
-			return pmodel->pmesh[i];
+			return pmodel->pmeshes[i];
 		}
 	}
 
@@ -998,10 +998,10 @@ Mesh *find_mesh_by_texture(Model *pmodel, char *texturename)
 	}
 
 	pmodel->nummesh = i + 1;
-	pmodel->pmesh[i] = (Mesh *)std::calloc(1, sizeof(Mesh));
-	pmodel->pmesh[i]->skinref = j;
+	pmodel->pmeshes[i] = (Mesh *)std::calloc(1, sizeof(Mesh));
+	pmodel->pmeshes[i]->skinref = j;
 
-	return pmodel->pmesh[i];
+	return pmodel->pmeshes[i];
 }
 
 TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index)
@@ -1010,18 +1010,18 @@ TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index)
 	{
 		int start = pmesh->alloctris;
 		pmesh->alloctris = index + 256;
-		if (pmesh->triangle)
+		if (pmesh->triangles)
 		{
-			pmesh->triangle = static_cast<TriangleVert(*)[3]>(realloc(pmesh->triangle, pmesh->alloctris * sizeof(*pmesh->triangle)));
-			std::memset(&pmesh->triangle[start], 0, (pmesh->alloctris - start) * sizeof(*pmesh->triangle));
+			pmesh->triangles = static_cast<TriangleVert(*)[3]>(realloc(pmesh->triangles, pmesh->alloctris * sizeof(*pmesh->triangles)));
+			std::memset(&pmesh->triangles[start], 0, (pmesh->alloctris - start) * sizeof(*pmesh->triangles));
 		}
 		else
 		{
-			pmesh->triangle = static_cast<TriangleVert(*)[3]>(std::calloc(pmesh->alloctris, sizeof(*pmesh->triangle)));
+			pmesh->triangles = static_cast<TriangleVert(*)[3]>(std::calloc(pmesh->alloctris, sizeof(*pmesh->triangles)));
 		}
 	}
 
-	return pmesh->triangle[index];
+	return pmesh->triangles[index];
 }
 
 int find_vertex_normal_index(Model *pmodel, Normal *pnormal)
@@ -1082,8 +1082,8 @@ void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 		{
 			for (j = 0; j < 3; j++)
 			{
-				pmesh->triangle[i][j].s = 0;
-				pmesh->triangle[i][j].t = +1; // ??
+				pmesh->triangles[i][j].s = 0;
+				pmesh->triangles[i][j].t = +1; // ??
 			}
 			ptexture->max_s = 63;
 			ptexture->min_s = 0;
@@ -1099,8 +1099,8 @@ void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 		for (j = 0; j < 3; j++)
 		{
 			// round to fix UV shift
-			pmesh->triangle[i][j].s = static_cast<int>(std::round(pmesh->triangle[i][j].u * static_cast<float>(ptexture->srcwidth)));
-			pmesh->triangle[i][j].t = static_cast<int>(std::round(pmesh->triangle[i][j].v * static_cast<float>(ptexture->srcheight)));
+			pmesh->triangles[i][j].s = static_cast<int>(std::round(pmesh->triangles[i][j].u * static_cast<float>(ptexture->srcwidth)));
+			pmesh->triangles[i][j].t = static_cast<int>(std::round(pmesh->triangles[i][j].v * static_cast<float>(ptexture->srcheight)));
 		}
 	}
 
@@ -1118,7 +1118,7 @@ void reset_texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			pmesh->triangle[i][j].t = -pmesh->triangle[i][j].t + ptexture->srcheight - static_cast<int>(ptexture->min_t);
+			pmesh->triangles[i][j].t = -pmesh->triangles[i][j].t + ptexture->srcheight - static_cast<int>(ptexture->min_t);
 		}
 	}
 }
@@ -1229,11 +1229,11 @@ void set_skin_values(QC &qc)
 		g_textures[i].min_t = 9999999;
 	}
 
-	for (i = 0; i < qc.submodel.size(); i++)
+	for (i = 0; i < qc.submodels.size(); i++)
 	{
-		for (j = 0; j < qc.submodel[i]->nummesh; j++)
+		for (j = 0; j < qc.submodels[i]->nummesh; j++)
 		{
-			texture_coord_ranges(qc.submodel[i]->pmesh[j], &g_textures[qc.submodel[i]->pmesh[j]->skinref]);
+			texture_coord_ranges(qc.submodels[i]->pmeshes[j], &g_textures[qc.submodels[i]->pmeshes[j]->skinref]);
 		}
 	}
 
@@ -1261,11 +1261,11 @@ void set_skin_values(QC &qc)
 		resize_texture(qc, &g_textures[i]);
 	}
 
-	for (i = 0; i < qc.submodel.size(); i++)
+	for (i = 0; i < qc.submodels.size(); i++)
 	{
-		for (j = 0; j < qc.submodel[i]->nummesh; j++)
+		for (j = 0; j < qc.submodels[i]->nummesh; j++)
 		{
-			reset_texture_coord_ranges(qc.submodel[i]->pmesh[j], &g_textures[qc.submodel[i]->pmesh[j]->skinref]);
+			reset_texture_coord_ranges(qc.submodels[i]->pmeshes[j], &g_textures[qc.submodels[i]->pmeshes[j]->skinref]);
 		}
 	}
 
@@ -1281,7 +1281,7 @@ void set_skin_values(QC &qc)
 	{
 		for (j = 0; j < qc.texturegroup_cols; j++)
 		{
-			g_skinref[i][qc.texturegroup[0][j]] = qc.texturegroup[i][j];
+			g_skinref[i][qc.texturegroups[0][j]] = qc.texturegroups[i][j];
 		}
 	}
 	if (i != 0)
@@ -1311,8 +1311,8 @@ void build_reference(Model *pmodel)
 		{
 			// scale the done pos.
 			// calc rotational matrices
-			angle_matrix(boneAngle, g_bonefixup[i].m);
-			angle_i_matrix(boneAngle, g_bonefixup[i].im);
+			angle_matrix(boneAngle, g_bonefixup[i].matrix);
+			angle_i_matrix(boneAngle, g_bonefixup[i].inv_matrix);
 			g_bonefixup[i].worldorg = pmodel->skeleton[i].pos;
 		}
 		else
@@ -1322,12 +1322,12 @@ void build_reference(Model *pmodel)
 			// calc compound rotational matrices
 			// FIXME : Hey, it's orthogical so inv(A) == transpose(A)
 			angle_matrix(boneAngle, rotationMatrix);
-			r_concat_transforms(g_bonefixup[parent].m, rotationMatrix, g_bonefixup[i].m);
+			r_concat_transforms(g_bonefixup[parent].matrix, rotationMatrix, g_bonefixup[i].matrix);
 			angle_i_matrix(boneAngle, rotationMatrix);
-			r_concat_transforms(rotationMatrix, g_bonefixup[parent].im, g_bonefixup[i].im);
+			r_concat_transforms(rotationMatrix, g_bonefixup[parent].inv_matrix, g_bonefixup[i].inv_matrix);
 
 			// calc true world coord.
-			vector_transform(pmodel->skeleton[i].pos, g_bonefixup[parent].m, truePos);
+			vector_transform(pmodel->skeleton[i].pos, g_bonefixup[parent].matrix, truePos);
 			g_bonefixup[i].worldorg = truePos + g_bonefixup[parent].worldorg;
 		}
 	}
@@ -1435,11 +1435,11 @@ void grab_smd_triangles(QC &qc, Model *pmodel)
 						// move vertex position to object space.
 						Vector3 tmp;
 						tmp = triangleVertex.org - g_bonefixup[triangleVertex.bone].worldorg;
-						vector_transform(tmp, g_bonefixup[triangleVertex.bone].im, triangleVertex.org);
+						vector_transform(tmp, g_bonefixup[triangleVertex.bone].inv_matrix, triangleVertex.org);
 
 						// move normal to object space.
 						tmp = triangleNormal.org;
-						vector_transform(tmp, g_bonefixup[triangleVertex.bone].im, triangleNormal.org);
+						vector_transform(tmp, g_bonefixup[triangleVertex.bone].inv_matrix, triangleNormal.org);
 						triangleNormal.org.normalize();
 
 						ptriangleVert->normindex = find_vertex_normal_index(pmodel, &triangleNormal);
@@ -1646,8 +1646,8 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 
 	parse_smd(qc, new_submodel);
 
-	qc.bodypart.back().num_submodels++;
-	qc.submodel.push_back(new_submodel);
+	qc.bodyparts.back().num_submodels++;
+	qc.submodels.push_back(new_submodel);
 
 	qc.scaleBodyAndSequenceOption = qc.scale;
 }
@@ -1658,8 +1658,8 @@ int cmd_body_option_blank(QC &qc)
 
 	new_submodel->name = "blank";
 
-	qc.bodypart.back().num_submodels++;
-	qc.submodel.push_back(new_submodel);
+	qc.bodyparts.back().num_submodels++;
+	qc.submodels.push_back(new_submodel);
 	return 0;
 }
 
@@ -1670,17 +1670,17 @@ void cmd_bodygroup(QC &qc, std::string &token)
 
 	BodyPart newbp;
 
-	if (qc.bodypart.empty())
+	if (qc.bodyparts.empty())
 	{
 		newbp.base = 1;
 	}
 	else
 	{
-		BodyPart &lastbp = qc.bodypart.back();
+		BodyPart &lastbp = qc.bodyparts.back();
 		newbp.base = lastbp.base * lastbp.num_submodels;
 	}
 	newbp.name = token;
-	qc.bodypart.push_back(newbp);
+	qc.bodyparts.push_back(newbp);
 	while (true)
 	{
 		int is_started = 0;
@@ -1716,17 +1716,17 @@ void cmd_body(QC &qc, std::string &token)
 	BodyPart newbp;
 	newbp.name = token;
 
-	if (qc.bodypart.empty())
+	if (qc.bodyparts.empty())
 	{
 		newbp.base = 1;
 	}
 	else
 	{
-		BodyPart &lastbp = qc.bodypart.back();
+		BodyPart &lastbp = qc.bodyparts.back();
 		newbp.base = lastbp.base * lastbp.num_submodels;
 	}
 
-	qc.bodypart.push_back(newbp);
+	qc.bodyparts.push_back(newbp);
 	cmd_body_option_studio(qc, token);
 }
 
@@ -2007,16 +2007,16 @@ int cmd_sequence(QC &qc, std::string &token)
 	if (!get_token(false, token))
 		return 0;
 
-	qc.sequence[g_num_sequence].name = token;
+	qc.sequences[g_num_sequence].name = token;
 
 	qc.sequenceOrigin = qc.origin;
 	qc.scaleBodyAndSequenceOption = qc.scale;
 
 	qc.rotate = qc.originRotation;
-	qc.sequence[g_num_sequence].fps = 30.0;
-	qc.sequence[g_num_sequence].seqgroup = 0; // 0 since $sequencegroup is deprecated
-	qc.sequence[g_num_sequence].blendstart[0] = 0.0;
-	qc.sequence[g_num_sequence].blendend[0] = 1.0;
+	qc.sequences[g_num_sequence].fps = 30.0;
+	qc.sequences[g_num_sequence].seqgroup = 0; // 0 since $sequencegroup is deprecated
+	qc.sequences[g_num_sequence].blendstart[0] = 0.0;
+	qc.sequences[g_num_sequence].blendend[0] = 1.0;
 
 	while (true)
 	{
@@ -2058,11 +2058,11 @@ int cmd_sequence(QC &qc, std::string &token)
 		}
 		else if (token == "event")
 		{
-			depth -= cmd_sequence_option_event(token, &qc.sequence[g_num_sequence]);
+			depth -= cmd_sequence_option_event(token, &qc.sequences[g_num_sequence]);
 		}
 		else if (token == "fps")
 		{
-			cmd_sequence_option_fps(token, &qc.sequence[g_num_sequence]);
+			cmd_sequence_option_fps(token, &qc.sequences[g_num_sequence]);
 		}
 		else if (token == "origin")
 		{
@@ -2078,7 +2078,7 @@ int cmd_sequence(QC &qc, std::string &token)
 		}
 		else if (token == "loop")
 		{
-			qc.sequence[g_num_sequence].flags |= STUDIO_LOOPING;
+			qc.sequences[g_num_sequence].flags |= STUDIO_LOOPING;
 		}
 		else if (token == "frame")
 		{
@@ -2090,35 +2090,35 @@ int cmd_sequence(QC &qc, std::string &token)
 		else if (token == "blend")
 		{
 			get_token(false, token);
-			qc.sequence[g_num_sequence].blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
+			qc.sequences[g_num_sequence].blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
 			get_token(false, token);
-			qc.sequence[g_num_sequence].blendstart[0] = std::stof(token);
+			qc.sequences[g_num_sequence].blendstart[0] = std::stof(token);
 			get_token(false, token);
-			qc.sequence[g_num_sequence].blendend[0] = std::stof(token);
+			qc.sequences[g_num_sequence].blendend[0] = std::stof(token);
 		}
 		else if (token == "node")
 		{
 			get_token(false, token);
-			qc.sequence[g_num_sequence].entrynode = qc.sequence[g_num_sequence].exitnode = std::stoi(token);
+			qc.sequences[g_num_sequence].entrynode = qc.sequences[g_num_sequence].exitnode = std::stoi(token);
 		}
 		else if (token == "transition")
 		{
 			get_token(false, token);
-			qc.sequence[g_num_sequence].entrynode = std::stoi(token);
+			qc.sequences[g_num_sequence].entrynode = std::stoi(token);
 			get_token(false, token);
-			qc.sequence[g_num_sequence].exitnode = std::stoi(token);
+			qc.sequences[g_num_sequence].exitnode = std::stoi(token);
 		}
 		else if (token == "rtransition")
 		{
 			get_token(false, token);
-			qc.sequence[g_num_sequence].entrynode = std::stoi(token);
+			qc.sequences[g_num_sequence].entrynode = std::stoi(token);
 			get_token(false, token);
-			qc.sequence[g_num_sequence].exitnode = std::stoi(token);
-			qc.sequence[g_num_sequence].nodeflags |= 1;
+			qc.sequences[g_num_sequence].exitnode = std::stoi(token);
+			qc.sequences[g_num_sequence].nodeflags |= 1;
 		}
 		else if (lookup_control(token.c_str()) != -1) // motion flags [motion extraction]
 		{
-			qc.sequence[g_num_sequence].motiontype |= lookup_control(token.c_str());
+			qc.sequences[g_num_sequence].motiontype |= lookup_control(token.c_str());
 		}
 		else if (token == "animation")
 		{
@@ -2127,9 +2127,9 @@ int cmd_sequence(QC &qc, std::string &token)
 		}
 		else if ((i = cmd_sequence_option_action(token)) != 0)
 		{
-			qc.sequence[g_num_sequence].activity = i;
+			qc.sequences[g_num_sequence].activity = i;
 			get_token(false, token);
-			qc.sequence[g_num_sequence].actweight = std::stoi(token);
+			qc.sequences[g_num_sequence].actweight = std::stoi(token);
 		}
 		else
 		{
@@ -2150,9 +2150,9 @@ int cmd_sequence(QC &qc, std::string &token)
 	}
 	for (i = 0; i < smd_files.size(); i++)
 	{
-		qc.sequenceAnimationOption.push_back(new Animation());
-		Animation* newAnim = qc.sequenceAnimationOption.back();
-		qc.sequence[g_num_sequence].panim[i] = newAnim;
+		qc.sequenceAnimationOptions.push_back(new Animation());
+		Animation* newAnim = qc.sequenceAnimationOptions.back();
+		qc.sequences[g_num_sequence].panims[i] = newAnim;
 
 		newAnim->startframe = start;
 		newAnim->endframe = end;
@@ -2161,7 +2161,7 @@ int cmd_sequence(QC &qc, std::string &token)
 
 	}
 
-	qc.sequence[g_num_sequence].numblends = smd_files.size(); // MAXSTUDIOBLENDS
+	qc.sequences[g_num_sequence].numblends = smd_files.size(); // MAXSTUDIOBLENDS
 
 	g_num_sequence++;
 
@@ -2309,9 +2309,9 @@ int cmd_texturegroup(QC &qc, std::string &token)
 		else if (depth == 2)
 		{
 			i = find_texture_index(token);
-			qc.texturegroup[row_index][col_index] = i;
+			qc.texturegroups[row_index][col_index] = i;
 			if (row_index != 0)
-				g_textures[i].parent = qc.texturegroup[0][col_index];
+				g_textures[i].parent = qc.texturegroups[0][col_index];
 			col_index++;
 			qc.texturegroup_cols = col_index;
 			qc.texturegroup_rows = row_index + 1;

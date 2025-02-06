@@ -35,9 +35,9 @@ public:
     std::vector<RenameBone> renamebones; // $renamebone
     std::vector<HitGroup> hitgroups; // $hgroup
     std::vector<std::string> mirroredbones; // $mirrorbone
-    std::vector<Animation *> sequenceAnimationOption; // $sequence, each sequence can have 16 blends
+    std::vector<Animation *> sequenceAnimationOptions; // $sequence, each sequence can have 16 blends
 
-    std::array<std::array<int, 32>, 32> texturegroup{}; // $texturegroup
+    std::array<std::array<int, 32>, 32> texturegroups{}; // $texturegroup
     int texturegroup_rows;
     int texturegroup_cols;
 
@@ -48,11 +48,11 @@ public:
     std::vector<BoneController> bonecontrollers; // $controller
     std::vector<Attachment> attachments; // $attachment
 
-    std::array<Sequence, MAXSTUDIOSEQUENCES> sequence{}; // $sequence
+    std::array<Sequence, MAXSTUDIOSEQUENCES> sequences{}; // $sequence
 
-    std::vector<Model*> submodel; // $body
+    std::vector<Model*> submodels; // $body
 
-    std::vector<BodyPart> bodypart; // $bodygroup
+    std::vector<BodyPart> bodyparts; // $bodygroup
 
     int flags = 0; // $flags
 
@@ -60,10 +60,10 @@ public:
     QC()
     {
         // Initialize arrays with default values
-        texturegroup.fill({});
+        texturegroups.fill({});
         bbox.fill(Vector3{});
         cbox.fill(Vector3{});
-        sequence.fill(Sequence{});
+        sequences.fill(Sequence{});
     }
 };
 

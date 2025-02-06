@@ -34,8 +34,8 @@ struct Normal
 struct BoneFixUp
 {
     Vector3 worldorg;
-    float m[3][4];
-    float im[3][4];
+    float matrix[3][4];
+    float inv_matrix[3][4];
 };
 
 struct BoneTable
@@ -104,7 +104,7 @@ struct Animation
     Vector3 *pos[MAXSTUDIOSRCBONES];
     Vector3 *rot[MAXSTUDIOSRCBONES];
     int numanim[MAXSTUDIOSRCBONES][DEGREESOFFREEDOM];
-    StudioAnimationValue *anim[MAXSTUDIOSRCBONES][DEGREESOFFREEDOM];
+    StudioAnimationValue *anims[MAXSTUDIOSRCBONES][DEGREESOFFREEDOM];
 };
 
 struct Event
@@ -132,7 +132,7 @@ struct Sequence
     std::vector<Event> events;
 
     int numblends;
-    Animation *panim[MAXSTUDIOGROUPS];
+    Animation *panims[MAXSTUDIOGROUPS];
     float blendtype[MAXSEQUENCEBLEND];
     float blendstart[MAXSEQUENCEBLEND];
     float blendend[MAXSEQUENCEBLEND];
@@ -178,7 +178,7 @@ struct Mesh
 {
     int alloctris;
     int numtris;
-    TriangleVert (*triangle)[3];
+    TriangleVert (*triangles)[3];
 
     int skinref;
     int numnorms;
@@ -205,7 +205,7 @@ struct Model
     std::vector<Normal> normals;
 
     int nummesh;
-    Mesh *pmesh[MAXSTUDIOMESHES];
+    Mesh *pmeshes[MAXSTUDIOMESHES];
 };
 
 struct BodyPart
