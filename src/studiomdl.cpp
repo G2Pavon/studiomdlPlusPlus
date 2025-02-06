@@ -63,7 +63,7 @@ void clip_rotations(Vector3 rot)
 	}
 }
 
-void extract_motion(QC &qc_cmd)
+void extract_motion(QC &qc)
 {
 	int i, j, k;
 	int blendIndex;
@@ -71,14 +71,14 @@ void extract_motion(QC &qc_cmd)
 	// extract linear motion
 	for (i = 0; i < g_num_sequence; i++)
 	{
-		if (qc_cmd.sequence[i].numframes > 1)
+		if (qc.sequence[i].numframes > 1)
 		{
 			// assume 0 for now.
 			Vector3 motion{0, 0, 0};
-			int typeMotion = qc_cmd.sequence[i].motiontype;
-			Vector3 *ptrPos = qc_cmd.sequence[i].panim[0]->pos[0];
+			int typeMotion = qc.sequence[i].motiontype;
+			Vector3 *ptrPos = qc.sequence[i].panim[0]->pos[0];
 
-			k = qc_cmd.sequence[i].numframes - 1;
+			k = qc.sequence[i].numframes - 1;
 
 			if (typeMotion & STUDIO_LX)
 				motion[0] = ptrPos[k][0] - ptrPos[0][0];
@@ -87,51 +87,51 @@ void extract_motion(QC &qc_cmd)
 			if (typeMotion & STUDIO_LZ)
 				motion[2] = ptrPos[k][2] - ptrPos[0][2];
 
-			for (j = 0; j < qc_cmd.sequence[i].numframes; j++)
+			for (j = 0; j < qc.sequence[i].numframes; j++)
 			{
 				Vector3 adjustedPosition;
-				for (k = 0; k < qc_cmd.sequence[i].panim[0]->nodes.size(); k++)
+				for (k = 0; k < qc.sequence[i].panim[0]->nodes.size(); k++)
 				{
-					if (qc_cmd.sequence[i].panim[0]->nodes[k].parent == -1)
+					if (qc.sequence[i].panim[0]->nodes[k].parent == -1)
 					{
-						ptrPos = qc_cmd.sequence[i].panim[0]->pos[k];
+						ptrPos = qc.sequence[i].panim[0]->pos[k];
 
-						adjustedPosition = motion * (static_cast<float>(j) / static_cast<float>(qc_cmd.sequence[i].numframes - 1));
-						for (blendIndex = 0; blendIndex < qc_cmd.sequence[i].numblends; blendIndex++)
+						adjustedPosition = motion * (static_cast<float>(j) / static_cast<float>(qc.sequence[i].numframes - 1));
+						for (blendIndex = 0; blendIndex < qc.sequence[i].numblends; blendIndex++)
 						{
-							qc_cmd.sequence[i].panim[blendIndex]->pos[k][j] = qc_cmd.sequence[i].panim[blendIndex]->pos[k][j] - adjustedPosition;
+							qc.sequence[i].panim[blendIndex]->pos[k][j] = qc.sequence[i].panim[blendIndex]->pos[k][j] - adjustedPosition;
 						}
 					}
 				}
 			}
 
-			qc_cmd.sequence[i].linearmovement = motion;
+			qc.sequence[i].linearmovement = motion;
 		}
 		else
 		{ //
-			qc_cmd.sequence[i].linearmovement = qc_cmd.sequence[i].linearmovement - qc_cmd.sequence[i].linearmovement;
+			qc.sequence[i].linearmovement = qc.sequence[i].linearmovement - qc.sequence[i].linearmovement;
 		}
 	}
 
 	// extract unused motion
 	for (i = 0; i < g_num_sequence; i++)
 	{
-		int typeUnusedMotion = qc_cmd.sequence[i].motiontype;
-		for (k = 0; k < qc_cmd.sequence[i].panim[0]->nodes.size(); k++)
+		int typeUnusedMotion = qc.sequence[i].motiontype;
+		for (k = 0; k < qc.sequence[i].panim[0]->nodes.size(); k++)
 		{
-			if (qc_cmd.sequence[i].panim[0]->nodes[k].parent == -1)
+			if (qc.sequence[i].panim[0]->nodes[k].parent == -1)
 			{
-				for (blendIndex = 0; blendIndex < qc_cmd.sequence[i].numblends; blendIndex++)
+				for (blendIndex = 0; blendIndex < qc.sequence[i].numblends; blendIndex++)
 				{
 					float motion[6];
-					motion[0] = qc_cmd.sequence[i].panim[blendIndex]->pos[k][0][0];
-					motion[1] = qc_cmd.sequence[i].panim[blendIndex]->pos[k][0][1];
-					motion[2] = qc_cmd.sequence[i].panim[blendIndex]->pos[k][0][2];
-					motion[3] = qc_cmd.sequence[i].panim[blendIndex]->rot[k][0][0];
-					motion[4] = qc_cmd.sequence[i].panim[blendIndex]->rot[k][0][1];
-					motion[5] = qc_cmd.sequence[i].panim[blendIndex]->rot[k][0][2];
+					motion[0] = qc.sequence[i].panim[blendIndex]->pos[k][0][0];
+					motion[1] = qc.sequence[i].panim[blendIndex]->pos[k][0][1];
+					motion[2] = qc.sequence[i].panim[blendIndex]->pos[k][0][2];
+					motion[3] = qc.sequence[i].panim[blendIndex]->rot[k][0][0];
+					motion[4] = qc.sequence[i].panim[blendIndex]->rot[k][0][1];
+					motion[5] = qc.sequence[i].panim[blendIndex]->rot[k][0][2];
 
-					for (j = 0; j < qc_cmd.sequence[i].numframes; j++)
+					for (j = 0; j < qc.sequence[i].numframes; j++)
 					{
 						/*
 						if (typeUnusedMotion & STUDIO_X)
@@ -142,11 +142,11 @@ void extract_motion(QC &qc_cmd)
 							sequence[i].panim[blendIndex]->pos[k][j][2] = motion[2];
 						*/
 						if (typeUnusedMotion & STUDIO_XR)
-							qc_cmd.sequence[i].panim[blendIndex]->rot[k][j][0] = motion[3];
+							qc.sequence[i].panim[blendIndex]->rot[k][j][0] = motion[3];
 						if (typeUnusedMotion & STUDIO_YR)
-							qc_cmd.sequence[i].panim[blendIndex]->rot[k][j][1] = motion[4];
+							qc.sequence[i].panim[blendIndex]->rot[k][j][1] = motion[4];
 						if (typeUnusedMotion & STUDIO_ZR)
-							qc_cmd.sequence[i].panim[blendIndex]->rot[k][j][2] = motion[5];
+							qc.sequence[i].panim[blendIndex]->rot[k][j][2] = motion[5];
 					}
 				}
 			}
@@ -154,7 +154,7 @@ void extract_motion(QC &qc_cmd)
 	}
 }
 
-void optimize_animations(QC &qc_cmd)
+void optimize_animations(QC &qc)
 {
 	int startFrame, endFrame;
 	int typeMotion;
@@ -163,22 +163,22 @@ void optimize_animations(QC &qc_cmd)
 	// optimize animations
 	for (int i = 0; i < g_num_sequence; i++)
 	{
-		qc_cmd.sequence[i].numframes = qc_cmd.sequence[i].panim[0]->endframe - qc_cmd.sequence[i].panim[0]->startframe + 1;
+		qc.sequence[i].numframes = qc.sequence[i].panim[0]->endframe - qc.sequence[i].panim[0]->startframe + 1;
 
 		// force looping animations to be looping
-		if (qc_cmd.sequence[i].flags & STUDIO_LOOPING)
+		if (qc.sequence[i].flags & STUDIO_LOOPING)
 		{
-			for (int j = 0; j < qc_cmd.sequence[i].panim[0]->nodes.size(); j++)
+			for (int j = 0; j < qc.sequence[i].panim[0]->nodes.size(); j++)
 			{
-				for (int blends = 0; blends < qc_cmd.sequence[i].numblends; blends++)
+				for (int blends = 0; blends < qc.sequence[i].numblends; blends++)
 				{
-					Vector3 *ppos = qc_cmd.sequence[i].panim[blends]->pos[j];
-					Vector3 *prot = qc_cmd.sequence[i].panim[blends]->rot[j];
+					Vector3 *ppos = qc.sequence[i].panim[blends]->pos[j];
+					Vector3 *prot = qc.sequence[i].panim[blends]->rot[j];
 
 					startFrame = 0;								 // sequence[i].panim[q]->startframe;
-					endFrame = qc_cmd.sequence[i].numframes - 1; // sequence[i].panim[q]->endframe;
+					endFrame = qc.sequence[i].numframes - 1; // sequence[i].panim[q]->endframe;
 
-					typeMotion = qc_cmd.sequence[i].motiontype;
+					typeMotion = qc.sequence[i].motiontype;
 					if (!(typeMotion & STUDIO_LX))
 						ppos[endFrame][0] = ppos[startFrame][0];
 					if (!(typeMotion & STUDIO_LY))
@@ -193,23 +193,23 @@ void optimize_animations(QC &qc_cmd)
 			}
 		}
 
-		for (int j = 0; j < qc_cmd.sequence[i].events.size(); j++)
+		for (int j = 0; j < qc.sequence[i].events.size(); j++)
 		{
-			if (qc_cmd.sequence[i].events[j].frame < qc_cmd.sequence[i].panim[0]->startframe)
+			if (qc.sequence[i].events[j].frame < qc.sequence[i].panim[0]->startframe)
 			{
-				printf("sequence %s has event (%d) before first frame (%d)\n", qc_cmd.sequence[i].name, qc_cmd.sequence[i].events[j].frame, qc_cmd.sequence[i].panim[0]->startframe);
-				qc_cmd.sequence[i].events[j].frame = qc_cmd.sequence[i].panim[0]->startframe;
+				printf("sequence %s has event (%d) before first frame (%d)\n", qc.sequence[i].name, qc.sequence[i].events[j].frame, qc.sequence[i].panim[0]->startframe);
+				qc.sequence[i].events[j].frame = qc.sequence[i].panim[0]->startframe;
 				iError++;
 			}
-			if (qc_cmd.sequence[i].events[j].frame > qc_cmd.sequence[i].panim[0]->endframe)
+			if (qc.sequence[i].events[j].frame > qc.sequence[i].panim[0]->endframe)
 			{
-				printf("sequence %s has event (%d) after last frame (%d)\n", qc_cmd.sequence[i].name, qc_cmd.sequence[i].events[j].frame, qc_cmd.sequence[i].panim[0]->endframe);
-				qc_cmd.sequence[i].events[j].frame = qc_cmd.sequence[i].panim[0]->endframe;
+				printf("sequence %s has event (%d) after last frame (%d)\n", qc.sequence[i].name, qc.sequence[i].events[j].frame, qc.sequence[i].panim[0]->endframe);
+				qc.sequence[i].events[j].frame = qc.sequence[i].panim[0]->endframe;
 				iError++;
 			}
 		}
 
-		qc_cmd.sequence[i].frameoffset = qc_cmd.sequence[i].panim[0]->startframe;
+		qc.sequence[i].frameoffset = qc.sequence[i].panim[0]->startframe;
 	}
 }
 
@@ -225,7 +225,7 @@ int find_node(std::string name)
 	return -1;
 }
 
-void make_transitions(QC &qc_cmd)
+void make_transitions(QC &qc)
 {
 	int i, j;
 	int iHit;
@@ -233,16 +233,16 @@ void make_transitions(QC &qc_cmd)
 	// Add in direct node transitions
 	for (i = 0; i < g_num_sequence; i++)
 	{
-		if (qc_cmd.sequence[i].entrynode != qc_cmd.sequence[i].exitnode)
+		if (qc.sequence[i].entrynode != qc.sequence[i].exitnode)
 		{
-			g_xnode[qc_cmd.sequence[i].entrynode - 1][qc_cmd.sequence[i].exitnode - 1] = qc_cmd.sequence[i].exitnode;
-			if (qc_cmd.sequence[i].nodeflags)
+			g_xnode[qc.sequence[i].entrynode - 1][qc.sequence[i].exitnode - 1] = qc.sequence[i].exitnode;
+			if (qc.sequence[i].nodeflags)
 			{
-				g_xnode[qc_cmd.sequence[i].exitnode - 1][qc_cmd.sequence[i].entrynode - 1] = qc_cmd.sequence[i].entrynode;
+				g_xnode[qc.sequence[i].exitnode - 1][qc.sequence[i].entrynode - 1] = qc.sequence[i].entrynode;
 			}
 		}
-		if (qc_cmd.sequence[i].entrynode > g_numxnodes)
-			g_numxnodes = qc_cmd.sequence[i].entrynode;
+		if (qc.sequence[i].entrynode > g_numxnodes)
+			g_numxnodes = qc.sequence[i].entrynode;
 	}
 
 	// Add multi-stage transitions
@@ -285,7 +285,7 @@ void make_transitions(QC &qc_cmd)
 	}
 }
 
-void simplify_model(QC &qc_cmd)
+void simplify_model(QC &qc)
 {
 	int i, j, k;
 	int n, m, q;
@@ -293,46 +293,46 @@ void simplify_model(QC &qc_cmd)
 	Vector3 *defaultrot[MAXSTUDIOSRCBONES] = {0};
 	int iError = 0;
 
-	optimize_animations(qc_cmd);
-	extract_motion(qc_cmd);
-	make_transitions(qc_cmd);
+	optimize_animations(qc);
+	extract_motion(qc);
+	make_transitions(qc);
 
 	// find used bones TODO: find_used_bones()
-	for (i = 0; i < qc_cmd.submodel.size(); i++)
+	for (i = 0; i < qc.submodel.size(); i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			qc_cmd.submodel[i]->boneref[k] = g_flagkeepallbones;
+			qc.submodel[i]->boneref[k] = g_flagkeepallbones;
 		}
-		for (j = 0; j < qc_cmd.submodel[i]->verts.size(); j++)
+		for (j = 0; j < qc.submodel[i]->verts.size(); j++)
 		{
-			qc_cmd.submodel[i]->boneref[qc_cmd.submodel[i]->verts[j].bone] = 1;
+			qc.submodel[i]->boneref[qc.submodel[i]->verts[j].bone] = 1;
 		}
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
 			// tag parent bones as used if child has been used
-			if (qc_cmd.submodel[i]->boneref[k])
+			if (qc.submodel[i]->boneref[k])
 			{
-				n = qc_cmd.submodel[i]->nodes[k].parent;
-				while (n != -1 && !qc_cmd.submodel[i]->boneref[n])
+				n = qc.submodel[i]->nodes[k].parent;
+				while (n != -1 && !qc.submodel[i]->boneref[n])
 				{
-					qc_cmd.submodel[i]->boneref[n] = 1;
-					n = qc_cmd.submodel[i]->nodes[n].parent;
+					qc.submodel[i]->boneref[n] = 1;
+					n = qc.submodel[i]->nodes[n].parent;
 				}
 			}
 		}
 	}
 
 	// rename model bones if needed TODO: rename_submodel_bones()
-	for (i = 0; i < qc_cmd.submodel.size(); i++)
+	for (i = 0; i < qc.submodel.size(); i++)
 	{
-		for (j = 0; j < qc_cmd.submodel[i]->nodes.size(); j++)
+		for (j = 0; j < qc.submodel[i]->nodes.size(); j++)
 		{
-			for (k = 0; k < qc_cmd.renamebones.size(); k++)
+			for (k = 0; k < qc.renamebones.size(); k++)
 			{
-				if (qc_cmd.submodel[i]->nodes[j].name == qc_cmd.renamebones[k].from)
+				if (qc.submodel[i]->nodes[j].name == qc.renamebones[k].from)
 				{
-					qc_cmd.submodel[i]->nodes[j].name = qc_cmd.renamebones[k].to;
+					qc.submodel[i]->nodes[j].name = qc.renamebones[k].to;
 					break;
 				}
 			}
@@ -341,25 +341,25 @@ void simplify_model(QC &qc_cmd)
 
 	// union of all used bones TODO:create_bone_union()
 	g_bonetable.clear();
-	for (i = 0; i < qc_cmd.submodel.size(); i++)
+	for (i = 0; i < qc.submodel.size(); i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			qc_cmd.submodel[i]->boneimap[k] = -1;
+			qc.submodel[i]->boneimap[k] = -1;
 		}
-		for (j = 0; j < qc_cmd.submodel[i]->nodes.size(); j++)
+		for (j = 0; j < qc.submodel[i]->nodes.size(); j++)
 		{
-			if (qc_cmd.submodel[i]->boneref[j])
+			if (qc.submodel[i]->boneref[j])
 			{
-				k = find_node(qc_cmd.submodel[i]->nodes[j].name);
+				k = find_node(qc.submodel[i]->nodes[j].name);
 				if (k == -1)
 				{
 					// create new bone
 					k = g_bonetable.size();
 					BoneTable newb;
-					newb.name = qc_cmd.submodel[i]->nodes[j].name;
-					if ((n = qc_cmd.submodel[i]->nodes[j].parent) != -1)
-						newb.parent = find_node(qc_cmd.submodel[i]->nodes[n].name);
+					newb.name = qc.submodel[i]->nodes[j].name;
+					if ((n = qc.submodel[i]->nodes[j].parent) != -1)
+						newb.parent = find_node(qc.submodel[i]->nodes[n].name);
 					else
 						newb.parent = -1;
 					// set defaults
@@ -367,33 +367,33 @@ void simplify_model(QC &qc_cmd)
 					defaultrot[k] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 					for (n = 0; n < MAXSTUDIOANIMATIONS; n++)
 					{
-						defaultpos[k][n] = qc_cmd.submodel[i]->skeleton[j].pos;
-						defaultrot[k][n] = qc_cmd.submodel[i]->skeleton[j].rot;
+						defaultpos[k][n] = qc.submodel[i]->skeleton[j].pos;
+						defaultrot[k][n] = qc.submodel[i]->skeleton[j].rot;
 					}
-					newb.pos = qc_cmd.submodel[i]->skeleton[j].pos;
-					newb.rot = qc_cmd.submodel[i]->skeleton[j].rot;
+					newb.pos = qc.submodel[i]->skeleton[j].pos;
+					newb.rot = qc.submodel[i]->skeleton[j].rot;
 					g_bonetable.push_back(newb);
 				}
 				else
 				{
 					// double check parent assignments
-					n = qc_cmd.submodel[i]->nodes[j].parent;
+					n = qc.submodel[i]->nodes[j].parent;
 					if (n != -1)
-						n = find_node(qc_cmd.submodel[i]->nodes[n].name);
+						n = find_node(qc.submodel[i]->nodes[n].name);
 					m = g_bonetable[k].parent;
 
 					if (n != m)
 					{
 						printf("illegal parent bone replacement in model \"%s\"\n\t\"%s\" has \"%s\", previously was \"%s\"\n",
-							   qc_cmd.submodel[i]->name,
-							   qc_cmd.submodel[i]->nodes[j].name,
+							   qc.submodel[i]->name,
+							   qc.submodel[i]->nodes[j].name,
 							   (n != -1) ? g_bonetable[n].name : "ROOT",
 							   (m != -1) ? g_bonetable[m].name : "ROOT");
 						iError++;
 					}
 				}
-				qc_cmd.submodel[i]->bonemap[j] = k;
-				qc_cmd.submodel[i]->boneimap[k] = j;
+				qc.submodel[i]->bonemap[j] = k;
+				qc.submodel[i]->boneimap[k] = j;
 			}
 		}
 	}
@@ -411,13 +411,13 @@ void simplify_model(QC &qc_cmd)
 	// rename sequence bones if needed TODO: rename_sequence_bones()
 	for (i = 0; i < g_num_sequence; i++)
 	{
-		for (j = 0; j < qc_cmd.sequence[i].panim[0]->nodes.size(); j++)
+		for (j = 0; j < qc.sequence[i].panim[0]->nodes.size(); j++)
 		{
-			for (k = 0; k < qc_cmd.renamebones.size(); k++)
+			for (k = 0; k < qc.renamebones.size(); k++)
 			{
-				if (qc_cmd.sequence[i].panim[0]->nodes[j].name == qc_cmd.renamebones[k].from)
+				if (qc.sequence[i].panim[0]->nodes[j].name == qc.renamebones[k].from)
 				{
-					qc_cmd.sequence[i].panim[0]->nodes[j].name = qc_cmd.renamebones[k].to;
+					qc.sequence[i].panim[0]->nodes[j].name = qc.renamebones[k].to;
 					break;
 				}
 			}
@@ -429,11 +429,11 @@ void simplify_model(QC &qc_cmd)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			qc_cmd.sequence[i].panim[0]->boneimap[k] = -1;
+			qc.sequence[i].panim[0]->boneimap[k] = -1;
 		}
-		for (j = 0; j < qc_cmd.sequence[i].panim[0]->nodes.size(); j++)
+		for (j = 0; j < qc.sequence[i].panim[0]->nodes.size(); j++)
 		{
-			k = find_node(qc_cmd.sequence[i].panim[0]->nodes[j].name);
+			k = find_node(qc.sequence[i].panim[0]->nodes[j].name);
 
 			if (k == -1)
 			{
@@ -445,8 +445,8 @@ void simplify_model(QC &qc_cmd)
 				char *szNode = "ROOT";
 
 				// whoa, check parent connections!
-				if (qc_cmd.sequence[i].panim[0]->nodes[j].parent != -1)
-					szAnim = const_cast<char*>((qc_cmd.sequence[i].panim[0]->nodes[qc_cmd.sequence[i].panim[0]->nodes[j].parent].name).c_str());
+				if (qc.sequence[i].panim[0]->nodes[j].parent != -1)
+					szAnim = const_cast<char*>((qc.sequence[i].panim[0]->nodes[qc.sequence[i].panim[0]->nodes[j].parent].name).c_str());
 
 				if (g_bonetable[k].parent != -1)
 					szNode = const_cast<char*>(g_bonetable[g_bonetable[k].parent].name.c_str());
@@ -454,13 +454,13 @@ void simplify_model(QC &qc_cmd)
 				if (std::strcmp(szAnim, szNode))
 				{
 					printf("illegal parent bone replacement in sequence \"%s\"\n\t\"%s\" has \"%s\", reference has \"%s\"\n",
-						   qc_cmd.sequence[i].name,
-						   qc_cmd.sequence[i].panim[0]->nodes[j].name,
+						   qc.sequence[i].name,
+						   qc.sequence[i].panim[0]->nodes[j].name,
 						   szAnim,
 						   szNode);
 					iError++;
 				}
-				qc_cmd.sequence[i].panim[0]->boneimap[k] = j;
+				qc.sequence[i].panim[0]->boneimap[k] = j;
 			}
 		}
 	}
@@ -470,45 +470,45 @@ void simplify_model(QC &qc_cmd)
 	}
 
 	// link bonecontrollers TODO: link_bone_controllers()
-	for (i = 0; i < qc_cmd.bonecontrollers.size(); i++)
+	for (i = 0; i < qc.bonecontrollers.size(); i++)
 	{
 		for (j = 0; j < g_bonetable.size(); j++)
 		{
-			if (qc_cmd.bonecontrollers[i].name == g_bonetable[j].name)
+			if (qc.bonecontrollers[i].name == g_bonetable[j].name)
 				break;
 		}
 		if (j >= g_bonetable.size())
 		{
-			error("unknown bonecontroller link '" + qc_cmd.bonecontrollers[i].name + "'\n");
+			error("unknown bonecontroller link '" + qc.bonecontrollers[i].name + "'\n");
 		}
-		qc_cmd.bonecontrollers[i].bone = j;
+		qc.bonecontrollers[i].bone = j;
 	}
 
 	// link attachments TODO: link_attachments()
-	for (i = 0; i < qc_cmd.attachments.size(); i++)
+	for (i = 0; i < qc.attachments.size(); i++)
 	{
 		for (j = 0; j < g_bonetable.size(); j++)
 		{
-			if (qc_cmd.attachments[i].bonename == g_bonetable[j].name)
+			if (qc.attachments[i].bonename == g_bonetable[j].name)
 				break;
 		}
 		if (j >= g_bonetable.size())
 		{
-			error("unknown attachment link '" + qc_cmd.attachments[i].bonename + "'\n");
+			error("unknown attachment link '" + qc.attachments[i].bonename + "'\n");
 		}
-		qc_cmd.attachments[i].bone = j;
+		qc.attachments[i].bone = j;
 	}
 
 	// relink model TODO: relink_model()
-	for (i = 0; i < qc_cmd.submodel.size(); i++)
+	for (i = 0; i < qc.submodel.size(); i++)
 	{
-		for (j = 0; j < qc_cmd.submodel[i]->verts.size(); j++)
+		for (j = 0; j < qc.submodel[i]->verts.size(); j++)
 		{
-			qc_cmd.submodel[i]->verts[j].bone = qc_cmd.submodel[i]->bonemap[qc_cmd.submodel[i]->verts[j].bone];
+			qc.submodel[i]->verts[j].bone = qc.submodel[i]->bonemap[qc.submodel[i]->verts[j].bone];
 		}
-		for (j = 0; j < qc_cmd.submodel[i]->normals.size(); j++)
+		for (j = 0; j < qc.submodel[i]->normals.size(); j++)
 		{
-			qc_cmd.submodel[i]->normals[j].bone = qc_cmd.submodel[i]->bonemap[qc_cmd.submodel[i]->normals[j].bone];
+			qc.submodel[i]->normals[j].bone = qc.submodel[i]->bonemap[qc.submodel[i]->normals[j].bone];
 		}
 	}
 
@@ -517,18 +517,18 @@ void simplify_model(QC &qc_cmd)
 	{
 		g_bonetable[k].group = -9999;
 	}
-	for (j = 0; j < qc_cmd.hitgroups.size(); j++)
+	for (j = 0; j < qc.hitgroups.size(); j++)
 	{
 		for (k = 0; k < g_bonetable.size(); k++)
 		{
-			if (g_bonetable[k].name == qc_cmd.hitgroups[j].name)
+			if (g_bonetable[k].name == qc.hitgroups[j].name)
 			{
-				g_bonetable[k].group = qc_cmd.hitgroups[j].group;
+				g_bonetable[k].group = qc.hitgroups[j].group;
 				break;
 			}
 		}
 		if (k >= g_bonetable.size())
-			error("cannot find bone " + qc_cmd.hitgroups[j].name + " for hitgroup " + std::to_string(qc_cmd.hitgroups[j].group) + "\n");
+			error("cannot find bone " + qc.hitgroups[j].name + " for hitgroup " + std::to_string(qc.hitgroups[j].group) + "\n");
 	}
 	for (k = 0; k < g_bonetable.size(); k++)
 	{
@@ -541,7 +541,7 @@ void simplify_model(QC &qc_cmd)
 		}
 	}
 
-	if (qc_cmd.hitboxes.empty()) // TODO: find_or_create_hitboxes()
+	if (qc.hitboxes.empty()) // TODO: find_or_create_hitboxes()
 	{
 		// find intersection box volume for each bone
 		for (k = 0; k < g_bonetable.size(); k++)
@@ -553,13 +553,13 @@ void simplify_model(QC &qc_cmd)
 			}
 		}
 		// try all the connect vertices
-		for (i = 0; i < qc_cmd.submodel.size(); i++)
+		for (i = 0; i < qc.submodel.size(); i++)
 		{
 			Vector3 p;
-			for (j = 0; j < qc_cmd.submodel[i]->verts.size(); j++)
+			for (j = 0; j < qc.submodel[i]->verts.size(); j++)
 			{
-				p = qc_cmd.submodel[i]->verts[j].org;
-				k = qc_cmd.submodel[i]->verts[j].bone;
+				p = qc.submodel[i]->verts[j].org;
+				k = qc.submodel[i]->verts[j].bone;
 
 				if (p[0] < g_bonetable[k].bmin[0])
 					g_bonetable[k].bmin[0] = p[0];
@@ -604,24 +604,24 @@ void simplify_model(QC &qc_cmd)
 				genhbox.group = g_bonetable[k].group;
 				genhbox.bmin = g_bonetable[k].bmin;
 				genhbox.bmax = g_bonetable[k].bmax;
-				qc_cmd.hitboxes.push_back(genhbox);
+				qc.hitboxes.push_back(genhbox);
 			}
 		}
 	}
 	else
 	{
-		for (j = 0; j < qc_cmd.hitboxes.size(); j++)
+		for (j = 0; j < qc.hitboxes.size(); j++)
 		{
 			for (k = 0; k < g_bonetable.size(); k++)
 			{
-				if (g_bonetable[k].name == qc_cmd.hitboxes[j].name)
+				if (g_bonetable[k].name == qc.hitboxes[j].name)
 				{
-					qc_cmd.hitboxes[j].bone = k;
+					qc.hitboxes[j].bone = k;
 					break;
 				}
 			}
 			if (k >= g_bonetable.size())
-				error("cannot find bone " + qc_cmd.hitboxes[j].name + " for bbox\n");
+				error("cannot find bone " + qc.hitboxes[j].name + " for bbox\n");
 		}
 	}
 
@@ -631,28 +631,28 @@ void simplify_model(QC &qc_cmd)
 		Vector3 *origpos[MAXSTUDIOSRCBONES] = {nullptr};
 		Vector3 *origrot[MAXSTUDIOSRCBONES] = {nullptr};
 
-		for (q = 0; q < qc_cmd.sequence[i].numblends; q++)
+		for (q = 0; q < qc.sequence[i].numblends; q++)
 		{
 			// save pointers to original animations
-			for (j = 0; j < qc_cmd.sequence[i].panim[q]->nodes.size(); j++)
+			for (j = 0; j < qc.sequence[i].panim[q]->nodes.size(); j++)
 			{
-				origpos[j] = qc_cmd.sequence[i].panim[q]->pos[j];
-				origrot[j] = qc_cmd.sequence[i].panim[q]->rot[j];
+				origpos[j] = qc.sequence[i].panim[q]->pos[j];
+				origrot[j] = qc.sequence[i].panim[q]->rot[j];
 			}
 
 			for (j = 0; j < g_bonetable.size(); j++)
 			{
-				if ((k = qc_cmd.sequence[i].panim[0]->boneimap[j]) >= 0)
+				if ((k = qc.sequence[i].panim[0]->boneimap[j]) >= 0)
 				{
 					// link to original animations
-					qc_cmd.sequence[i].panim[q]->pos[j] = origpos[k];
-					qc_cmd.sequence[i].panim[q]->rot[j] = origrot[k];
+					qc.sequence[i].panim[q]->pos[j] = origpos[k];
+					qc.sequence[i].panim[q]->rot[j] = origrot[k];
 				}
 				else
 				{
 					// link to dummy animations
-					qc_cmd.sequence[i].panim[q]->pos[j] = defaultpos[j];
-					qc_cmd.sequence[i].panim[q]->rot[j] = defaultrot[j];
+					qc.sequence[i].panim[q]->pos[j] = defaultpos[j];
+					qc.sequence[i].panim[q]->rot[j] = defaultrot[j];
 				}
 			}
 		}
@@ -678,9 +678,9 @@ void simplify_model(QC &qc_cmd)
 
 			for (i = 0; i < g_num_sequence; i++)
 			{
-				for (q = 0; q < qc_cmd.sequence[i].numblends; q++)
+				for (q = 0; q < qc.sequence[i].numblends; q++)
 				{
-					for (n = 0; n < qc_cmd.sequence[i].numframes; n++)
+					for (n = 0; n < qc.sequence[i].numframes; n++)
 					{
 						float v;
 						switch (k)
@@ -688,12 +688,12 @@ void simplify_model(QC &qc_cmd)
 						case 0:
 						case 1:
 						case 2:
-							v = (qc_cmd.sequence[i].panim[q]->pos[j][n][k] - g_bonetable[j].pos[k]);
+							v = (qc.sequence[i].panim[q]->pos[j][n][k] - g_bonetable[j].pos[k]);
 							break;
 						case 3:
 						case 4:
 						case 5:
-							v = (qc_cmd.sequence[i].panim[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
+							v = (qc.sequence[i].panim[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
 							if (v >= Q_PI)
 								v -= Q_PI * 2;
 							if (v < -Q_PI)
@@ -750,9 +750,9 @@ void simplify_model(QC &qc_cmd)
 			bmax[j] = -9999.0;
 		}
 
-		for (q = 0; q < qc_cmd.sequence[i].numblends; q++)
+		for (q = 0; q < qc.sequence[i].numblends; q++)
 		{
-			for (n = 0; n < qc_cmd.sequence[i].numframes; n++)
+			for (n = 0; n < qc.sequence[i].numframes; n++)
 			{
 				float bonetransform[MAXSTUDIOBONES][3][4]; // bone transformation matrix
 				float bonematrix[3][4];					   // local transformation matrix
@@ -762,15 +762,15 @@ void simplify_model(QC &qc_cmd)
 				{
 
 					Vector3 angles;
-					angles.x = to_degrees(qc_cmd.sequence[i].panim[q]->rot[j][n][0]);
-					angles.y = to_degrees(qc_cmd.sequence[i].panim[q]->rot[j][n][1]);
-					angles.z = to_degrees(qc_cmd.sequence[i].panim[q]->rot[j][n][2]);
+					angles.x = to_degrees(qc.sequence[i].panim[q]->rot[j][n][0]);
+					angles.y = to_degrees(qc.sequence[i].panim[q]->rot[j][n][1]);
+					angles.z = to_degrees(qc.sequence[i].panim[q]->rot[j][n][2]);
 
 					angle_matrix(angles, bonematrix);
 
-					bonematrix[0][3] = qc_cmd.sequence[i].panim[q]->pos[j][n][0];
-					bonematrix[1][3] = qc_cmd.sequence[i].panim[q]->pos[j][n][1];
-					bonematrix[2][3] = qc_cmd.sequence[i].panim[q]->pos[j][n][2];
+					bonematrix[0][3] = qc.sequence[i].panim[q]->pos[j][n][0];
+					bonematrix[1][3] = qc.sequence[i].panim[q]->pos[j][n][1];
+					bonematrix[2][3] = qc.sequence[i].panim[q]->pos[j][n][2];
 
 					if (g_bonetable[j].parent == -1)
 					{
@@ -782,11 +782,11 @@ void simplify_model(QC &qc_cmd)
 					}
 				}
 
-				for (k = 0; k < qc_cmd.submodel.size(); k++)
+				for (k = 0; k < qc.submodel.size(); k++)
 				{
-					for (j = 0; j < qc_cmd.submodel[k]->verts.size(); j++)
+					for (j = 0; j < qc.submodel[k]->verts.size(); j++)
 					{
-						vector_transform(qc_cmd.submodel[k]->verts[j].org, bonetransform[qc_cmd.submodel[k]->verts[j].bone], pos);
+						vector_transform(qc.submodel[k]->verts[j].org, bonetransform[qc.submodel[k]->verts[j].bone], pos);
 
 						if (pos[0] < bmin[0])
 							bmin[0] = pos[0];
@@ -805,8 +805,8 @@ void simplify_model(QC &qc_cmd)
 			}
 		}
 
-		qc_cmd.sequence[i].bmin = bmin;
-		qc_cmd.sequence[i].bmax = bmax;
+		qc.sequence[i].bmin = bmin;
+		qc.sequence[i].bmax = bmax;
 	}
 
 	// reduce animations TODO: reduce_animations()
@@ -816,7 +816,7 @@ void simplify_model(QC &qc_cmd)
 
 		for (i = 0; i < g_num_sequence; i++)
 		{
-			for (q = 0; q < qc_cmd.sequence[i].numblends; q++)
+			for (q = 0; q < qc.sequence[i].numblends; q++)
 			{
 				for (j = 0; j < g_bonetable.size(); j++)
 				{
@@ -826,19 +826,19 @@ void simplify_model(QC &qc_cmd)
 						short value[MAXSTUDIOANIMATIONS];
 						StudioAnimationValue data[MAXSTUDIOANIMATIONS];
 
-						for (n = 0; n < qc_cmd.sequence[i].numframes; n++)
+						for (n = 0; n < qc.sequence[i].numframes; n++)
 						{
 							switch (k)
 							{
 							case 0:
 							case 1:
 							case 2:
-								value[n] = static_cast<short>((qc_cmd.sequence[i].panim[q]->pos[j][n][k] - g_bonetable[j].pos[k]) / g_bonetable[j].posscale[k]);
+								value[n] = static_cast<short>((qc.sequence[i].panim[q]->pos[j][n][k] - g_bonetable[j].pos[k]) / g_bonetable[j].posscale[k]);
 								break;
 							case 3:
 							case 4:
 							case 5:
-								v = (qc_cmd.sequence[i].panim[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
+								v = (qc.sequence[i].panim[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
 								if (v >= Q_PI)
 									v -= Q_PI * 2;
 								if (v < -Q_PI)
@@ -849,9 +849,9 @@ void simplify_model(QC &qc_cmd)
 							}
 						}
 						if (n == 0)
-							error("no animation frames: " + qc_cmd.sequence[i].name + "\n");
+							error("no animation frames: " + qc.sequence[i].name + "\n");
 
-						qc_cmd.sequence[i].panim[q]->numanim[j][k] = 0;
+						qc.sequence[i].panim[q]->numanim[j][k] = 0;
 
 						std::memset(data, 0, sizeof(data));
 						StudioAnimationValue *pcount = data;
@@ -900,15 +900,15 @@ void simplify_model(QC &qc_cmd)
 							pcount->num.total++;
 						}
 
-						qc_cmd.sequence[i].panim[q]->numanim[j][k] = static_cast<int>(pvalue - data);
-						if (qc_cmd.sequence[i].panim[q]->numanim[j][k] == 2 && value[0] == 0)
+						qc.sequence[i].panim[q]->numanim[j][k] = static_cast<int>(pvalue - data);
+						if (qc.sequence[i].panim[q]->numanim[j][k] == 2 && value[0] == 0)
 						{
-							qc_cmd.sequence[i].panim[q]->numanim[j][k] = 0;
+							qc.sequence[i].panim[q]->numanim[j][k] = 0;
 						}
 						else
 						{
-							qc_cmd.sequence[i].panim[q]->anim[j][k] = (StudioAnimationValue *)std::calloc(pvalue - data, sizeof(StudioAnimationValue));
-							std::memcpy(qc_cmd.sequence[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(StudioAnimationValue));
+							qc.sequence[i].panim[q]->anim[j][k] = (StudioAnimationValue *)std::calloc(pvalue - data, sizeof(StudioAnimationValue));
+							std::memcpy(qc.sequence[i].panim[q]->anim[j][k], data, (pvalue - data) * sizeof(StudioAnimationValue));
 						}
 					}
 				}
@@ -1131,7 +1131,7 @@ void grab_bmp(const char *filename, Texture *ptexture)
 	}
 }
 
-void resize_texture(QC &qc_cmd, Texture *ptexture)
+void resize_texture(QC &qc, Texture *ptexture)
 {
 	int i, t;
 
@@ -1175,11 +1175,11 @@ void resize_texture(QC &qc_cmd, Texture *ptexture)
 
 	// TODO: process the texture and flag it if fullbright or transparent are used.
 	// TODO: only save as many palette entries as are actually used.
-	if (qc_cmd.gamma != 1.8f)
+	if (qc.gamma != 1.8f)
 	// gamma correct the monster textures to a gamma of 1.8
 	{
 		std::uint8_t *psrc = (std::uint8_t *)ptexture->ppal;
-		float g = qc_cmd.gamma / 1.8f;
+		float g = qc.gamma / 1.8f;
 		for (i = 0; i < 768; i++)
 		{
 			pdest[i] = static_cast<uint8_t>(std::round(pow(psrc[i] / 255.0, g) * 255));
@@ -1194,15 +1194,15 @@ void resize_texture(QC &qc_cmd, Texture *ptexture)
 	free(ptexture->ppal);
 }
 
-void grab_skin(QC &qc_cmd, Texture *ptexture)
+void grab_skin(QC &qc, Texture *ptexture)
 {
-	std::filesystem::path textureFilePath = qc_cmd.cdtexture / ptexture->name;
+	std::filesystem::path textureFilePath = qc.cdtexture / ptexture->name;
 	if (!std::filesystem::exists(textureFilePath))
 	{
-		textureFilePath = qc_cmd.cdAbsolute / ptexture->name;
+		textureFilePath = qc.cdAbsolute / ptexture->name;
 		if (!std::filesystem::exists(textureFilePath))
 		{
-			error("cannot find " + ptexture->name + " texture in \"" + qc_cmd.cdtexture.string() + "\" nor \"" + qc_cmd.cdAbsolute.string() + "\"\nor those paths don't exist\n");
+			error("cannot find " + ptexture->name + " texture in \"" + qc.cdtexture.string() + "\" nor \"" + qc.cdAbsolute.string() + "\"\nor those paths don't exist\n");
 		}
 	}
 	if (textureFilePath.extension() == ".bmp")
@@ -1215,13 +1215,13 @@ void grab_skin(QC &qc_cmd, Texture *ptexture)
 	}
 }
 
-void set_skin_values(QC &qc_cmd)
+void set_skin_values(QC &qc)
 {
 	int i, j;
 
 	for (i = 0; i < g_textures.size(); i++)
 	{
-		grab_skin(qc_cmd, &g_textures[i]);
+		grab_skin(qc, &g_textures[i]);
 
 		g_textures[i].max_s = -9999999;
 		g_textures[i].min_s = 9999999;
@@ -1229,11 +1229,11 @@ void set_skin_values(QC &qc_cmd)
 		g_textures[i].min_t = 9999999;
 	}
 
-	for (i = 0; i < qc_cmd.submodel.size(); i++)
+	for (i = 0; i < qc.submodel.size(); i++)
 	{
-		for (j = 0; j < qc_cmd.submodel[i]->nummesh; j++)
+		for (j = 0; j < qc.submodel[i]->nummesh; j++)
 		{
-			texture_coord_ranges(qc_cmd.submodel[i]->pmesh[j], &g_textures[qc_cmd.submodel[i]->pmesh[j]->skinref]);
+			texture_coord_ranges(qc.submodel[i]->pmesh[j], &g_textures[qc.submodel[i]->pmesh[j]->skinref]);
 		}
 	}
 
@@ -1258,14 +1258,14 @@ void set_skin_values(QC &qc_cmd)
 			}
 		}
 
-		resize_texture(qc_cmd, &g_textures[i]);
+		resize_texture(qc, &g_textures[i]);
 	}
 
-	for (i = 0; i < qc_cmd.submodel.size(); i++)
+	for (i = 0; i < qc.submodel.size(); i++)
 	{
-		for (j = 0; j < qc_cmd.submodel[i]->nummesh; j++)
+		for (j = 0; j < qc.submodel[i]->nummesh; j++)
 		{
-			reset_texture_coord_ranges(qc_cmd.submodel[i]->pmesh[j], &g_textures[qc_cmd.submodel[i]->pmesh[j]->skinref]);
+			reset_texture_coord_ranges(qc.submodel[i]->pmesh[j], &g_textures[qc.submodel[i]->pmesh[j]->skinref]);
 		}
 	}
 
@@ -1277,11 +1277,11 @@ void set_skin_values(QC &qc_cmd)
 			g_skinref[i][j] = j;
 		}
 	}
-	for (i = 0; i < qc_cmd.texturegroup_rows; i++)
+	for (i = 0; i < qc.texturegroup_rows; i++)
 	{
-		for (j = 0; j < qc_cmd.texturegroup_cols; j++)
+		for (j = 0; j < qc.texturegroup_cols; j++)
 		{
-			g_skinref[i][qc_cmd.texturegroup[0][j]] = qc_cmd.texturegroup[i][j];
+			g_skinref[i][qc.texturegroup[0][j]] = qc.texturegroup[i][j];
 		}
 	}
 	if (i != 0)
@@ -1333,7 +1333,7 @@ void build_reference(Model *pmodel)
 	}
 }
 
-void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
+void grab_smd_triangles(QC &qc, Model *pmodel)
 {
 	int i;
 	Vector3 vmin{99999, 99999, 99999};
@@ -1429,8 +1429,8 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 						if (triangleVertex.org[2] < vmin[2])
 							vmin[2] = triangleVertex.org[2];
 
-						triangleVertex.org -= qc_cmd.sequenceOrigin; // adjust vertex to origin
-						triangleVertex.org *= qc_cmd.scaleBodyAndSequenceOption; // scale vertex
+						triangleVertex.org -= qc.sequenceOrigin; // adjust vertex to origin
+						triangleVertex.org *= qc.scaleBodyAndSequenceOption; // scale vertex
 
 						// move vertex position to object space.
 						Vector3 tmp;
@@ -1469,7 +1469,7 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 	}
 }
 
-void grab_smd_skeleton(QC &qc_cmd, std::vector<Node> &nodes, Bone *pbones)
+void grab_smd_skeleton(QC &qc, std::vector<Node> &nodes, Bone *pbones)
 {
 	float posX, posY, posZ, rotX, rotY, rotZ;
 	char cmd[1024];
@@ -1484,7 +1484,7 @@ void grab_smd_skeleton(QC &qc_cmd, std::vector<Node> &nodes, Bone *pbones)
 			pbones[node].pos[1] = posY;
 			pbones[node].pos[2] = posZ;
 
-			pbones[node].pos *= qc_cmd.scaleBodyAndSequenceOption; // scale vertex
+			pbones[node].pos *= qc.scaleBodyAndSequenceOption; // scale vertex
 
 			if (nodes[node].mirrored)
 				pbones[node].pos = pbones[node].pos * -1.0;
@@ -1509,7 +1509,7 @@ void grab_smd_skeleton(QC &qc_cmd, std::vector<Node> &nodes, Bone *pbones)
 	}
 }
 
-int grab_smd_nodes(QC &qc_cmd, std::vector<Node> &nodes)
+int grab_smd_nodes(QC &qc, std::vector<Node> &nodes)
 {
     int index;
     char bone_name[1024];
@@ -1525,9 +1525,9 @@ int grab_smd_nodes(QC &qc_cmd, std::vector<Node> &nodes)
             nodes.back().parent = parent;
 
             // Check for mirrored bones
-            for (int i = 0; i < qc_cmd.mirroredbones.size(); i++)
+            for (int i = 0; i < qc.mirroredbones.size(); i++)
 			{
-                if (std::strcmp(bone_name, qc_cmd.mirroredbones[i].data()) == 0) {
+                if (std::strcmp(bone_name, qc.mirroredbones[i].data()) == 0) {
                     nodes.back().mirrored = 1;
                 }
             }
@@ -1545,12 +1545,12 @@ int grab_smd_nodes(QC &qc_cmd, std::vector<Node> &nodes)
     return 0;
 }
 
-void parse_smd(QC &qc_cmd, Model *pmodel)
+void parse_smd(QC &qc, Model *pmodel)
 {
 	char cmd[1024];
 	int option;
 
-	g_smdpath = qc_cmd.cdAbsolute / (std::string(pmodel->name) + ".smd");
+	g_smdpath = qc.cdAbsolute / (std::string(pmodel->name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
 		error(g_smdpath.string() + " doesn't exist");
 
@@ -1575,15 +1575,15 @@ void parse_smd(QC &qc_cmd, Model *pmodel)
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			grab_smd_nodes(qc_cmd, pmodel->nodes);
+			grab_smd_nodes(qc, pmodel->nodes);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
-			grab_smd_skeleton(qc_cmd, pmodel->nodes, pmodel->skeleton);
+			grab_smd_skeleton(qc, pmodel->nodes, pmodel->skeleton);
 		}
 		else if (std::strcmp(cmd, "triangles") == 0)
 		{
-			grab_smd_triangles(qc_cmd, pmodel);
+			grab_smd_triangles(qc, pmodel);
 		}
 		else
 		{
@@ -1593,33 +1593,33 @@ void parse_smd(QC &qc_cmd, Model *pmodel)
 	fclose(g_smdfile);
 }
 
-void cmd_eyeposition(QC &qc_cmd, std::string &token)
+void cmd_eyeposition(QC &qc, std::string &token)
 {
 	// rotate points into frame of reference so model points down the positive x
 	// axis
 	get_token(false, token);
-	qc_cmd.eyeposition[1] = std::stof(token);
+	qc.eyeposition[1] = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.eyeposition[0] = -std::stof(token);
+	qc.eyeposition[0] = -std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.eyeposition[2] = std::stof(token);
+	qc.eyeposition[2] = std::stof(token);
 }
 
-void cmd_flags(QC &qc_cmd, std::string &token)
+void cmd_flags(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc_cmd.flags = std::stoi(token);
+	qc.flags = std::stoi(token);
 }
 
-void cmd_modelname(QC &qc_cmd, std::string &token)
+void cmd_modelname(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc_cmd.modelname = token;
+	qc.modelname = token;
 }
 
-void cmd_body_option_studio(QC &qc_cmd, std::string &token)
+void cmd_body_option_studio(QC &qc, std::string &token)
 {
 	if (!get_token(false, token))
 		return;
@@ -1628,7 +1628,7 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 
 	new_submodel->name = token;
 
-	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
+	qc.scaleBodyAndSequenceOption = qc.scale;
 
 	while (token_available())
 	{
@@ -1640,47 +1640,47 @@ void cmd_body_option_studio(QC &qc_cmd, std::string &token)
 		else if (stricmp("scale", token.c_str()) == 0)
 		{
 			get_token(false, token);
-			qc_cmd.scaleBodyAndSequenceOption = std::stof(token);
+			qc.scaleBodyAndSequenceOption = std::stof(token);
 		}
 	}
 
-	parse_smd(qc_cmd, new_submodel);
+	parse_smd(qc, new_submodel);
 
-	qc_cmd.bodypart.back().num_submodels++;
-	qc_cmd.submodel.push_back(new_submodel);
+	qc.bodypart.back().num_submodels++;
+	qc.submodel.push_back(new_submodel);
 
-	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
+	qc.scaleBodyAndSequenceOption = qc.scale;
 }
 
-int cmd_body_option_blank(QC &qc_cmd)
+int cmd_body_option_blank(QC &qc)
 {
 	Model* new_submodel = new Model();
 
 	new_submodel->name = "blank";
 
-	qc_cmd.bodypart.back().num_submodels++;
-	qc_cmd.submodel.push_back(new_submodel);
+	qc.bodypart.back().num_submodels++;
+	qc.submodel.push_back(new_submodel);
 	return 0;
 }
 
-void cmd_bodygroup(QC &qc_cmd, std::string &token)
+void cmd_bodygroup(QC &qc, std::string &token)
 {
 	if (!get_token(false, token))
 		return;
 
 	BodyPart newbp;
 
-	if (qc_cmd.bodypart.empty())
+	if (qc.bodypart.empty())
 	{
 		newbp.base = 1;
 	}
 	else
 	{
-		BodyPart &lastbp = qc_cmd.bodypart.back();
+		BodyPart &lastbp = qc.bodypart.back();
 		newbp.base = lastbp.base * lastbp.num_submodels;
 	}
 	newbp.name = token;
-	qc_cmd.bodypart.push_back(newbp);
+	qc.bodypart.push_back(newbp);
 	while (true)
 	{
 		int is_started = 0;
@@ -1698,17 +1698,17 @@ void cmd_bodygroup(QC &qc_cmd, std::string &token)
 		}
 		else if (stricmp("studio", token.c_str()) == 0)
 		{
-			cmd_body_option_studio(qc_cmd, token);
+			cmd_body_option_studio(qc, token);
 		}
 		else if (stricmp("blank", token.c_str()) == 0)
 		{
-			cmd_body_option_blank(qc_cmd);
+			cmd_body_option_blank(qc);
 		}
 	}
 	return;
 }
 
-void cmd_body(QC &qc_cmd, std::string &token)
+void cmd_body(QC &qc, std::string &token)
 {
 	if (!get_token(false, token))
 		return;
@@ -1716,21 +1716,21 @@ void cmd_body(QC &qc_cmd, std::string &token)
 	BodyPart newbp;
 	newbp.name = token;
 
-	if (qc_cmd.bodypart.empty())
+	if (qc.bodypart.empty())
 	{
 		newbp.base = 1;
 	}
 	else
 	{
-		BodyPart &lastbp = qc_cmd.bodypart.back();
+		BodyPart &lastbp = qc.bodypart.back();
 		newbp.base = lastbp.base * lastbp.num_submodels;
 	}
 
-	qc_cmd.bodypart.push_back(newbp);
-	cmd_body_option_studio(qc_cmd, token);
+	qc.bodypart.push_back(newbp);
+	cmd_body_option_studio(qc, token);
 }
 
-void grab_option_animation(QC &qc_cmd, Animation *panim)
+void grab_option_animation(QC &qc, Animation *panim)
 {
 	Vector3 pos;
 	Vector3 rot;
@@ -1746,8 +1746,8 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 		panim->rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 	}
 
-	float cz = cosf(qc_cmd.rotate);
-	float sz = sinf(qc_cmd.rotate);
+	float cz = cosf(qc.rotate);
+	float sz = sinf(qc.rotate);
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
@@ -1758,12 +1758,12 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 			{
 				if (panim->nodes[index].parent == -1)
 				{
-					pos -= qc_cmd.sequenceOrigin; // adjust vertex to origin
+					pos -= qc.sequenceOrigin; // adjust vertex to origin
 					panim->pos[index][t][0] = cz * pos[0] - sz * pos[1];
 					panim->pos[index][t][1] = sz * pos[0] + cz * pos[1];
 					panim->pos[index][t][2] = pos[2];
 					// rotate model
-					rot[2] += qc_cmd.rotate;
+					rot[2] += qc.rotate;
 				}
 				else
 				{
@@ -1777,7 +1777,7 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 				if (panim->nodes[index].mirrored)
 					panim->pos[index][t] = panim->pos[index][t] * -1.0;
 
-				panim->pos[index][t] *= qc_cmd.scaleBodyAndSequenceOption; // scale vertex
+				panim->pos[index][t] *= qc.scaleBodyAndSequenceOption; // scale vertex
 
 				clip_rotations(rot);
 
@@ -1829,14 +1829,14 @@ void shift_option_animation(Animation *panim)
 	}
 }
 
-void cmd_sequence_option_animation(QC &qc_cmd, std::string &name, Animation *panim)
+void cmd_sequence_option_animation(QC &qc, std::string &name, Animation *panim)
 {
 	char cmd[1024];
 	int option;
 
 	panim->name = name;
 
-	g_smdpath = qc_cmd.cdAbsolute / (std::string(panim->name) + ".smd");
+	g_smdpath = qc.cdAbsolute / (std::string(panim->name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
 		error(g_smdpath.string() + " doesn't exist");
 
@@ -1862,11 +1862,11 @@ void cmd_sequence_option_animation(QC &qc_cmd, std::string &name, Animation *pan
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			grab_smd_nodes(qc_cmd, panim->nodes);
+			grab_smd_nodes(qc, panim->nodes);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
-			grab_option_animation(qc_cmd, panim);
+			grab_option_animation(qc, panim);
 			shift_option_animation(panim);
 		}
 		else
@@ -1924,59 +1924,59 @@ int cmd_sequence_option_fps(std::string &token, Sequence *psequence)
 }
 
 
-void cmd_origin(QC &qc_cmd, std::string &token)
+void cmd_origin(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc_cmd.origin[0] = std::stof(token);
+	qc.origin[0] = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.origin[1] = std::stof(token);
+	qc.origin[1] = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.origin[2] = std::stof(token);
+	qc.origin[2] = std::stof(token);
 
 	if (token_available())
 	{
 		get_token(false, token);
-		qc_cmd.originRotation = to_radians(std::stof(token) + ENGINE_ORIENTATION);
+		qc.originRotation = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 	}
 }
 
-void cmd_sequence_option_origin(QC &qc_cmd, std::string &token)
+void cmd_sequence_option_origin(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc_cmd.sequenceOrigin[0] = std::stof(token);
+	qc.sequenceOrigin[0] = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.sequenceOrigin[1] = std::stof(token);
+	qc.sequenceOrigin[1] = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.sequenceOrigin[2] = std::stof(token);
+	qc.sequenceOrigin[2] = std::stof(token);
 }
 
-void cmd_sequence_option_rotate(QC &qc_cmd, std::string &token)
+void cmd_sequence_option_rotate(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc_cmd.rotate = to_radians(std::stof(token) + ENGINE_ORIENTATION);
+	qc.rotate = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
-void cmd_scale(QC &qc_cmd, std::string &token)
+void cmd_scale(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc_cmd.scale = qc_cmd.scaleBodyAndSequenceOption = std::stof(token);
+	qc.scale = qc.scaleBodyAndSequenceOption = std::stof(token);
 }
 
-void cmd_rotate(QC &qc_cmd, std::string &token) // XDM
+void cmd_rotate(QC &qc, std::string &token) // XDM
 {
 	if (!get_token(false, token))
 		return;
-	qc_cmd.rotate = to_radians(std::stof(token) + ENGINE_ORIENTATION);
+	qc.rotate = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
-void cmd_sequence_option_scale(QC &qc_cmd, std::string &token)
+void cmd_sequence_option_scale(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc_cmd.scaleBodyAndSequenceOption = std::stof(token);
+	qc.scaleBodyAndSequenceOption = std::stof(token);
 }
 
 int cmd_sequence_option_action(std::string &szActivity)
@@ -1996,7 +1996,7 @@ int cmd_sequence_option_action(std::string &szActivity)
 	return 0;
 }
 
-int cmd_sequence(QC &qc_cmd, std::string &token)
+int cmd_sequence(QC &qc, std::string &token)
 {
 	int depth = 0;
 	std::vector<std::string> smd_files;
@@ -2007,16 +2007,16 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 	if (!get_token(false, token))
 		return 0;
 
-	qc_cmd.sequence[g_num_sequence].name = token;
+	qc.sequence[g_num_sequence].name = token;
 
-	qc_cmd.sequenceOrigin = qc_cmd.origin;
-	qc_cmd.scaleBodyAndSequenceOption = qc_cmd.scale;
+	qc.sequenceOrigin = qc.origin;
+	qc.scaleBodyAndSequenceOption = qc.scale;
 
-	qc_cmd.rotate = qc_cmd.originRotation;
-	qc_cmd.sequence[g_num_sequence].fps = 30.0;
-	qc_cmd.sequence[g_num_sequence].seqgroup = 0; // 0 since $sequencegroup is deprecated
-	qc_cmd.sequence[g_num_sequence].blendstart[0] = 0.0;
-	qc_cmd.sequence[g_num_sequence].blendend[0] = 1.0;
+	qc.rotate = qc.originRotation;
+	qc.sequence[g_num_sequence].fps = 30.0;
+	qc.sequence[g_num_sequence].seqgroup = 0; // 0 since $sequencegroup is deprecated
+	qc.sequence[g_num_sequence].blendstart[0] = 0.0;
+	qc.sequence[g_num_sequence].blendend[0] = 1.0;
 
 	while (true)
 	{
@@ -2058,27 +2058,27 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		}
 		else if (token == "event")
 		{
-			depth -= cmd_sequence_option_event(token, &qc_cmd.sequence[g_num_sequence]);
+			depth -= cmd_sequence_option_event(token, &qc.sequence[g_num_sequence]);
 		}
 		else if (token == "fps")
 		{
-			cmd_sequence_option_fps(token, &qc_cmd.sequence[g_num_sequence]);
+			cmd_sequence_option_fps(token, &qc.sequence[g_num_sequence]);
 		}
 		else if (token == "origin")
 		{
-			cmd_sequence_option_origin(qc_cmd, token);
+			cmd_sequence_option_origin(qc, token);
 		}
 		else if (token == "rotate")
 		{
-			cmd_sequence_option_rotate(qc_cmd, token);
+			cmd_sequence_option_rotate(qc, token);
 		}
 		else if (token == "scale")
 		{
-			cmd_sequence_option_scale(qc_cmd, token);
+			cmd_sequence_option_scale(qc, token);
 		}
 		else if (token == "loop")
 		{
-			qc_cmd.sequence[g_num_sequence].flags |= STUDIO_LOOPING;
+			qc.sequence[g_num_sequence].flags |= STUDIO_LOOPING;
 		}
 		else if (token == "frame")
 		{
@@ -2090,35 +2090,35 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		else if (token == "blend")
 		{
 			get_token(false, token);
-			qc_cmd.sequence[g_num_sequence].blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
+			qc.sequence[g_num_sequence].blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
 			get_token(false, token);
-			qc_cmd.sequence[g_num_sequence].blendstart[0] = std::stof(token);
+			qc.sequence[g_num_sequence].blendstart[0] = std::stof(token);
 			get_token(false, token);
-			qc_cmd.sequence[g_num_sequence].blendend[0] = std::stof(token);
+			qc.sequence[g_num_sequence].blendend[0] = std::stof(token);
 		}
 		else if (token == "node")
 		{
 			get_token(false, token);
-			qc_cmd.sequence[g_num_sequence].entrynode = qc_cmd.sequence[g_num_sequence].exitnode = std::stoi(token);
+			qc.sequence[g_num_sequence].entrynode = qc.sequence[g_num_sequence].exitnode = std::stoi(token);
 		}
 		else if (token == "transition")
 		{
 			get_token(false, token);
-			qc_cmd.sequence[g_num_sequence].entrynode = std::stoi(token);
+			qc.sequence[g_num_sequence].entrynode = std::stoi(token);
 			get_token(false, token);
-			qc_cmd.sequence[g_num_sequence].exitnode = std::stoi(token);
+			qc.sequence[g_num_sequence].exitnode = std::stoi(token);
 		}
 		else if (token == "rtransition")
 		{
 			get_token(false, token);
-			qc_cmd.sequence[g_num_sequence].entrynode = std::stoi(token);
+			qc.sequence[g_num_sequence].entrynode = std::stoi(token);
 			get_token(false, token);
-			qc_cmd.sequence[g_num_sequence].exitnode = std::stoi(token);
-			qc_cmd.sequence[g_num_sequence].nodeflags |= 1;
+			qc.sequence[g_num_sequence].exitnode = std::stoi(token);
+			qc.sequence[g_num_sequence].nodeflags |= 1;
 		}
 		else if (lookup_control(token.c_str()) != -1) // motion flags [motion extraction]
 		{
-			qc_cmd.sequence[g_num_sequence].motiontype |= lookup_control(token.c_str());
+			qc.sequence[g_num_sequence].motiontype |= lookup_control(token.c_str());
 		}
 		else if (token == "animation")
 		{
@@ -2127,9 +2127,9 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 		}
 		else if ((i = cmd_sequence_option_action(token)) != 0)
 		{
-			qc_cmd.sequence[g_num_sequence].activity = i;
+			qc.sequence[g_num_sequence].activity = i;
 			get_token(false, token);
-			qc_cmd.sequence[g_num_sequence].actweight = std::stoi(token);
+			qc.sequence[g_num_sequence].actweight = std::stoi(token);
 		}
 		else
 		{
@@ -2150,25 +2150,25 @@ int cmd_sequence(QC &qc_cmd, std::string &token)
 	}
 	for (i = 0; i < smd_files.size(); i++)
 	{
-		qc_cmd.sequenceAnimationOption.push_back(new Animation());
-		Animation* newAnim = qc_cmd.sequenceAnimationOption.back();
-		qc_cmd.sequence[g_num_sequence].panim[i] = newAnim;
+		qc.sequenceAnimationOption.push_back(new Animation());
+		Animation* newAnim = qc.sequenceAnimationOption.back();
+		qc.sequence[g_num_sequence].panim[i] = newAnim;
 
 		newAnim->startframe = start;
 		newAnim->endframe = end;
 
-		cmd_sequence_option_animation(qc_cmd, smd_files[i], newAnim);
+		cmd_sequence_option_animation(qc, smd_files[i], newAnim);
 
 	}
 
-	qc_cmd.sequence[g_num_sequence].numblends = smd_files.size(); // MAXSTUDIOBLENDS
+	qc.sequence[g_num_sequence].numblends = smd_files.size(); // MAXSTUDIOBLENDS
 
 	g_num_sequence++;
 
 	return 0;
 }
 
-int cmd_controller(QC &qc_cmd, std::string &token)
+int cmd_controller(QC &qc, std::string &token)
 {
 	BoneController newbc;
 	if (get_token(false, token))
@@ -2202,68 +2202,68 @@ int cmd_controller(QC &qc_cmd, std::string &token)
 					newbc.type |= STUDIO_RLOOP;
 				}
 			}
-			qc_cmd.bonecontrollers.push_back(newbc);
+			qc.bonecontrollers.push_back(newbc);
 		}
 	}
 	return 1;
 }
 
-void cmd_bbox(QC &qc_cmd, std::string &token)
+void cmd_bbox(QC &qc, std::string &token)
 {	// min
 	get_token(false, token);
-	qc_cmd.bbox[0].x = std::stof(token);
+	qc.bbox[0].x = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.bbox[0].y = std::stof(token);
+	qc.bbox[0].y = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.bbox[0].z = std::stof(token);
+	qc.bbox[0].z = std::stof(token);
 	// max
 	get_token(false, token);
-	qc_cmd.bbox[1].x = std::stof(token);
+	qc.bbox[1].x = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.bbox[1].y = std::stof(token);
+	qc.bbox[1].y = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.bbox[1].z = std::stof(token);
+	qc.bbox[1].z = std::stof(token);
 }
 
-void cmd_cbox(QC &qc_cmd, std::string &token)
+void cmd_cbox(QC &qc, std::string &token)
 {	// min
 	get_token(false, token);
-	qc_cmd.cbox[0].x = std::stof(token);
+	qc.cbox[0].x = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.cbox[0].y = std::stof(token);
+	qc.cbox[0].y = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.cbox[0].z = std::stof(token);
+	qc.cbox[0].z = std::stof(token);
 	// max
 	get_token(false, token);
-	qc_cmd.cbox[1].x = std::stof(token);
+	qc.cbox[1].x = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.cbox[1].y = std::stof(token);
+	qc.cbox[1].y = std::stof(token);
 
 	get_token(false, token);
-	qc_cmd.cbox[1].z = std::stof(token);
+	qc.cbox[1].z = std::stof(token);
 }
 
-void cmd_mirror(QC &qc_cmd, std::string &token)
+void cmd_mirror(QC &qc, std::string &token)
 {	
 	get_token(false, token);
 	std::string bonename = token;
-	qc_cmd.mirroredbones.push_back(bonename);
+	qc.mirroredbones.push_back(bonename);
 }
 
-void cmd_gamma(QC &qc_cmd, std::string &token)
+void cmd_gamma(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc_cmd.gamma = std::stof(token);
+	qc.gamma = std::stof(token);
 }
 
-int cmd_texturegroup(QC &qc_cmd, std::string &token)
+int cmd_texturegroup(QC &qc, std::string &token)
 {
 	int i;
 	int depth = 0;
@@ -2309,31 +2309,31 @@ int cmd_texturegroup(QC &qc_cmd, std::string &token)
 		else if (depth == 2)
 		{
 			i = find_texture_index(token);
-			qc_cmd.texturegroup[row_index][col_index] = i;
+			qc.texturegroup[row_index][col_index] = i;
 			if (row_index != 0)
-				g_textures[i].parent = qc_cmd.texturegroup[0][col_index];
+				g_textures[i].parent = qc.texturegroup[0][col_index];
 			col_index++;
-			qc_cmd.texturegroup_cols = col_index;
-			qc_cmd.texturegroup_rows = row_index + 1;
+			qc.texturegroup_cols = col_index;
+			qc.texturegroup_rows = row_index + 1;
 		}
 	}
 
 	return 0;
 }
 
-int cmd_hitgroup(QC &qc_cmd, std::string &token)
+int cmd_hitgroup(QC &qc, std::string &token)
 {
 	HitGroup newhg;
 	get_token(false, token);
 	newhg.group = std::stoi(token);
 	get_token(false, token);
 	newhg.name = token;
-	qc_cmd.hitgroups.push_back(newhg);
+	qc.hitgroups.push_back(newhg);
 
 	return 0;
 }
 
-int cmd_hitbox(QC &qc_cmd, std::string &token)
+int cmd_hitbox(QC &qc, std::string &token)
 {
 	HitBox newhb;
 	get_token(false, token);
@@ -2353,12 +2353,12 @@ int cmd_hitbox(QC &qc_cmd, std::string &token)
 	get_token(false, token);
 	newhb.bmax.z = std::stof(token);
 
-	qc_cmd.hitboxes.push_back(newhb);
+	qc.hitboxes.push_back(newhb);
 
 	return 0;
 }
 
-int cmd_attachment(QC &qc_cmd, std::string &token)
+int cmd_attachment(QC &qc, std::string &token)
 {
 	Attachment newattach;
 	// index
@@ -2382,18 +2382,18 @@ int cmd_attachment(QC &qc_cmd, std::string &token)
 	if (token_available())
 		get_token(false, token);
 
-	qc_cmd.attachments.push_back(newattach);
+	qc.attachments.push_back(newattach);
 	return 0;
 }
 
-void cmd_renamebone(QC &qc_cmd, std::string &token)
+void cmd_renamebone(QC &qc, std::string &token)
 {
 	RenameBone rename;
 	get_token(false, token);
 	rename.from = token;
 	get_token(false, token);
 	rename.to = token;
-	qc_cmd.renamebones.push_back(rename);
+	qc.renamebones.push_back(rename);
 }
 
 void cmd_texrendermode(std::string &token)
@@ -2422,7 +2422,7 @@ void cmd_texrendermode(std::string &token)
 		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);
 }
 
-void parse_qc_file(QC &qc_cmd)
+void parse_qc_file(QC &qc)
 {
 	std::string token;
 	bool iscdalreadyset = false;
@@ -2447,7 +2447,7 @@ void parse_qc_file(QC &qc_cmd)
 		// Process recognized commands
 		if (token == "$modelname")
 		{
-			cmd_modelname(qc_cmd, token);
+			cmd_modelname(qc, token);
 		}
 		else if (token == "$cd")
 		{
@@ -2456,8 +2456,8 @@ void parse_qc_file(QC &qc_cmd)
 			iscdalreadyset = true;
 			get_token(false, token);
 
-			qc_cmd.cd = token;
-			qc_cmd.cdAbsolute = std::filesystem::absolute(qc_cmd.cd);
+			qc.cd = token;
+			qc.cdAbsolute = std::filesystem::absolute(qc.cd);
 		}
 		else if (token == "$cdtexture")
 		{
@@ -2465,79 +2465,79 @@ void parse_qc_file(QC &qc_cmd)
 				error("Two $cdtexture in one model");
 			iscdtexturealreadyset = true;
 			get_token(false, token);
-			qc_cmd.cdtexture = token;
+			qc.cdtexture = token;
 		}
 		else if (token == "$scale")
 		{
-			cmd_scale(qc_cmd, token);
+			cmd_scale(qc, token);
 		}
 		else if (token == "$rotate") // XDM
 		{
-			cmd_rotate(qc_cmd, token);
+			cmd_rotate(qc, token);
 		}
 		else if (token == "$controller")
 		{
-			cmd_controller(qc_cmd, token);
+			cmd_controller(qc, token);
 		}
 		else if (token == "$body")
 		{
-			cmd_body(qc_cmd, token);
+			cmd_body(qc, token);
 		}
 		else if (token == "$bodygroup")
 		{
-			cmd_bodygroup(qc_cmd, token);
+			cmd_bodygroup(qc, token);
 		}
 		else if (token == "$sequence")
 		{
-			cmd_sequence(qc_cmd, token);
+			cmd_sequence(qc, token);
 		}
 		else if (token == "$eyeposition")
 		{
-			cmd_eyeposition(qc_cmd, token);
+			cmd_eyeposition(qc, token);
 		}
 		else if (token == "$origin")
 		{
-			cmd_origin(qc_cmd, token);
+			cmd_origin(qc, token);
 		}
 		else if (token == "$bbox")
 		{
-			cmd_bbox(qc_cmd, token);
+			cmd_bbox(qc, token);
 		}
 		else if (token == "$cbox")
 		{
-			cmd_cbox(qc_cmd, token);
+			cmd_cbox(qc, token);
 		}
 		else if (token == "$mirrorbone")
 		{
-			cmd_mirror(qc_cmd, token);
+			cmd_mirror(qc, token);
 		}
 		else if (token == "$gamma")
 		{
-			cmd_gamma(qc_cmd, token);
+			cmd_gamma(qc, token);
 		}
 		else if (token == "$flags")
 		{
-			cmd_flags(qc_cmd, token);
+			cmd_flags(qc, token);
 		}
 		else if (token == "$texturegroup")
 		{
-			cmd_texturegroup(qc_cmd, token);
+			cmd_texturegroup(qc, token);
 		}
 		else if (token == "$hgroup")
 		{
-			cmd_hitgroup(qc_cmd, token);
+			cmd_hitgroup(qc, token);
 		}
 		else if (token == "$hbox")
 		{
-			cmd_hitbox(qc_cmd, token);
+			cmd_hitbox(qc, token);
 		}
 		else if (token == "$attachment")
 		{
-			cmd_attachment(qc_cmd, token);
+			cmd_attachment(qc, token);
 		}
 		else if (token == "$renamebone")
 		{
-			cmd_renamebone(qc_cmd, token);
+			cmd_renamebone(qc, token);
 		}
 		else if (token == "$texrendermode")
 		{
@@ -2554,7 +2554,7 @@ void parse_qc_file(QC &qc_cmd)
 int main(int argc, char **argv)
 {
     std::filesystem::path path;
-    static QC qc_cmd;
+    static QC qc;
 
     g_flaginvertnormals = false;
     g_flagkeepallbones = false;
@@ -2614,10 +2614,10 @@ int main(int argc, char **argv)
     }
 
     load_qc_file(path);       
-    parse_qc_file(qc_cmd); 
-    set_skin_values(qc_cmd); 
-    simplify_model(qc_cmd); 
-    write_file(qc_cmd);      
+    parse_qc_file(qc); 
+    set_skin_values(qc); 
+    simplify_model(qc); 
+    write_file(qc);      
 
     return 0;
 }
