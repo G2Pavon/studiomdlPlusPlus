@@ -141,7 +141,7 @@ void write_sequence_info(StudioHeader *header, QC &qc, int &frames, float &secon
 		pseqdesc->fps = qc.sequences[i].fps;
 		pseqdesc->flags = qc.sequences[i].flags;
 
-		pseqdesc->numblends = qc.sequences[i].numblends;
+		pseqdesc->numblends = qc.sequences[i].anims.size();
 
 		pseqdesc->blendtype[0] = static_cast<int>(qc.sequences[i].blendtype[0]);
 		pseqdesc->blendtype[1] = static_cast<int>(qc.sequences[i].blendtype[1]);
@@ -226,27 +226,27 @@ std::uint8_t *write_animations(QC &qc, std::uint8_t *pData, const std::uint8_t *
 			// save animations
 			panim = (StudioAnimationFrameOffset *)pData;
 			qc.sequences[i].animindex = static_cast<int>(pData - pStart);
-			pData += qc.sequences[i].numblends * g_bonetable.size() * sizeof(StudioAnimationFrameOffset);
+			pData += qc.sequences[i].anims.size() * g_bonetable.size() * sizeof(StudioAnimationFrameOffset);
 			pData = (std::uint8_t *)ALIGN(pData);
 
 			panimvalue = (StudioAnimationValue *)pData;
-			for (int blends = 0; blends < qc.sequences[i].numblends; blends++)
+			for (int blends = 0; blends < qc.sequences[i].anims.size(); blends++)
 			{
 				// save animation value info
 				for (int j = 0; j < g_bonetable.size(); j++)
 				{
 					for (int k = 0; k < DEGREESOFFREEDOM; k++)
 					{
-						if (qc.sequences[i].panims[blends]->numanim[j][k] == 0)
+						if (qc.sequences[i].anims[blends].numanim[j][k] == 0)
 						{
 							panim->offset[k] = 0;
 						}
 						else
 						{
 							panim->offset[k] = static_cast<std::uint16_t>((std::uint8_t *)panimvalue - (std::uint8_t *)panim);
-							for (int n = 0; n < qc.sequences[i].panims[blends]->numanim[j][k]; n++)
+							for (int n = 0; n < qc.sequences[i].anims[blends].numanim[j][k]; n++)
 							{
-								panimvalue->value = qc.sequences[i].panims[blends]->anims[j][k][n].value;
+								panimvalue->value = qc.sequences[i].anims[blends].anims[j][k][n].value;
 								panimvalue++;
 							}
 						}

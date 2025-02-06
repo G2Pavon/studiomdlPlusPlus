@@ -76,7 +76,7 @@ void extract_motion(QC &qc)
 			// assume 0 for now.
 			Vector3 motion{0, 0, 0};
 			int typeMotion = qc.sequences[i].motiontype;
-			Vector3 *ptrPos = qc.sequences[i].panims[0]->pos[0];
+			Vector3 *ptrPos = qc.sequences[i].anims[0].pos[0];
 
 			k = qc.sequences[i].numframes - 1;
 
@@ -90,16 +90,16 @@ void extract_motion(QC &qc)
 			for (j = 0; j < qc.sequences[i].numframes; j++)
 			{
 				Vector3 adjustedPosition;
-				for (k = 0; k < qc.sequences[i].panims[0]->nodes.size(); k++)
+				for (k = 0; k < qc.sequences[i].anims[0].nodes.size(); k++)
 				{
-					if (qc.sequences[i].panims[0]->nodes[k].parent == -1)
+					if (qc.sequences[i].anims[0].nodes[k].parent == -1)
 					{
-						ptrPos = qc.sequences[i].panims[0]->pos[k];
+						ptrPos = qc.sequences[i].anims[0].pos[k];
 
 						adjustedPosition = motion * (static_cast<float>(j) / static_cast<float>(qc.sequences[i].numframes - 1));
-						for (blendIndex = 0; blendIndex < qc.sequences[i].numblends; blendIndex++)
+						for (blendIndex = 0; blendIndex < qc.sequences[i].anims.size(); blendIndex++)
 						{
-							qc.sequences[i].panims[blendIndex]->pos[k][j] = qc.sequences[i].panims[blendIndex]->pos[k][j] - adjustedPosition;
+							qc.sequences[i].anims[blendIndex].pos[k][j] = qc.sequences[i].anims[blendIndex].pos[k][j] - adjustedPosition;
 						}
 					}
 				}
@@ -117,19 +117,19 @@ void extract_motion(QC &qc)
 	for (i = 0; i < g_num_sequence; i++)
 	{
 		int typeUnusedMotion = qc.sequences[i].motiontype;
-		for (k = 0; k < qc.sequences[i].panims[0]->nodes.size(); k++)
+		for (k = 0; k < qc.sequences[i].anims[0].nodes.size(); k++)
 		{
-			if (qc.sequences[i].panims[0]->nodes[k].parent == -1)
+			if (qc.sequences[i].anims[0].nodes[k].parent == -1)
 			{
-				for (blendIndex = 0; blendIndex < qc.sequences[i].numblends; blendIndex++)
+				for (blendIndex = 0; blendIndex < qc.sequences[i].anims.size(); blendIndex++)
 				{
 					float motion[6];
-					motion[0] = qc.sequences[i].panims[blendIndex]->pos[k][0][0];
-					motion[1] = qc.sequences[i].panims[blendIndex]->pos[k][0][1];
-					motion[2] = qc.sequences[i].panims[blendIndex]->pos[k][0][2];
-					motion[3] = qc.sequences[i].panims[blendIndex]->rot[k][0][0];
-					motion[4] = qc.sequences[i].panims[blendIndex]->rot[k][0][1];
-					motion[5] = qc.sequences[i].panims[blendIndex]->rot[k][0][2];
+					motion[0] = qc.sequences[i].anims[blendIndex].pos[k][0][0];
+					motion[1] = qc.sequences[i].anims[blendIndex].pos[k][0][1];
+					motion[2] = qc.sequences[i].anims[blendIndex].pos[k][0][2];
+					motion[3] = qc.sequences[i].anims[blendIndex].rot[k][0][0];
+					motion[4] = qc.sequences[i].anims[blendIndex].rot[k][0][1];
+					motion[5] = qc.sequences[i].anims[blendIndex].rot[k][0][2];
 
 					for (j = 0; j < qc.sequences[i].numframes; j++)
 					{
@@ -142,11 +142,11 @@ void extract_motion(QC &qc)
 							sequence[i].panim[blendIndex]->pos[k][j][2] = motion[2];
 						*/
 						if (typeUnusedMotion & STUDIO_XR)
-							qc.sequences[i].panims[blendIndex]->rot[k][j][0] = motion[3];
+							qc.sequences[i].anims[blendIndex].rot[k][j][0] = motion[3];
 						if (typeUnusedMotion & STUDIO_YR)
-							qc.sequences[i].panims[blendIndex]->rot[k][j][1] = motion[4];
+							qc.sequences[i].anims[blendIndex].rot[k][j][1] = motion[4];
 						if (typeUnusedMotion & STUDIO_ZR)
-							qc.sequences[i].panims[blendIndex]->rot[k][j][2] = motion[5];
+							qc.sequences[i].anims[blendIndex].rot[k][j][2] = motion[5];
 					}
 				}
 			}
@@ -163,17 +163,17 @@ void optimize_animations(QC &qc)
 	// optimize animations
 	for (int i = 0; i < g_num_sequence; i++)
 	{
-		qc.sequences[i].numframes = qc.sequences[i].panims[0]->endframe - qc.sequences[i].panims[0]->startframe + 1;
+		qc.sequences[i].numframes = qc.sequences[i].anims[0].endframe - qc.sequences[i].anims[0].startframe + 1;
 
 		// force looping animations to be looping
 		if (qc.sequences[i].flags & STUDIO_LOOPING)
 		{
-			for (int j = 0; j < qc.sequences[i].panims[0]->nodes.size(); j++)
+			for (int j = 0; j < qc.sequences[i].anims[0].nodes.size(); j++)
 			{
-				for (int blends = 0; blends < qc.sequences[i].numblends; blends++)
+				for (int blends = 0; blends < qc.sequences[i].anims.size(); blends++)
 				{
-					Vector3 *ppos = qc.sequences[i].panims[blends]->pos[j];
-					Vector3 *prot = qc.sequences[i].panims[blends]->rot[j];
+					Vector3 *ppos = qc.sequences[i].anims[blends].pos[j];
+					Vector3 *prot = qc.sequences[i].anims[blends].rot[j];
 
 					startFrame = 0;								 // sequence[i].panim[q]->startframe;
 					endFrame = qc.sequences[i].numframes - 1; // sequence[i].panim[q]->endframe;
@@ -195,21 +195,21 @@ void optimize_animations(QC &qc)
 
 		for (int j = 0; j < qc.sequences[i].events.size(); j++)
 		{
-			if (qc.sequences[i].events[j].frame < qc.sequences[i].panims[0]->startframe)
+			if (qc.sequences[i].events[j].frame < qc.sequences[i].anims[0].startframe)
 			{
-				printf("sequence %s has event (%d) before first frame (%d)\n", qc.sequences[i].name, qc.sequences[i].events[j].frame, qc.sequences[i].panims[0]->startframe);
-				qc.sequences[i].events[j].frame = qc.sequences[i].panims[0]->startframe;
+				printf("sequence %s has event (%d) before first frame (%d)\n", qc.sequences[i].name, qc.sequences[i].events[j].frame, qc.sequences[i].anims[0].startframe);
+				qc.sequences[i].events[j].frame = qc.sequences[i].anims[0].startframe;
 				iError++;
 			}
-			if (qc.sequences[i].events[j].frame > qc.sequences[i].panims[0]->endframe)
+			if (qc.sequences[i].events[j].frame > qc.sequences[i].anims[0].endframe)
 			{
-				printf("sequence %s has event (%d) after last frame (%d)\n", qc.sequences[i].name, qc.sequences[i].events[j].frame, qc.sequences[i].panims[0]->endframe);
-				qc.sequences[i].events[j].frame = qc.sequences[i].panims[0]->endframe;
+				printf("sequence %s has event (%d) after last frame (%d)\n", qc.sequences[i].name, qc.sequences[i].events[j].frame, qc.sequences[i].anims[0].endframe);
+				qc.sequences[i].events[j].frame = qc.sequences[i].anims[0].endframe;
 				iError++;
 			}
 		}
 
-		qc.sequences[i].frameoffset = qc.sequences[i].panims[0]->startframe;
+		qc.sequences[i].frameoffset = qc.sequences[i].anims[0].startframe;
 	}
 }
 
@@ -411,13 +411,13 @@ void simplify_model(QC &qc)
 	// rename sequence bones if needed TODO: rename_sequence_bones()
 	for (i = 0; i < g_num_sequence; i++)
 	{
-		for (j = 0; j < qc.sequences[i].panims[0]->nodes.size(); j++)
+		for (j = 0; j < qc.sequences[i].anims[0].nodes.size(); j++)
 		{
 			for (k = 0; k < qc.renamebones.size(); k++)
 			{
-				if (qc.sequences[i].panims[0]->nodes[j].name == qc.renamebones[k].from)
+				if (qc.sequences[i].anims[0].nodes[j].name == qc.renamebones[k].from)
 				{
-					qc.sequences[i].panims[0]->nodes[j].name = qc.renamebones[k].to;
+					qc.sequences[i].anims[0].nodes[j].name = qc.renamebones[k].to;
 					break;
 				}
 			}
@@ -429,11 +429,11 @@ void simplify_model(QC &qc)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
-			qc.sequences[i].panims[0]->boneimap[k] = -1;
+			qc.sequences[i].anims[0].boneimap[k] = -1;
 		}
-		for (j = 0; j < qc.sequences[i].panims[0]->nodes.size(); j++)
+		for (j = 0; j < qc.sequences[i].anims[0].nodes.size(); j++)
 		{
-			k = find_node(qc.sequences[i].panims[0]->nodes[j].name);
+			k = find_node(qc.sequences[i].anims[0].nodes[j].name);
 
 			if (k == -1)
 			{
@@ -445,8 +445,8 @@ void simplify_model(QC &qc)
 				char *szNode = "ROOT";
 
 				// whoa, check parent connections!
-				if (qc.sequences[i].panims[0]->nodes[j].parent != -1)
-					szAnim = const_cast<char*>((qc.sequences[i].panims[0]->nodes[qc.sequences[i].panims[0]->nodes[j].parent].name).c_str());
+				if (qc.sequences[i].anims[0].nodes[j].parent != -1)
+					szAnim = const_cast<char*>((qc.sequences[i].anims[0].nodes[qc.sequences[i].anims[0].nodes[j].parent].name).c_str());
 
 				if (g_bonetable[k].parent != -1)
 					szNode = const_cast<char*>(g_bonetable[g_bonetable[k].parent].name.c_str());
@@ -455,12 +455,12 @@ void simplify_model(QC &qc)
 				{
 					printf("illegal parent bone replacement in sequence \"%s\"\n\t\"%s\" has \"%s\", reference has \"%s\"\n",
 						   qc.sequences[i].name,
-						   qc.sequences[i].panims[0]->nodes[j].name,
+						   qc.sequences[i].anims[0].nodes[j].name,
 						   szAnim,
 						   szNode);
 					iError++;
 				}
-				qc.sequences[i].panims[0]->boneimap[k] = j;
+				qc.sequences[i].anims[0].boneimap[k] = j;
 			}
 		}
 	}
@@ -631,28 +631,28 @@ void simplify_model(QC &qc)
 		Vector3 *origpos[MAXSTUDIOSRCBONES] = {nullptr};
 		Vector3 *origrot[MAXSTUDIOSRCBONES] = {nullptr};
 
-		for (q = 0; q < qc.sequences[i].numblends; q++)
+		for (q = 0; q < qc.sequences[i].anims.size(); q++)
 		{
 			// save pointers to original animations
-			for (j = 0; j < qc.sequences[i].panims[q]->nodes.size(); j++)
+			for (j = 0; j < qc.sequences[i].anims[q].nodes.size(); j++)
 			{
-				origpos[j] = qc.sequences[i].panims[q]->pos[j];
-				origrot[j] = qc.sequences[i].panims[q]->rot[j];
+				origpos[j] = qc.sequences[i].anims[q].pos[j];
+				origrot[j] = qc.sequences[i].anims[q].rot[j];
 			}
 
 			for (j = 0; j < g_bonetable.size(); j++)
 			{
-				if ((k = qc.sequences[i].panims[0]->boneimap[j]) >= 0)
+				if ((k = qc.sequences[i].anims[0].boneimap[j]) >= 0)
 				{
 					// link to original animations
-					qc.sequences[i].panims[q]->pos[j] = origpos[k];
-					qc.sequences[i].panims[q]->rot[j] = origrot[k];
+					qc.sequences[i].anims[q].pos[j] = origpos[k];
+					qc.sequences[i].anims[q].rot[j] = origrot[k];
 				}
 				else
 				{
 					// link to dummy animations
-					qc.sequences[i].panims[q]->pos[j] = defaultpos[j];
-					qc.sequences[i].panims[q]->rot[j] = defaultrot[j];
+					qc.sequences[i].anims[q].pos[j] = defaultpos[j];
+					qc.sequences[i].anims[q].rot[j] = defaultrot[j];
 				}
 			}
 		}
@@ -678,7 +678,7 @@ void simplify_model(QC &qc)
 
 			for (i = 0; i < g_num_sequence; i++)
 			{
-				for (q = 0; q < qc.sequences[i].numblends; q++)
+				for (q = 0; q < qc.sequences[i].anims.size(); q++)
 				{
 					for (n = 0; n < qc.sequences[i].numframes; n++)
 					{
@@ -688,12 +688,12 @@ void simplify_model(QC &qc)
 						case 0:
 						case 1:
 						case 2:
-							v = (qc.sequences[i].panims[q]->pos[j][n][k] - g_bonetable[j].pos[k]);
+							v = (qc.sequences[i].anims[q].pos[j][n][k] - g_bonetable[j].pos[k]);
 							break;
 						case 3:
 						case 4:
 						case 5:
-							v = (qc.sequences[i].panims[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
+							v = (qc.sequences[i].anims[q].rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
 							if (v >= Q_PI)
 								v -= Q_PI * 2;
 							if (v < -Q_PI)
@@ -750,7 +750,7 @@ void simplify_model(QC &qc)
 			bmax[j] = -9999.0;
 		}
 
-		for (q = 0; q < qc.sequences[i].numblends; q++)
+		for (q = 0; q < qc.sequences[i].anims.size(); q++)
 		{
 			for (n = 0; n < qc.sequences[i].numframes; n++)
 			{
@@ -762,15 +762,15 @@ void simplify_model(QC &qc)
 				{
 
 					Vector3 angles;
-					angles.x = to_degrees(qc.sequences[i].panims[q]->rot[j][n][0]);
-					angles.y = to_degrees(qc.sequences[i].panims[q]->rot[j][n][1]);
-					angles.z = to_degrees(qc.sequences[i].panims[q]->rot[j][n][2]);
+					angles.x = to_degrees(qc.sequences[i].anims[q].rot[j][n][0]);
+					angles.y = to_degrees(qc.sequences[i].anims[q].rot[j][n][1]);
+					angles.z = to_degrees(qc.sequences[i].anims[q].rot[j][n][2]);
 
 					angle_matrix(angles, bonematrix);
 
-					bonematrix[0][3] = qc.sequences[i].panims[q]->pos[j][n][0];
-					bonematrix[1][3] = qc.sequences[i].panims[q]->pos[j][n][1];
-					bonematrix[2][3] = qc.sequences[i].panims[q]->pos[j][n][2];
+					bonematrix[0][3] = qc.sequences[i].anims[q].pos[j][n][0];
+					bonematrix[1][3] = qc.sequences[i].anims[q].pos[j][n][1];
+					bonematrix[2][3] = qc.sequences[i].anims[q].pos[j][n][2];
 
 					if (g_bonetable[j].parent == -1)
 					{
@@ -816,7 +816,7 @@ void simplify_model(QC &qc)
 
 		for (i = 0; i < g_num_sequence; i++)
 		{
-			for (q = 0; q < qc.sequences[i].numblends; q++)
+			for (q = 0; q < qc.sequences[i].anims.size(); q++)
 			{
 				for (j = 0; j < g_bonetable.size(); j++)
 				{
@@ -833,12 +833,12 @@ void simplify_model(QC &qc)
 							case 0:
 							case 1:
 							case 2:
-								value[n] = static_cast<short>((qc.sequences[i].panims[q]->pos[j][n][k] - g_bonetable[j].pos[k]) / g_bonetable[j].posscale[k]);
+								value[n] = static_cast<short>((qc.sequences[i].anims[q].pos[j][n][k] - g_bonetable[j].pos[k]) / g_bonetable[j].posscale[k]);
 								break;
 							case 3:
 							case 4:
 							case 5:
-								v = (qc.sequences[i].panims[q]->rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
+								v = (qc.sequences[i].anims[q].rot[j][n][k - 3] - g_bonetable[j].rot[k - 3]);
 								if (v >= Q_PI)
 									v -= Q_PI * 2;
 								if (v < -Q_PI)
@@ -851,7 +851,7 @@ void simplify_model(QC &qc)
 						if (n == 0)
 							error("no animation frames: " + qc.sequences[i].name + "\n");
 
-						qc.sequences[i].panims[q]->numanim[j][k] = 0;
+						qc.sequences[i].anims[q].numanim[j][k] = 0;
 
 						std::memset(data, 0, sizeof(data));
 						StudioAnimationValue *pcount = data;
@@ -900,15 +900,15 @@ void simplify_model(QC &qc)
 							pcount->num.total++;
 						}
 
-						qc.sequences[i].panims[q]->numanim[j][k] = static_cast<int>(pvalue - data);
-						if (qc.sequences[i].panims[q]->numanim[j][k] == 2 && value[0] == 0)
+						qc.sequences[i].anims[q].numanim[j][k] = static_cast<int>(pvalue - data);
+						if (qc.sequences[i].anims[q].numanim[j][k] == 2 && value[0] == 0)
 						{
-							qc.sequences[i].panims[q]->numanim[j][k] = 0;
+							qc.sequences[i].anims[q].numanim[j][k] = 0;
 						}
 						else
 						{
-							qc.sequences[i].panims[q]->anims[j][k] = (StudioAnimationValue *)std::calloc(pvalue - data, sizeof(StudioAnimationValue));
-							std::memcpy(qc.sequences[i].panims[q]->anims[j][k], data, (pvalue - data) * sizeof(StudioAnimationValue));
+							qc.sequences[i].anims[q].anims[j][k] = (StudioAnimationValue *)std::calloc(pvalue - data, sizeof(StudioAnimationValue));
+							std::memcpy(qc.sequences[i].anims[q].anims[j][k], data, (pvalue - data) * sizeof(StudioAnimationValue));
 						}
 					}
 				}
@@ -1725,7 +1725,7 @@ void cmd_body(QC &qc, std::string &token)
 	cmd_body_option_studio(qc, token);
 }
 
-void grab_option_animation(QC &qc, Animation *panim)
+void grab_option_animation(QC &qc, Animation &panim)
 {
 	Vector3 pos;
 	Vector3 rot;
@@ -1735,10 +1735,10 @@ void grab_option_animation(QC &qc, Animation *panim)
 	int start = 99999;
 	int end = 0;
 
-	for (index = 0; index < panim->nodes.size(); index++)
+	for (index = 0; index < panim.nodes.size(); index++)
 	{
-		panim->pos[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
-		panim->rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
+		panim.pos[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
+		panim.rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 	}
 
 	float cz = cosf(qc.rotate);
@@ -1749,34 +1749,34 @@ void grab_option_animation(QC &qc, Animation *panim)
 		g_smdlinecount++;
 		if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f", &index, &pos[0], &pos[1], &pos[2], &rot[0], &rot[1], &rot[2]) == 7)
 		{
-			if (t >= panim->startframe && t <= panim->endframe)
+			if (t >= panim.startframe && t <= panim.endframe)
 			{
-				if (panim->nodes[index].parent == -1)
+				if (panim.nodes[index].parent == -1)
 				{
 					pos -= qc.sequenceOrigin; // adjust vertex to origin
-					panim->pos[index][t][0] = cz * pos[0] - sz * pos[1];
-					panim->pos[index][t][1] = sz * pos[0] + cz * pos[1];
-					panim->pos[index][t][2] = pos[2];
+					panim.pos[index][t][0] = cz * pos[0] - sz * pos[1];
+					panim.pos[index][t][1] = sz * pos[0] + cz * pos[1];
+					panim.pos[index][t][2] = pos[2];
 					// rotate model
 					rot[2] += qc.rotate;
 				}
 				else
 				{
-					panim->pos[index][t] = pos;
+					panim.pos[index][t] = pos;
 				}
 				if (t > end)
 					end = t;
 				if (t < start)
 					start = t;
 
-				if (panim->nodes[index].mirrored)
-					panim->pos[index][t] = panim->pos[index][t] * -1.0;
+				if (panim.nodes[index].mirrored)
+					panim.pos[index][t] = panim.pos[index][t] * -1.0;
 
-				panim->pos[index][t] *= qc.scaleBodyAndSequenceOption; // scale vertex
+				panim.pos[index][t] *= qc.scaleBodyAndSequenceOption; // scale vertex
 
 				clip_rotations(rot);
 
-				panim->rot[index][t] = rot;
+				panim.rot[index][t] = rot;
 			}
 		}
 		else if (sscanf(g_currentsmdline, "%s %d", cmd, &index))
@@ -1787,8 +1787,8 @@ void grab_option_animation(QC &qc, Animation *panim)
 			}
 			else if (std::strcmp(cmd, "end") == 0)
 			{
-				panim->startframe = start;
-				panim->endframe = end;
+				panim.startframe = start;
+				panim.endframe = end;
 				return;
 			}
 			else
@@ -1801,37 +1801,37 @@ void grab_option_animation(QC &qc, Animation *panim)
 			error("Error(" + std::to_string(g_smdlinecount) + ") : " + g_currentsmdline);
 		}
 	}
-	error("unexpected EOF: " + std::string(panim->name));
+	error("unexpected EOF: " + std::string(panim.name));
 }
 
-void shift_option_animation(Animation *panim)
+void shift_option_animation(Animation &anim)
 {
-	int size = (panim->endframe - panim->startframe + 1) * sizeof(Vector3);
+	int size = (anim.endframe - anim.startframe + 1) * sizeof(Vector3);
 	// shift
-	for (int j = 0; j < panim->nodes.size(); j++)
+	for (int j = 0; j < anim.nodes.size(); j++)
 	{
 		Vector3 *ppos = (Vector3 *)std::calloc(1, size);
 		Vector3 *prot = (Vector3 *)std::calloc(1, size);
 
-		std::memcpy(ppos, &panim->pos[j][panim->startframe], size);
-		std::memcpy(prot, &panim->rot[j][panim->startframe], size);
+		std::memcpy(ppos, &anim.pos[j][anim.startframe], size);
+		std::memcpy(prot, &anim.rot[j][anim.startframe], size);
 
-		free(panim->pos[j]);
-		free(panim->rot[j]);
+		free(anim.pos[j]);
+		free(anim.rot[j]);
 
-		panim->pos[j] = ppos;
-		panim->rot[j] = prot;
+		anim.pos[j] = ppos;
+		anim.rot[j] = prot;
 	}
 }
 
-void cmd_sequence_option_animation(QC &qc, std::string &name, Animation *panim)
+void cmd_sequence_option_animation(QC &qc, std::string &name, Animation &anim)
 {
 	char cmd[1024];
 	int option;
 
-	panim->name = name;
+	anim.name = name;
 
-	g_smdpath = qc.cdAbsolute / (std::string(panim->name) + ".smd");
+	g_smdpath = qc.cdAbsolute / (std::string(anim.name) + ".smd");
 	if (!std::filesystem::exists(g_smdpath))
 		error(g_smdpath.string() + " doesn't exist");
 
@@ -1857,12 +1857,12 @@ void cmd_sequence_option_animation(QC &qc, std::string &name, Animation *panim)
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			grab_smd_nodes(qc, panim->nodes);
+			grab_smd_nodes(qc, anim.nodes);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
-			grab_option_animation(qc, panim);
-			shift_option_animation(panim);
+			grab_option_animation(qc, anim);
+			shift_option_animation(anim);
 		}
 		else
 		{
@@ -2143,20 +2143,18 @@ int cmd_sequence(QC &qc, std::string &token)
 		printf("no animations found\n");
 		exit(1);
 	}
+
 	for (i = 0; i < smd_files.size(); i++)
 	{
-		qc.sequenceAnimationOptions.push_back(new Animation());
-		Animation* newAnim = qc.sequenceAnimationOptions.back();
-		qc.sequences[g_num_sequence].panims[i] = newAnim;
+		qc.sequenceAnimationOptions.push_back(Animation());
+		Animation& newAnim = qc.sequenceAnimationOptions.back();
 
-		newAnim->startframe = start;
-		newAnim->endframe = end;
+		newAnim.startframe = start;
+		newAnim.endframe = end;
 
 		cmd_sequence_option_animation(qc, smd_files[i], newAnim);
-
+		qc.sequences[g_num_sequence].anims.push_back(newAnim);
 	}
-
-	qc.sequences[g_num_sequence].numblends = smd_files.size(); // MAXSTUDIOBLENDS
 
 	g_num_sequence++;
 

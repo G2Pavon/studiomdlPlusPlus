@@ -131,8 +131,7 @@ struct Sequence
 
     std::vector<Event> events;
 
-    int numblends;
-    Animation *panims[MAXSTUDIOGROUPS];
+    std::vector<Animation> anims;
     float blendtype[MAXSEQUENCEBLEND];
     float blendstart[MAXSEQUENCEBLEND];
     float blendend[MAXSEQUENCEBLEND];

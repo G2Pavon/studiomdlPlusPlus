@@ -35,7 +35,7 @@ public:
     std::vector<RenameBone> renamebones; // $renamebone
     std::vector<HitGroup> hitgroups; // $hgroup
     std::vector<std::string> mirroredbones; // $mirrorbone
-    std::vector<Animation *> sequenceAnimationOptions; // $sequence, each sequence can have 16 blends
+    std::vector<Animation> sequenceAnimationOptions; // $sequence, each sequence can have 16 blends
 
     std::array<std::array<int, 32>, 32> texturegroups{}; // $texturegroup
     int texturegroup_rows;
