@@ -90,7 +90,7 @@ void extract_motion(QC &qc_cmd)
 			for (j = 0; j < qc_cmd.sequence[i].numframes; j++)
 			{
 				Vector3 adjustedPosition;
-				for (k = 0; k < qc_cmd.sequence[i].panim[0]->numbones; k++)
+				for (k = 0; k < qc_cmd.sequence[i].panim[0]->nodes.size(); k++)
 				{
 					if (qc_cmd.sequence[i].panim[0]->nodes[k].parent == -1)
 					{
@@ -117,7 +117,7 @@ void extract_motion(QC &qc_cmd)
 	for (i = 0; i < g_num_sequence; i++)
 	{
 		int typeUnusedMotion = qc_cmd.sequence[i].motiontype;
-		for (k = 0; k < qc_cmd.sequence[i].panim[0]->numbones; k++)
+		for (k = 0; k < qc_cmd.sequence[i].panim[0]->nodes.size(); k++)
 		{
 			if (qc_cmd.sequence[i].panim[0]->nodes[k].parent == -1)
 			{
@@ -168,7 +168,7 @@ void optimize_animations(QC &qc_cmd)
 		// force looping animations to be looping
 		if (qc_cmd.sequence[i].flags & STUDIO_LOOPING)
 		{
-			for (int j = 0; j < qc_cmd.sequence[i].panim[0]->numbones; j++)
+			for (int j = 0; j < qc_cmd.sequence[i].panim[0]->nodes.size(); j++)
 			{
 				for (int blends = 0; blends < qc_cmd.sequence[i].numblends; blends++)
 				{
@@ -326,7 +326,7 @@ void simplify_model(QC &qc_cmd)
 	// rename model bones if needed TODO: rename_submodel_bones()
 	for (i = 0; i < qc_cmd.submodel.size(); i++)
 	{
-		for (j = 0; j < qc_cmd.submodel[i]->numbones; j++)
+		for (j = 0; j < qc_cmd.submodel[i]->nodes.size(); j++)
 		{
 			for (k = 0; k < qc_cmd.renamebones.size(); k++)
 			{
@@ -347,7 +347,7 @@ void simplify_model(QC &qc_cmd)
 		{
 			qc_cmd.submodel[i]->boneimap[k] = -1;
 		}
-		for (j = 0; j < qc_cmd.submodel[i]->numbones; j++)
+		for (j = 0; j < qc_cmd.submodel[i]->nodes.size(); j++)
 		{
 			if (qc_cmd.submodel[i]->boneref[j])
 			{
@@ -411,7 +411,7 @@ void simplify_model(QC &qc_cmd)
 	// rename sequence bones if needed TODO: rename_sequence_bones()
 	for (i = 0; i < g_num_sequence; i++)
 	{
-		for (j = 0; j < qc_cmd.sequence[i].panim[0]->numbones; j++)
+		for (j = 0; j < qc_cmd.sequence[i].panim[0]->nodes.size(); j++)
 		{
 			for (k = 0; k < qc_cmd.renamebones.size(); k++)
 			{
@@ -431,7 +431,7 @@ void simplify_model(QC &qc_cmd)
 		{
 			qc_cmd.sequence[i].panim[0]->boneimap[k] = -1;
 		}
-		for (j = 0; j < qc_cmd.sequence[i].panim[0]->numbones; j++)
+		for (j = 0; j < qc_cmd.sequence[i].panim[0]->nodes.size(); j++)
 		{
 			k = find_node(qc_cmd.sequence[i].panim[0]->nodes[j].name);
 
@@ -634,7 +634,7 @@ void simplify_model(QC &qc_cmd)
 		for (q = 0; q < qc_cmd.sequence[i].numblends; q++)
 		{
 			// save pointers to original animations
-			for (j = 0; j < qc_cmd.sequence[i].panim[q]->numbones; j++)
+			for (j = 0; j < qc_cmd.sequence[i].panim[q]->nodes.size(); j++)
 			{
 				origpos[j] = qc_cmd.sequence[i].panim[q]->pos[j];
 				origrot[j] = qc_cmd.sequence[i].panim[q]->rot[j];
@@ -1299,7 +1299,7 @@ void build_reference(Model *pmodel)
 {
 	Vector3 boneAngle{};
 
-	for (int i = 0; i < pmodel->numbones; i++)
+	for (int i = 0; i < pmodel->nodes.size(); i++)
 	{
 		// convert to degrees
 		boneAngle[0] = to_degrees(pmodel->skeleton[i].rot[0]);
@@ -1412,7 +1412,7 @@ void grab_smd_triangles(QC &qc_cmd, Model *pmodel)
 							   &triangleNormal.org[0], &triangleNormal.org[1], &triangleNormal.org[2],
 							   &ptriangleVert->u, &ptriangleVert->v) == 9)
 					{
-						if (parentBone < 0 || parentBone >= pmodel->numbones)
+						if (parentBone < 0 || parentBone >= pmodel->nodes.size())
 						{
 							fprintf(stderr, "bogus bone index\n");
 							fprintf(stderr, "%d %s :\n%s", g_smdlinecount, g_smdpath.c_str(), g_currentsmdline);
@@ -1529,7 +1529,6 @@ int grab_smd_nodes(QC &qc_cmd, std::vector<Node> &nodes)
 			{
                 if (std::strcmp(bone_name, qc_cmd.mirroredbones[i].data()) == 0) {
                     nodes.back().mirrored = 1;
-                    break;
                 }
             }
 
@@ -1576,7 +1575,7 @@ void parse_smd(QC &qc_cmd, Model *pmodel)
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			pmodel->numbones = grab_smd_nodes(qc_cmd, pmodel->nodes);
+			grab_smd_nodes(qc_cmd, pmodel->nodes);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{
@@ -1741,7 +1740,7 @@ void grab_option_animation(QC &qc_cmd, Animation *panim)
 	int start = 99999;
 	int end = 0;
 
-	for (index = 0; index < panim->numbones; index++)
+	for (index = 0; index < panim->nodes.size(); index++)
 	{
 		panim->pos[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 		panim->rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
@@ -1814,7 +1813,7 @@ void shift_option_animation(Animation *panim)
 {
 	int size = (panim->endframe - panim->startframe + 1) * sizeof(Vector3);
 	// shift
-	for (int j = 0; j < panim->numbones; j++)
+	for (int j = 0; j < panim->nodes.size(); j++)
 	{
 		Vector3 *ppos = (Vector3 *)std::calloc(1, size);
 		Vector3 *prot = (Vector3 *)std::calloc(1, size);
@@ -1863,7 +1862,7 @@ void cmd_sequence_option_animation(QC &qc_cmd, std::string &name, Animation *pan
 		}
 		else if (std::strcmp(cmd, "nodes") == 0)
 		{
-			panim->numbones = grab_smd_nodes(qc_cmd, panim->nodes);
+			grab_smd_nodes(qc_cmd, panim->nodes);
 		}
 		else if (std::strcmp(cmd, "skeleton") == 0)
 		{

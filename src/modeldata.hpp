@@ -99,7 +99,6 @@ struct Animation
     std::string name; // before: name[64]
     int startframe;
     int endframe;
-    int numbones;
     std::vector<Node> nodes;
     int boneimap[MAXSTUDIOSRCBONES];
     Vector3 *pos[MAXSTUDIOSRCBONES];
@@ -195,7 +194,6 @@ struct Model
 {
     std::string name;
 
-    int numbones;
     std::vector<Node> nodes;
     Bone skeleton[MAXSTUDIOSRCBONES];
     int boneref[MAXSTUDIOSRCBONES];  // is local bone (or child) referenced with a vertex
