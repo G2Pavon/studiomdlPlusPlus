@@ -174,14 +174,14 @@ void write_sequence_info(StudioHeader *header, QC &qc_cmd, int &frames, float &s
 		// save events
 		{
 			StudioAnimationEvent *pevent = (StudioAnimationEvent *)g_currentposition; // Declare inside the block
-			pseqdesc->numevents = qc_cmd.sequence[i].numevents;
+			pseqdesc->numevents = qc_cmd.sequence[i].events.size();
 			pseqdesc->eventindex = static_cast<int>(g_currentposition - g_bufferstart);
 			g_currentposition += pseqdesc->numevents * sizeof(StudioAnimationEvent);
-			for (j = 0; j < qc_cmd.sequence[i].numevents; j++)
+			for (j = 0; j < qc_cmd.sequence[i].events.size(); j++)
 			{
-				pevent[j].frame = qc_cmd.sequence[i].event[j].frame - qc_cmd.sequence[i].frameoffset;
-				pevent[j].event = qc_cmd.sequence[i].event[j].event;
-				memcpy(pevent[j].options, qc_cmd.sequence[i].event[j].options.c_str(), sizeof(pevent[j].options));
+				pevent[j].frame = qc_cmd.sequence[i].events[j].frame - qc_cmd.sequence[i].frameoffset;
+				pevent[j].event = qc_cmd.sequence[i].events[j].event;
+				memcpy(pevent[j].options, qc_cmd.sequence[i].events[j].options.c_str(), sizeof(pevent[j].options));
 			}
 			g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 		}

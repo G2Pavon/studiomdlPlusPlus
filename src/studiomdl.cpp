@@ -193,18 +193,18 @@ void optimize_animations(QC &qc_cmd)
 			}
 		}
 
-		for (int j = 0; j < qc_cmd.sequence[i].numevents; j++)
+		for (int j = 0; j < qc_cmd.sequence[i].events.size(); j++)
 		{
-			if (qc_cmd.sequence[i].event[j].frame < qc_cmd.sequence[i].panim[0]->startframe)
+			if (qc_cmd.sequence[i].events[j].frame < qc_cmd.sequence[i].panim[0]->startframe)
 			{
-				printf("sequence %s has event (%d) before first frame (%d)\n", qc_cmd.sequence[i].name, qc_cmd.sequence[i].event[j].frame, qc_cmd.sequence[i].panim[0]->startframe);
-				qc_cmd.sequence[i].event[j].frame = qc_cmd.sequence[i].panim[0]->startframe;
+				printf("sequence %s has event (%d) before first frame (%d)\n", qc_cmd.sequence[i].name, qc_cmd.sequence[i].events[j].frame, qc_cmd.sequence[i].panim[0]->startframe);
+				qc_cmd.sequence[i].events[j].frame = qc_cmd.sequence[i].panim[0]->startframe;
 				iError++;
 			}
-			if (qc_cmd.sequence[i].event[j].frame > qc_cmd.sequence[i].panim[0]->endframe)
+			if (qc_cmd.sequence[i].events[j].frame > qc_cmd.sequence[i].panim[0]->endframe)
 			{
-				printf("sequence %s has event (%d) after last frame (%d)\n", qc_cmd.sequence[i].name, qc_cmd.sequence[i].event[j].frame, qc_cmd.sequence[i].panim[0]->endframe);
-				qc_cmd.sequence[i].event[j].frame = qc_cmd.sequence[i].panim[0]->endframe;
+				printf("sequence %s has event (%d) after last frame (%d)\n", qc_cmd.sequence[i].name, qc_cmd.sequence[i].events[j].frame, qc_cmd.sequence[i].panim[0]->endframe);
+				qc_cmd.sequence[i].events[j].frame = qc_cmd.sequence[i].panim[0]->endframe;
 				iError++;
 			}
 		}
@@ -1885,33 +1885,34 @@ void cmd_sequence_option_animation(QC &qc_cmd, std::string &name, Animation *pan
 
 int cmd_sequence_option_event(std::string &token, Sequence *psequence)
 {
-	if (psequence->numevents + 1 >= MAXSTUDIOEVENTS)
-	{
+    if (psequence->events.size() >= MAXSTUDIOEVENTS)
+ 	{
 		printf("too many events\n");
 		exit(0);
 	}
 
-	get_token(false, token);
-	int event = std::stoi(token);
-	psequence->event[psequence->numevents].event = event;
+    get_token(false, token);
+    int event_id;
 
-	get_token(false, token);
-	psequence->event[psequence->numevents].frame = std::stoi(token);
+	event_id = std::stoi(token);
 
-	psequence->numevents++;
+    get_token(false, token);
+    int frame;
+	frame = std::stoi(token);
 
-	// option token
-	if (token_available())
-	{
-		get_token(false, token);
-		if (token[0] == '}') // opps, hit the end
-			return 1;
-		// found an option
-		psequence->event[psequence->numevents - 1].options = token;
-	}
+    psequence->events.emplace_back(Event{event_id, frame, ""});
 
-	return 0;
+    if (token_available())
+    {
+        get_token(false, token);
+        if (token[0] == '}')
+            return 1;
+        psequence->events.back().options = token;
+    }
+
+    return 0;
 }
+
 
 int cmd_sequence_option_fps(std::string &token, Sequence *psequence)
 {

@@ -130,8 +130,7 @@ struct Sequence
 
     int frameoffset; // used to adjust frame numbers
 
-    int numevents;
-    Event event[MAXSTUDIOEVENTS];
+    std::vector<Event> events;
 
     int numblends;
     Animation *panim[MAXSTUDIOGROUPS];
