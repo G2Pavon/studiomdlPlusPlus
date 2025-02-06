@@ -10,12 +10,6 @@
 #include "modeldata.hpp"
 #include "format/mdl.hpp"
 
-// Global variables for count commands
-// since array does not have .size() like vector
-// TODO: use vector instead
-
-extern int g_num_sequence;
-
 class QC
 {
 public:
@@ -48,7 +42,7 @@ public:
     std::vector<BoneController> bonecontrollers; // $controller
     std::vector<Attachment> attachments; // $attachment
 
-    std::array<Sequence, MAXSTUDIOSEQUENCES> sequences{}; // $sequence
+    std::vector<Sequence> sequences; // $sequence
 
     std::vector<Model*> submodels; // $body
 
@@ -63,7 +57,6 @@ public:
         texturegroups.fill({});
         bbox.fill(Vector3{});
         cbox.fill(Vector3{});
-        sequences.fill(Sequence{});
     }
 };
 

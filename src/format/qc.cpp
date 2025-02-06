@@ -3,7 +3,6 @@
 #include "qc.hpp"
 #include <iostream>
 
-int g_num_sequence = 0;
 
 std::vector<char> qc_script_buffer;
 char* qc_stream_p = nullptr;

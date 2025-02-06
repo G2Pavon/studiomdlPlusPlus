@@ -67,7 +67,7 @@ void extract_motion(QC &qc)
 	int blendIndex;
 
 	// extract linear motion
-	for (i = 0; i < g_num_sequence; i++)
+	for (i = 0; i < qc.sequences.size(); i++)
 	{
 		if (qc.sequences[i].numframes > 1)
 		{
@@ -112,7 +112,7 @@ void extract_motion(QC &qc)
 	}
 
 	// extract unused motion
-	for (i = 0; i < g_num_sequence; i++)
+	for (i = 0; i < qc.sequences.size(); i++)
 	{
 		int typeUnusedMotion = qc.sequences[i].motiontype;
 		for (k = 0; k < qc.sequences[i].anims[0].nodes.size(); k++)
@@ -151,7 +151,7 @@ void optimize_animations(QC &qc)
 	int iError = 0;
 
 	// optimize animations
-	for (int i = 0; i < g_num_sequence; i++)
+	for (int i = 0; i < qc.sequences.size(); i++)
 	{
 		qc.sequences[i].numframes = qc.sequences[i].anims[0].endframe - qc.sequences[i].anims[0].startframe + 1;
 
@@ -221,7 +221,7 @@ void make_transitions(QC &qc)
 	int iHit;
 
 	// Add in direct node transitions
-	for (i = 0; i < g_num_sequence; i++)
+	for (i = 0; i < qc.sequences.size(); i++)
 	{
 		if (qc.sequences[i].entrynode != qc.sequences[i].exitnode)
 		{
@@ -399,7 +399,7 @@ void simplify_model(QC &qc)
 	}
 
 	// rename sequence bones if needed TODO: rename_sequence_bones()
-	for (i = 0; i < g_num_sequence; i++)
+	for (i = 0; i < qc.sequences.size(); i++)
 	{
 		for (j = 0; j < qc.sequences[i].anims[0].nodes.size(); j++)
 		{
@@ -415,7 +415,7 @@ void simplify_model(QC &qc)
 	}
 
 	// map each sequences bone list to master list TODO: map_sequence_bones()
-	for (i = 0; i < g_num_sequence; i++)
+	for (i = 0; i < qc.sequences.size(); i++)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -616,7 +616,7 @@ void simplify_model(QC &qc)
 	}
 
 	// relink animations TODO: relink_animations()
-	for (i = 0; i < g_num_sequence; i++)
+	for (i = 0; i < qc.sequences.size(); i++)
 	{
 		Vector3 *origpos[MAXSTUDIOSRCBONES] = {nullptr};
 		Vector3 *origrot[MAXSTUDIOSRCBONES] = {nullptr};
@@ -666,7 +666,7 @@ void simplify_model(QC &qc)
 				maxv = Q_PI / 8.0;
 			}
 
-			for (i = 0; i < g_num_sequence; i++)
+			for (i = 0; i < qc.sequences.size(); i++)
 			{
 				for (q = 0; q < qc.sequences[i].anims.size(); q++)
 				{
@@ -729,7 +729,7 @@ void simplify_model(QC &qc)
 	}
 
 	// find bounding box for each sequence TODO: find_sequence_bounding_boxes()
-	for (i = 0; i < g_num_sequence; i++)
+	for (i = 0; i < qc.sequences.size(); i++)
 	{
 		Vector3 bmin, bmax;
 
@@ -804,7 +804,7 @@ void simplify_model(QC &qc)
 		int changes = 0;
 		int p;
 
-		for (i = 0; i < g_num_sequence; i++)
+		for (i = 0; i < qc.sequences.size(); i++)
 		{
 			for (q = 0; q < qc.sequences[i].anims.size(); q++)
 			{
@@ -1858,9 +1858,9 @@ void cmd_sequence_option_animation(QC &qc, std::string &name, Animation &anim)
 	fclose(g_smdfile);
 }
 
-int cmd_sequence_option_event(std::string &token, Sequence *psequence)
+int cmd_sequence_option_event(std::string &token, Sequence &seq)
 {
-    if (psequence->events.size() >= MAXSTUDIOEVENTS)
+    if (seq.events.size() >= MAXSTUDIOEVENTS)
  	{
 		printf("too many events\n");
 		exit(0);
@@ -1875,24 +1875,24 @@ int cmd_sequence_option_event(std::string &token, Sequence *psequence)
     int frame;
 	frame = std::stoi(token);
 
-    psequence->events.emplace_back(Event{event_id, frame, ""});
+    seq.events.emplace_back(Event{event_id, frame, ""});
 
     if (token_available())
     {
         get_token(false, token);
         if (token[0] == '}')
             return 1;
-        psequence->events.back().options = token;
+        seq.events.back().options = token;
     }
 
     return 0;
 }
 
 
-int cmd_sequence_option_fps(std::string &token, Sequence *psequence)
+int cmd_sequence_option_fps(std::string &token, Sequence &seq)
 {
 	get_token(false, token);
-	psequence->fps = std::stof(token);
+	seq.fps = std::stof(token);
 
 	return 0;
 }
@@ -1980,16 +1980,18 @@ int cmd_sequence(QC &qc, std::string &token)
 	if (!get_token(false, token))
 		return 0;
 
-	qc.sequences[g_num_sequence].name = token;
+	Sequence newseq;
+
+	newseq.name = token;
 
 	qc.sequenceOrigin = qc.origin;
 	qc.scaleBodyAndSequenceOption = qc.scale;
 
 	qc.rotate = qc.originRotation;
-	qc.sequences[g_num_sequence].fps = 30.0;
-	qc.sequences[g_num_sequence].seqgroup = 0; // 0 since $sequencegroup is deprecated
-	qc.sequences[g_num_sequence].blendstart[0] = 0.0;
-	qc.sequences[g_num_sequence].blendend[0] = 1.0;
+	newseq.fps = 30.0;
+	newseq.seqgroup = 0; // 0 since $sequencegroup is deprecated
+	newseq.blendstart[0] = 0.0;
+	newseq.blendend[0] = 1.0;
 
 	while (true)
 	{
@@ -2031,11 +2033,11 @@ int cmd_sequence(QC &qc, std::string &token)
 		}
 		else if (token == "event")
 		{
-			depth -= cmd_sequence_option_event(token, &qc.sequences[g_num_sequence]);
+			depth -= cmd_sequence_option_event(token, newseq);
 		}
 		else if (token == "fps")
 		{
-			cmd_sequence_option_fps(token, &qc.sequences[g_num_sequence]);
+			cmd_sequence_option_fps(token, newseq);
 		}
 		else if (token == "origin")
 		{
@@ -2051,7 +2053,7 @@ int cmd_sequence(QC &qc, std::string &token)
 		}
 		else if (token == "loop")
 		{
-			qc.sequences[g_num_sequence].flags |= STUDIO_LOOPING;
+			newseq.flags |= STUDIO_LOOPING;
 		}
 		else if (token == "frame")
 		{
@@ -2063,35 +2065,35 @@ int cmd_sequence(QC &qc, std::string &token)
 		else if (token == "blend")
 		{
 			get_token(false, token);
-			qc.sequences[g_num_sequence].blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
+			newseq.blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
 			get_token(false, token);
-			qc.sequences[g_num_sequence].blendstart[0] = std::stof(token);
+			newseq.blendstart[0] = std::stof(token);
 			get_token(false, token);
-			qc.sequences[g_num_sequence].blendend[0] = std::stof(token);
+			newseq.blendend[0] = std::stof(token);
 		}
 		else if (token == "node")
 		{
 			get_token(false, token);
-			qc.sequences[g_num_sequence].entrynode = qc.sequences[g_num_sequence].exitnode = std::stoi(token);
+			newseq.entrynode = newseq.exitnode = std::stoi(token);
 		}
 		else if (token == "transition")
 		{
 			get_token(false, token);
-			qc.sequences[g_num_sequence].entrynode = std::stoi(token);
+			newseq.entrynode = std::stoi(token);
 			get_token(false, token);
-			qc.sequences[g_num_sequence].exitnode = std::stoi(token);
+			newseq.exitnode = std::stoi(token);
 		}
 		else if (token == "rtransition")
 		{
 			get_token(false, token);
-			qc.sequences[g_num_sequence].entrynode = std::stoi(token);
+			newseq.entrynode = std::stoi(token);
 			get_token(false, token);
-			qc.sequences[g_num_sequence].exitnode = std::stoi(token);
-			qc.sequences[g_num_sequence].nodeflags |= 1;
+			newseq.exitnode = std::stoi(token);
+			newseq.nodeflags |= 1;
 		}
 		else if (lookup_control(token.c_str()) != -1) // motion flags [motion extraction]
 		{
-			qc.sequences[g_num_sequence].motiontype |= lookup_control(token.c_str());
+			newseq.motiontype |= lookup_control(token.c_str());
 		}
 		else if (token == "animation")
 		{
@@ -2100,9 +2102,9 @@ int cmd_sequence(QC &qc, std::string &token)
 		}
 		else if ((i = cmd_sequence_option_action(token)) != 0)
 		{
-			qc.sequences[g_num_sequence].activity = i;
+			newseq.activity = i;
 			get_token(false, token);
-			qc.sequences[g_num_sequence].actweight = std::stoi(token);
+			newseq.actweight = std::stoi(token);
 		}
 		else
 		{
@@ -2131,10 +2133,10 @@ int cmd_sequence(QC &qc, std::string &token)
 		newAnim.endframe = end;
 
 		cmd_sequence_option_animation(qc, smd_files[i], newAnim);
-		qc.sequences[g_num_sequence].anims.push_back(newAnim);
+		newseq.anims.push_back(newAnim);
 	}
 
-	g_num_sequence++;
+	qc.sequences.push_back(newseq);
 
 	return 0;
 }

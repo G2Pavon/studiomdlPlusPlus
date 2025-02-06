@@ -130,11 +130,11 @@ void write_sequence_info(StudioHeader *header, QC &qc, int &frames, float &secon
 
 	// save sequence info
 	StudioSequenceDescription *pseqdesc = (StudioSequenceDescription *)g_currentposition;
-	header->numseq = g_num_sequence;
+	header->numseq = qc.sequences.size();
 	header->seqindex = static_cast<int>(g_currentposition - g_bufferstart);
-	g_currentposition += g_num_sequence * sizeof(StudioSequenceDescription);
+	g_currentposition += qc.sequences.size() * sizeof(StudioSequenceDescription);
 
-	for (i = 0; i < g_num_sequence; i++, pseqdesc++)
+	for (i = 0; i < qc.sequences.size(); i++, pseqdesc++)
 	{
 		std::strcpy(pseqdesc->label, qc.sequences[i].name.c_str());
 		pseqdesc->numframes = qc.sequences[i].numframes;
@@ -219,7 +219,7 @@ std::uint8_t *write_animations(QC &qc, std::uint8_t *pData, const std::uint8_t *
 	// hack for seqgroup 0
 	// pseqgroup->data = (pData - pStart);
 
-	for (int i = 0; i < g_num_sequence; i++)
+	for (int i = 0; i < qc.sequences.size(); i++)
 	{
 		if (qc.sequences[i].seqgroup == group)
 		{
