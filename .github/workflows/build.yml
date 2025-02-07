@@ -83,7 +83,7 @@ jobs:
         if-no-files-found: error
 
     - name: Upload Binaries (Windows)
-      if: matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-2019'
       uses: actions/upload-artifact@v4
       with:
         name: studiomdl++${{ matrix.os }}
