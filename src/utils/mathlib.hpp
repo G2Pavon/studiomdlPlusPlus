@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <numbers>
+#include <array>
 
 constexpr float Q_PI = std::numbers::pi_v<float>;
 constexpr float EPSILON = 0.001f;
@@ -137,10 +138,11 @@ struct Vector3
 float to_radians(float deg);
 float to_degrees(float rad);
 
-void matrix_copy(float in[3][4], float out[3][4]);
 
-void angle_matrix(const Vector3 &angles, float matrix[3][4]);
-void angle_i_matrix(const Vector3 &angles, float matrix[3][4]);
+using Matrix3x4 = std::array<std::array<float, 4>, 3>;
 
-void concat_transforms(const float A[3][4], const float B[3][4], float C[3][4]);
-void vector_transform(const Vector3 &in1, const float in2[3][4], Vector3 &out);
+void matrix_copy(const Matrix3x4 &in, Matrix3x4 &out);
+Matrix3x4 angle_matrix(const Vector3 &angles);
+Matrix3x4 angle_i_matrix(const Vector3 &angles);
+Matrix3x4 concat_transforms(const Matrix3x4 &A, const Matrix3x4 &B);
+Vector3 vector_transform(const Vector3 &in1, const Matrix3x4 &in2);

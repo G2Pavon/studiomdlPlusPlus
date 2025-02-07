@@ -297,7 +297,7 @@ void simplify_model(QC &qc)
 		}
 		for (auto& vert : submodel->verts)
 		{
-			submodel->boneref[vert.bone] = 1;
+			submodel->boneref[vert.bone_id] = 1;
 		}
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -503,12 +503,12 @@ void simplify_model(QC &qc)
 	{
 		for (auto& vert : submodel->verts)
 		{
-			vert.bone = submodel->bonemap[vert.bone];
+			vert.bone_id = submodel->bonemap[vert.bone_id];
 		}
 
 		for (auto& normal : submodel->normals)
 		{
-			normal.bone = submodel->bonemap[normal.bone];
+			normal.bone_id = submodel->bonemap[normal.bone_id];
 		}
 	}
 
@@ -561,8 +561,8 @@ void simplify_model(QC &qc)
 			Vector3 p;
 			for (auto& vert : submodel->verts)
 			{
-				p = vert.org;
-				k = vert.bone;
+				p = vert.pos;
+				k = vert.bone_id;
 
 				if (p[0] < g_bonetable[k].bmin[0])
 					g_bonetable[k].bmin[0] = p[0];
@@ -762,8 +762,8 @@ void simplify_model(QC &qc)
 		{
 			for (n = 0; n < sequence.numframes; n++)
 			{
-				float bonetransform[MAXSTUDIOBONES][3][4]; // bone transformation matrix
-				float bonematrix[3][4];					   // local transformation matrix
+				Matrix3x4 bonetransform[MAXSTUDIOBONES]; // bone transformation matrix
+				Matrix3x4 bonematrix;					   // local transformation matrix
 				Vector3 pos;
 				int j = 0;
 				for (auto& bone : g_bonetable)
@@ -774,7 +774,7 @@ void simplify_model(QC &qc)
 					angles.y = to_degrees(anim.rot[j][n][1]);
 					angles.z = to_degrees(anim.rot[j][n][2]);
 
-					angle_matrix(angles, bonematrix);
+					bonematrix = angle_matrix(angles);
 
 					bonematrix[0][3] = anim.pos[j][n][0];
 					bonematrix[1][3] = anim.pos[j][n][1];
@@ -786,7 +786,7 @@ void simplify_model(QC &qc)
 					}
 					else
 					{
-						concat_transforms(bonetransform[bone.parent], bonematrix, bonetransform[j]);
+						 bonetransform[j] = concat_transforms(bonetransform[bone.parent], bonematrix);
 					}
 					j++;
 				}
@@ -795,7 +795,7 @@ void simplify_model(QC &qc)
 				{
 					for (auto& vert : submodel->verts)
 					{
-						vector_transform(vert.org, bonetransform[vert.bone], pos);
+						pos = vector_transform(vert.pos, bonetransform[vert.bone_id]);
 
 						if (pos[0] < bmin[0]) bmin[0] = pos[0];
 						if (pos[1] < bmin[1]) bmin[1] = pos[1];
@@ -1032,7 +1032,7 @@ int find_vertex_normal_index(Model *pmodel, Normal *pnormal)
 	int i = 0;
 	for (auto& normal : pmodel->normals)
 	{
-		if (normal.org.dot(pnormal->org) > g_flagnormalblendangle && normal.bone == pnormal->bone && normal.skinref == pnormal->skinref)
+		if (normal.pos.dot(pnormal->pos) > g_flagnormalblendangle && normal.bone_id == pnormal->bone_id && normal.skinref == pnormal->skinref)
 		{
 			return i;
 		}
@@ -1050,13 +1050,13 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 {
 	int i = 0;
 	// assume 2 digits of accuracy
-	pv->org[0] = static_cast<int>(pv->org[0] * 100.0f) / 100.0f;
-	pv->org[1] = static_cast<int>(pv->org[1] * 100.0f) / 100.0f;
-	pv->org[2] = static_cast<int>(pv->org[2] * 100.0f) / 100.0f;
+	pv->pos[0] = static_cast<int>(pv->pos[0] * 100.0f) / 100.0f;
+	pv->pos[1] = static_cast<int>(pv->pos[1] * 100.0f) / 100.0f;
+	pv->pos[2] = static_cast<int>(pv->pos[2] * 100.0f) / 100.0f;
 
 	for (auto& vert : pmodel->verts)
 	{
-		if ((vert.org == pv->org) && vert.bone == pv->bone)
+		if ((vert.pos == pv->pos) && vert.bone_id == pv->bone_id)
 		{
 			return i;
 		}
@@ -1301,38 +1301,36 @@ void set_skin_values(QC &qc)
 
 void build_reference(Model *pmodel)
 {
-	Vector3 boneAngle{};
+	Vector3 bone_angles{};
 	
 	for (int i = 0; i < pmodel->nodes.size(); i++)
 	{
 		// convert to degrees
-		boneAngle[0] = to_degrees(pmodel->skeleton[i].rot[0]);
-		boneAngle[1] = to_degrees(pmodel->skeleton[i].rot[1]);
-		boneAngle[2] = to_degrees(pmodel->skeleton[i].rot[2]);
+		bone_angles[0] = to_degrees(pmodel->skeleton[i].rot[0]);
+		bone_angles[1] = to_degrees(pmodel->skeleton[i].rot[1]);
+		bone_angles[2] = to_degrees(pmodel->skeleton[i].rot[2]);
 
 		int parent = pmodel->nodes[i].parent;
 		if (parent == -1)
 		{
 			// scale the done pos.
 			// calc rotational matrices
-			angle_matrix(boneAngle, g_bonefixup[i].matrix);
-			angle_i_matrix(boneAngle, g_bonefixup[i].inv_matrix);
+			g_bonefixup[i].matrix = angle_matrix(bone_angles);
+			g_bonefixup[i].inv_matrix = angle_i_matrix(bone_angles);
 			g_bonefixup[i].worldorg = pmodel->skeleton[i].pos;
 		}
 		else
 		{
-			Vector3 truePos;
-			float rotationMatrix[3][4];
 			// calc compound rotational matrices
 			// FIXME : Hey, it's orthogical so inv(A) == transpose(A)
-			angle_matrix(boneAngle, rotationMatrix);
-			concat_transforms(g_bonefixup[parent].matrix, rotationMatrix, g_bonefixup[i].matrix);
-			angle_i_matrix(boneAngle, rotationMatrix);
-			concat_transforms(rotationMatrix, g_bonefixup[parent].inv_matrix, g_bonefixup[i].inv_matrix);
+			Matrix3x4 rotation_matrix = angle_matrix(bone_angles);
+			g_bonefixup[i].matrix = concat_transforms(g_bonefixup[parent].matrix, rotation_matrix);
+			rotation_matrix = angle_i_matrix(bone_angles);
+			g_bonefixup[i].inv_matrix = concat_transforms(rotation_matrix, g_bonefixup[parent].inv_matrix);
 
 			// calc true world coord.
-			vector_transform(pmodel->skeleton[i].pos, g_bonefixup[parent].matrix, truePos);
-			g_bonefixup[i].worldorg = truePos + g_bonefixup[parent].worldorg;
+			Vector3 true_pos = vector_transform(pmodel->skeleton[i].pos, g_bonefixup[parent].matrix);
+			g_bonefixup[i].worldorg = true_pos + g_bonefixup[parent].worldorg;
 		}
 	}
 }
@@ -1411,8 +1409,8 @@ void grab_smd_triangles(QC &qc, Model *pmodel)
 					g_smdlinecount++;
 					if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f %f %f",
 							   &parentBone,
-							   &triangleVertex.org[0], &triangleVertex.org[1], &triangleVertex.org[2],
-							   &triangleNormal.org[0], &triangleNormal.org[1], &triangleNormal.org[2],
+							   &triangleVertex.pos[0], &triangleVertex.pos[1], &triangleVertex.pos[2],
+							   &triangleNormal.pos[0], &triangleNormal.pos[1], &triangleNormal.pos[2],
 							   &ptriangleVert->u, &ptriangleVert->v) == 9)
 					{
 						if (parentBone < 0 || parentBone >= pmodel->nodes.size())
@@ -1422,28 +1420,28 @@ void grab_smd_triangles(QC &qc, Model *pmodel)
 							exit(1);
 						}
 
-						triangleVertices[j] = triangleVertex.org;
-						triangleNormals[j] = triangleNormal.org;
+						triangleVertices[j] = triangleVertex.pos;
+						triangleNormals[j] = triangleNormal.pos;
 
-						triangleVertex.bone = parentBone;
-						triangleNormal.bone = parentBone;
+						triangleVertex.bone_id = parentBone;
+						triangleNormal.bone_id = parentBone;
 						triangleNormal.skinref = pmesh->skinref;
 
-						if (triangleVertex.org[2] < vmin[2])
-							vmin[2] = triangleVertex.org[2];
+						if (triangleVertex.pos[2] < vmin[2])
+							vmin[2] = triangleVertex.pos[2];
 
-						triangleVertex.org -= qc.sequenceOrigin; // adjust vertex to origin
-						triangleVertex.org *= qc.scaleBodyAndSequenceOption; // scale vertex
+						triangleVertex.pos -= qc.sequenceOrigin; // adjust vertex to origin
+						triangleVertex.pos *= qc.scaleBodyAndSequenceOption; // scale vertex
 
 						// move vertex position to object space.
 						Vector3 tmp;
-						tmp = triangleVertex.org - g_bonefixup[triangleVertex.bone].worldorg;
-						vector_transform(tmp, g_bonefixup[triangleVertex.bone].inv_matrix, triangleVertex.org);
+						tmp = triangleVertex.pos - g_bonefixup[triangleVertex.bone_id].worldorg;
+						triangleVertex.pos = vector_transform(tmp, g_bonefixup[triangleVertex.bone_id].inv_matrix);
 
 						// move normal to object space.
-						tmp = triangleNormal.org;
-						vector_transform(tmp, g_bonefixup[triangleVertex.bone].inv_matrix, triangleNormal.org);
-						triangleNormal.org.normalize();
+						tmp = triangleNormal.pos;
+						triangleNormal.pos = vector_transform(tmp, g_bonefixup[triangleVertex.bone_id].inv_matrix);
+						triangleNormal.pos.normalize();
 
 						ptriangleVert->normindex = find_vertex_normal_index(pmodel, &triangleNormal);
 						ptriangleVert->vertindex = find_vertex_index(pmodel, &triangleVertex);

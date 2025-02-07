@@ -363,7 +363,7 @@ void write_model(StudioHeader *header, QC &qc)
 		pmodel[i].vertinfoindex = static_cast<int>(g_currentposition - g_bufferstart);
 		for (j = 0; j < pmodel[i].numverts; j++)
 		{
-			*pbone++ = static_cast<std::uint8_t>(qc.submodels[i]->verts[j].bone);
+			*pbone++ = static_cast<std::uint8_t>(qc.submodels[i]->verts[j].bone_id);
 		}
 		pbone = (std::uint8_t *)ALIGN(pbone);
 
@@ -372,7 +372,7 @@ void write_model(StudioHeader *header, QC &qc)
 		pmodel[i].norminfoindex = static_cast<int>((std::uint8_t *)pbone - g_bufferstart);
 		for (j = 0; j < pmodel[i].numnorms; j++)
 		{
-			*pbone++ = static_cast<std::uint8_t>(qc.submodels[i]->normals[normimap[j]].bone);
+			*pbone++ = static_cast<std::uint8_t>(qc.submodels[i]->normals[normimap[j]].bone_id);
 		}
 		pbone = (std::uint8_t *)ALIGN(pbone);
 
@@ -392,12 +392,12 @@ void write_model(StudioHeader *header, QC &qc)
 
 			for (j = 0; j < qc.submodels[i]->verts.size(); j++)
 			{
-				pvert[j] = qc.submodels[i]->verts[j].org;
+				pvert[j] = qc.submodels[i]->verts[j].pos;
 			}
 
 			for (j = 0; j < qc.submodels[i]->normals.size(); j++)
 			{
-				pnorm[j] = qc.submodels[i]->normals[normimap[j]].org;
+				pnorm[j] = qc.submodels[i]->normals[normimap[j]].pos;
 			}
 			printf("vertices  %6d bytes (%d vertices, %d normals)\n", g_currentposition - cur, qc.submodels[i]->verts.size(), qc.submodels[i]->normals.size());
 			cur = reinterpret_cast<std::intptr_t>(g_currentposition);

@@ -15,19 +15,18 @@ float to_degrees(float rad)
 	return rad * (180 / Q_PI);
 }
 
-void matrix_copy(float in[3][4], float out[3][4])
+void matrix_copy(const Matrix3x4 &in, Matrix3x4 &out)
 {
-	for (int i = 0; i < 3; i++)
-	{
-		for (int j = 0; j < 4; j++)
-		{
-			out[i][j] = in[i][j];
-		}
-	}
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            out[i][j] = in[i][j];
+        }
+    }
 }
 
-
-void angle_matrix(const Vector3 &angles, float matrix[3][4])
+Matrix3x4 angle_matrix(const Vector3 &angles)
 {
 	
 /*
@@ -61,29 +60,33 @@ void angle_matrix(const Vector3 &angles, float matrix[3][4])
  * Angle matrix =  Rz(ψ) * Ry(θ) * Rx(φ) + Translate
  * 
 */
+ 	Matrix3x4 m = {};
+
 	float yaw = to_radians(angles.z);
 	float pitch = to_radians(angles.y);
 	float roll = to_radians(angles.x);
 
-	matrix[0][0] = cosf(pitch) * cosf(yaw);
-	matrix[1][0] = cosf(pitch) * sinf(yaw);
-	matrix[2][0] = -sinf(pitch);
+	m[0][0] = cosf(pitch) * cosf(yaw);
+	m[1][0] = cosf(pitch) * sinf(yaw);
+	m[2][0] = -sinf(pitch);
 
-	matrix[0][1] = sinf(roll) * sinf(pitch) * cosf(yaw) + cosf(roll) * -sinf(yaw);
-	matrix[1][1] = sinf(roll) * sinf(pitch) * sinf(yaw) + cosf(roll) * cosf(yaw);
-	matrix[2][1] = sinf(roll) * cosf(pitch);
+	m[0][1] = sinf(roll) * sinf(pitch) * cosf(yaw) + cosf(roll) * -sinf(yaw);
+	m[1][1] = sinf(roll) * sinf(pitch) * sinf(yaw) + cosf(roll) * cosf(yaw);
+	m[2][1] = sinf(roll) * cosf(pitch);
 
-	matrix[0][2] = cosf(roll) * sinf(pitch) * cosf(yaw) + -sinf(roll) * -sinf(yaw);
-	matrix[1][2] = cosf(roll) * sinf(pitch) * sinf(yaw) + -sinf(roll) * cosf(yaw);
-	matrix[2][2] = cosf(roll) * cosf(pitch);
+	m[0][2] = cosf(roll) * sinf(pitch) * cosf(yaw) + -sinf(roll) * -sinf(yaw);
+	m[1][2] = cosf(roll) * sinf(pitch) * sinf(yaw) + -sinf(roll) * cosf(yaw);
+	m[2][2] = cosf(roll) * cosf(pitch);
 
-	matrix[0][3] = 0.0;
-	matrix[1][3] = 0.0;
-	matrix[2][3] = 0.0;
+	m[0][3] = 0.0;
+	m[1][3] = 0.0;
+	m[2][3] = 0.0;
+
+	return m;
 }
 
 
-void angle_i_matrix(const Vector3 &angles, float matrix[3][4])
+Matrix3x4 angle_i_matrix(const Vector3 &angles)
 {
 /*
  * 
@@ -102,25 +105,29 @@ void angle_i_matrix(const Vector3 &angles, float matrix[3][4])
  * Angle inverse matrix =  Rx(φ) * Ry(θ) * Rz(ψ) + Translate
  * 
 */
+ 	Matrix3x4 m = {};
+
 	float yaw = to_radians(angles.z);
 	float pitch = to_radians(angles.y);
 	float roll = to_radians(angles.x);
 
-	matrix[0][0] = cosf(pitch) * cosf(yaw);
-	matrix[1][0] = sinf(roll) * sinf(pitch) * cosf(yaw) + cosf(roll) * -sinf(yaw);
-	matrix[2][0] = cosf(roll) * sinf(pitch) * cosf(yaw) + -sinf(roll) * -sinf(yaw);
+	m[0][0] = cosf(pitch) * cosf(yaw);
+	m[1][0] = sinf(roll) * sinf(pitch) * cosf(yaw) + cosf(roll) * -sinf(yaw);
+	m[2][0] = cosf(roll) * sinf(pitch) * cosf(yaw) + -sinf(roll) * -sinf(yaw);
 
-	matrix[0][1] = cosf(pitch) * sinf(yaw);
-	matrix[1][1] = sinf(roll) * sinf(pitch) * sinf(yaw) + cosf(roll) * cosf(yaw);
-	matrix[2][1] = cosf(roll) * sinf(pitch) * sinf(yaw) + -sinf(roll) * cosf(yaw);
+	m[0][1] = cosf(pitch) * sinf(yaw);
+	m[1][1] = sinf(roll) * sinf(pitch) * sinf(yaw) + cosf(roll) * cosf(yaw);
+	m[2][1] = cosf(roll) * sinf(pitch) * sinf(yaw) + -sinf(roll) * cosf(yaw);
 
-	matrix[0][2] = -sinf(pitch);
-	matrix[1][2] = sinf(roll) * cosf(pitch);
-	matrix[2][2] = cosf(roll) * cosf(pitch);
+	m[0][2] = -sinf(pitch);
+	m[1][2] = sinf(roll) * cosf(pitch);
+	m[2][2] = cosf(roll) * cosf(pitch);
 
-	matrix[0][3] = 0.0;
-	matrix[1][3] = 0.0;
-	matrix[2][3] = 0.0;
+	m[0][3] = 0.0;
+	m[1][3] = 0.0;
+	m[2][3] = 0.0;
+
+	return m;
 }
 
 /*
@@ -144,27 +151,31 @@ void angle_i_matrix(const Vector3 &angles, float matrix[3][4])
  *     [ r20  r21  r22 | tcz ] 
  * 
  */
-void concat_transforms(const float A[3][4], const float B[3][4], float C[3][4])
+Matrix3x4 concat_transforms(const Matrix3x4 &A, const Matrix3x4 &B)
 {
-	C[0][0] = A[0][0] * B[0][0] + A[0][1] * B[1][0] + A[0][2] * B[2][0];
-	C[0][1] = A[0][0] * B[0][1] + A[0][1] * B[1][1] + A[0][2] * B[2][1];
-	C[0][2] = A[0][0] * B[0][2] + A[0][1] * B[1][2] + A[0][2] * B[2][2];
+	Matrix3x4 m = {};
 
-	C[1][0] = A[1][0] * B[0][0] + A[1][1] * B[1][0] + A[1][2] * B[2][0];
-	C[1][1] = A[1][0] * B[0][1] + A[1][1] * B[1][1] + A[1][2] * B[2][1];
-	C[1][2] = A[1][0] * B[0][2] + A[1][1] * B[1][2] + A[1][2] * B[2][2];
+	m[0][0] = A[0][0] * B[0][0] + A[0][1] * B[1][0] + A[0][2] * B[2][0];
+	m[0][1] = A[0][0] * B[0][1] + A[0][1] * B[1][1] + A[0][2] * B[2][1];
+	m[0][2] = A[0][0] * B[0][2] + A[0][1] * B[1][2] + A[0][2] * B[2][2];
 
-	C[2][0] = A[2][0] * B[0][0] + A[2][1] * B[1][0] + A[2][2] * B[2][0];
-	C[2][1] = A[2][0] * B[0][1] + A[2][1] * B[1][1] + A[2][2] * B[2][1];
-	C[2][2] = A[2][0] * B[0][2] + A[2][1] * B[1][2] + A[2][2] * B[2][2];
+	m[1][0] = A[1][0] * B[0][0] + A[1][1] * B[1][0] + A[1][2] * B[2][0];
+	m[1][1] = A[1][0] * B[0][1] + A[1][1] * B[1][1] + A[1][2] * B[2][1];
+	m[1][2] = A[1][0] * B[0][2] + A[1][1] * B[1][2] + A[1][2] * B[2][2];
 
-	C[0][3] = A[0][0] * B[0][3] + A[0][1] * B[1][3] + A[0][2] * B[2][3] + A[0][3];
-	C[1][3] = A[1][0] * B[0][3] + A[1][1] * B[1][3] + A[1][2] * B[2][3] + A[1][3];
-	C[2][3] = A[2][0] * B[0][3] + A[2][1] * B[1][3] + A[2][2] * B[2][3] + A[2][3];
+	m[2][0] = A[2][0] * B[0][0] + A[2][1] * B[1][0] + A[2][2] * B[2][0];
+	m[2][1] = A[2][0] * B[0][1] + A[2][1] * B[1][1] + A[2][2] * B[2][1];
+	m[2][2] = A[2][0] * B[0][2] + A[2][1] * B[1][2] + A[2][2] * B[2][2];
+
+	m[0][3] = A[0][0] * B[0][3] + A[0][1] * B[1][3] + A[0][2] * B[2][3] + A[0][3];
+	m[1][3] = A[1][0] * B[0][3] + A[1][1] * B[1][3] + A[1][2] * B[2][3] + A[1][3];
+	m[2][3] = A[2][0] * B[0][3] + A[2][1] * B[1][3] + A[2][2] * B[2][3] + A[2][3];
+
+	return m;
 }
 
 
-void vector_transform(const Vector3 &in1, const float in2[3][4], Vector3 &out)
+Vector3 vector_transform(const Vector3 &in1, const Matrix3x4 &in2)
 {
 	
 /*
@@ -194,6 +205,8 @@ void vector_transform(const Vector3 &in1, const float in2[3][4], Vector3 &out)
  *    outz = z' + tz
  * 
  */
+	Vector3 out;
+
 	Vector3 row0(in2[0][0], in2[0][1], in2[0][2]);
 	Vector3 row1(in2[1][0], in2[1][1], in2[1][2]);
 	Vector3 row2(in2[2][0], in2[2][1], in2[2][2]);
@@ -201,4 +214,6 @@ void vector_transform(const Vector3 &in1, const float in2[3][4], Vector3 &out)
 	out.x = in1.dot(row0) + in2[0][3];
 	out.y = in1.dot(row1) + in2[1][3];
 	out.z = in1.dot(row2) + in2[2][3];
+
+	return out;
 }

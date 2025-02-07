@@ -20,22 +20,22 @@ struct TriangleVert
 
 struct Vertex
 {
-    int bone;    // bone transformation index
-    Vector3 org; // original position
+    int bone_id;    // bone transformation index
+    Vector3 pos; // original position
 };
 
 struct Normal
 {
     int skinref;
-    int bone;    // bone transformation index
-    Vector3 org; // original position
+    int bone_id;    // bone transformation index
+    Vector3 pos; // original position
 };
 
 struct BoneFixUp
 {
-    Vector3 worldorg;
-    float matrix[3][4];
-    float inv_matrix[3][4];
+    Vector3 worldorg; // original world position
+    Matrix3x4 matrix;
+    Matrix3x4 inv_matrix;
 };
 
 struct BoneTable
