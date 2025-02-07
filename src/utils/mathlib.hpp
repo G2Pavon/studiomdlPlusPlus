@@ -112,7 +112,7 @@ struct Vector3
 
     float magnitude() const
     {
-        return std::sqrtf(x * x + y * y + z * z);
+        return sqrtf(x * x + y * y + z * z);
     }
 
     void normalize()

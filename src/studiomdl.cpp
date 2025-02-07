@@ -186,13 +186,13 @@ void optimize_animations(QC &qc)
 		{
 			if (event.frame < sequence.anims[0].startframe)
 			{
-				printf("sequence %s has event (%d) before first frame (%d)\n", sequence.name, event.frame, sequence.anims[0].startframe);
+				printf("sequence %s has event (%d) before first frame (%d)\n", sequence.name.c_str(), event.frame, sequence.anims[0].startframe);
 				event.frame = sequence.anims[0].startframe;
 				iError++;
 			}
 			if (event.frame > sequence.anims[0].endframe)
 			{
-				printf("sequence %s has event (%d) after last frame (%d)\n", sequence.name, event.frame, sequence.anims[0].endframe);
+				printf("sequence %s has event (%d) after last frame (%d)\n", sequence.name.c_str(), event.frame, sequence.anims[0].endframe);
 				event.frame = sequence.anims[0].endframe;
 				iError++;
 			}

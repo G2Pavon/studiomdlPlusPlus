@@ -4,7 +4,6 @@
 
 // __attribute__((packed)) on non-Intel arch may cause some unexpected error, plz be informed.
 #pragma pack(push, 1)
-
 struct BITMAPFILEHEADER
 {
     uint16_t bfType;      // 2  /* Magic identifier */
@@ -13,6 +12,7 @@ struct BITMAPFILEHEADER
     uint16_t bfReserved2; // 2
     uint32_t bfOffBits;   // 4 /* Offset to image data, bytes */
 };
+#pragma pack(pop)
 
 enum Compression
 {
