@@ -1997,7 +1997,7 @@ int cmd_sequence(QC &qc, std::string &token)
 	if (!get_token(false, token))
 		return 0;
 
-	Sequence newseq;
+	Sequence newseq = {};
 
 	newseq.name = token;
 
@@ -2154,13 +2154,12 @@ int cmd_sequence(QC &qc, std::string &token)
 	}
 
 	qc.sequences.push_back(newseq);
-
 	return 0;
 }
 
 int cmd_controller(QC &qc, std::string &token)
 {
-	BoneController newbc;
+	BoneController newbc = {};
 	if (get_token(false, token))
 	{
 		if (token == "mouth")
@@ -2313,7 +2312,7 @@ int cmd_texturegroup(QC &qc, std::string &token)
 
 int cmd_hitgroup(QC &qc, std::string &token)
 {
-	HitGroup newhg;
+	HitGroup newhg = {};
 	get_token(false, token);
 	newhg.group = std::stoi(token);
 	get_token(false, token);
@@ -2325,7 +2324,7 @@ int cmd_hitgroup(QC &qc, std::string &token)
 
 int cmd_hitbox(QC &qc, std::string &token)
 {
-	HitBox newhb;
+	HitBox newhb = {};
 	get_token(false, token);
 	newhb.group = std::stoi(token);
 	get_token(false, token);
@@ -2350,7 +2349,7 @@ int cmd_hitbox(QC &qc, std::string &token)
 
 int cmd_attachment(QC &qc, std::string &token)
 {
-	Attachment newattach;
+	Attachment newattach = {};
 	// index
 	get_token(false, token); // unused
 
@@ -2378,7 +2377,7 @@ int cmd_attachment(QC &qc, std::string &token)
 
 void cmd_renamebone(QC &qc, std::string &token)
 {
-	RenameBone rename;
+	RenameBone rename = {};
 	get_token(false, token);
 	rename.from = token;
 	get_token(false, token);
