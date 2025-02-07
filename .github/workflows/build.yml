@@ -86,3 +86,11 @@ jobs:
       run: |
         7z a binaries-windows.zip ${{ steps.strings.outputs.build-output-dir }}/bin/*
 
+
+    - name: Upload Binaries as Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: binaries-${{ matrix.os }}-${{ matrix.c_compiler }}
+        path: |
+          binaries-${{ matrix.os }}-${{ matrix.c_compiler }}.tar.gz
+          binaries-${{ matrix.os }}-${{ matrix.c_compiler }}.zip
