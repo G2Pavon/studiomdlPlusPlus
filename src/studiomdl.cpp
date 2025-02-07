@@ -1636,8 +1636,9 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 
 	parse_smd(qc, new_submodel);
 
-	qc.bodyparts[g_num_bodygroup].num_submodels++;
 	qc.submodels.push_back(new_submodel);
+	qc.bodyparts.back().num_submodels++;
+
 
 	qc.scaleBodyAndSequenceOption = qc.scale;
 }
@@ -1647,9 +1648,9 @@ int cmd_body_option_blank(QC &qc)
 	Model* new_submodel = new Model();
 
 	new_submodel->name = "blank";
-
-	qc.bodyparts[g_num_bodygroup].num_submodels++;
+	
 	qc.submodels.push_back(new_submodel);
+	qc.bodyparts.back().num_submodels++;
 	return 0;
 }
 
@@ -1658,15 +1659,20 @@ void cmd_bodygroup(QC &qc, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	if (g_num_bodygroup == 0)
-	{
-		qc.bodyparts[g_num_bodygroup].base = 1;
-	}
-	else
-	{
-		qc.bodyparts[g_num_bodygroup].base = qc.bodyparts[g_num_bodygroup - 1].base * qc.bodyparts[g_num_bodygroup - 1].num_submodels;
-	}
-	qc.bodyparts[g_num_bodygroup].name = token;
+	BodyPart newbp{};
+
+    if (qc.bodyparts.empty())
+    {
+        newbp.base = 1;
+    }
+    else
+    {
+        BodyPart &lastbp = qc.bodyparts.back();
+        newbp.base = lastbp.base * lastbp.num_submodels;
+    }
+
+    newbp.name = token;
+    qc.bodyparts.push_back(newbp);
 
 	while (true)
 	{
@@ -1692,7 +1698,6 @@ void cmd_bodygroup(QC &qc, std::string &token)
 			cmd_body_option_blank(qc);
 		}
 	}
-	g_num_bodygroup++;
 
 	return;
 }
@@ -1702,18 +1707,21 @@ void cmd_body(QC &qc, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	if (g_num_bodygroup == 0)
-	{
-		qc.bodyparts[g_num_bodygroup].base = 1;
-	}
-	else
-	{
-		qc.bodyparts[g_num_bodygroup].base = qc.bodyparts[g_num_bodygroup - 1].base * qc.bodyparts[g_num_bodygroup - 1].num_submodels;
-	}
-	qc.bodyparts[g_num_bodygroup].name = token;
+    BodyPart newbp{};
+    newbp.name = token;
 
-	cmd_body_option_studio(qc, token);
-	g_num_bodygroup++;
+    if (qc.bodyparts.empty())
+    {
+        newbp.base = 1;
+    }
+    else
+    {
+        BodyPart &lastbp = qc.bodyparts.back();
+        newbp.base = lastbp.base * lastbp.num_submodels;
+    }
+
+    qc.bodyparts.push_back(newbp);
+    cmd_body_option_studio(qc, token);
 }
 
 void grab_option_animation(QC &qc, Animation &anim)

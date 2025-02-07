@@ -314,14 +314,14 @@ void write_model(StudioHeader *header, QC &qc)
 	int i, j, k;
 
 	StudioBodyPart *pbodypart = (StudioBodyPart *)g_currentposition;
-	header->numbodyparts = g_num_bodygroup;
+	header->numbodyparts = qc.bodyparts.size();
 	header->bodypartindex = static_cast<int>(g_currentposition - g_bufferstart);
-	g_currentposition += g_num_bodygroup * sizeof(StudioBodyPart);
+	g_currentposition += qc.bodyparts.size() * sizeof(StudioBodyPart);
 
 	StudioModel *pmodel = (StudioModel *)g_currentposition;
 	g_currentposition += qc.submodels.size() * sizeof(StudioModel);
 
-	for (i = 0, j = 0; i < g_num_bodygroup; i++)
+	for (i = 0, j = 0; i < qc.bodyparts.size(); i++)
 	{
 		std::strcpy(pbodypart[i].name, qc.bodyparts[i].name.c_str());
 		pbodypart[i].nummodels = qc.bodyparts[i].num_submodels;
