@@ -374,10 +374,10 @@ void simplify_model(QC &qc)
 					if (n != m)
 					{
 						printf("illegal parent bone replacement in model \"%s\"\n\t\"%s\" has \"%s\", previously was \"%s\"\n",
-							   submodel->name,
-							   submodel->nodes[j].name,
-							   (n != -1) ? g_bonetable[n].name : "ROOT",
-							   (m != -1) ? g_bonetable[m].name : "ROOT");
+							   submodel->name.c_str(),
+							   submodel->nodes[j].name.c_str(),
+							   (n != -1) ? g_bonetable[n].name.c_str() : "ROOT",
+							   (m != -1) ? g_bonetable[m].name.c_str() : "ROOT");
 						iError++;
 					}
 				}
@@ -2175,7 +2175,7 @@ int cmd_controller(QC &qc, std::string &token)
 			get_token(false, token);
 			if ((newbc.type = lookup_control(token.c_str())) == -1)
 			{
-				printf("unknown bonecontroller type '%s'\n", token);
+				printf("unknown bonecontroller type '%s'\n", token.c_str());
 				return 0;
 			}
 			get_token(false, token);
@@ -2407,7 +2407,7 @@ void cmd_texrendermode(std::string &token)
 		g_textures[find_texture_index(tex_name)].flags |= STUDIO_NF_FLATSHADE;
 	}
 	else
-		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name, token);
+		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name.c_str(), token.c_str());
 }
 
 void parse_qc_file(QC &qc)
