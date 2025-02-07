@@ -142,5 +142,5 @@ void matrix_copy(float in[3][4], float out[3][4]);
 void angle_matrix(const Vector3 &angles, float matrix[3][4]);
 void angle_i_matrix(const Vector3 &angles, float matrix[3][4]);
 
-void concat_transforms(const float in1[3][4], const float in2[3][4], float out[3][4]);
+void concat_transforms(const float A[3][4], const float B[3][4], float C[3][4]);
 void vector_transform(const Vector3 &in1, const float in2[3][4], Vector3 &out);
