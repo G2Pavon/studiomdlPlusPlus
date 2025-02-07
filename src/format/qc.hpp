@@ -10,6 +10,8 @@
 #include "modeldata.hpp"
 #include "format/mdl.hpp"
 
+extern int g_num_bodygroup;
+
 class QC
 {
 public:
@@ -46,7 +48,7 @@ public:
 
     std::vector<Model*> submodels; // $body
 
-    std::vector<BodyPart> bodyparts; // $bodygroup
+    std::array<BodyPart, MAXSTUDIOBODYPARTS> bodyparts{}; // $bodygroup
 
     int flags = 0; // $flags
 
@@ -57,6 +59,7 @@ public:
         texturegroups.fill({});
         bbox.fill(Vector3{});
         cbox.fill(Vector3{});
+        bodyparts.fill({});
     }
 };
 

@@ -1615,6 +1615,7 @@ void cmd_modelname(QC &qc, std::string &token)
 	qc.modelname = token;
 }
 
+
 void cmd_body_option_studio(QC &qc, std::string &token)
 {
 	if (!get_token(false, token))
@@ -1642,7 +1643,7 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 
 	parse_smd(qc, new_submodel);
 
-	qc.bodyparts.back().num_submodels++;
+	qc.bodyparts[g_num_bodygroup].num_submodels++;
 	qc.submodels.push_back(new_submodel);
 
 	qc.scaleBodyAndSequenceOption = qc.scale;
@@ -1654,7 +1655,7 @@ int cmd_body_option_blank(QC &qc)
 
 	new_submodel->name = "blank";
 
-	qc.bodyparts.back().num_submodels++;
+	qc.bodyparts[g_num_bodygroup].num_submodels++;
 	qc.submodels.push_back(new_submodel);
 	return 0;
 }
@@ -1664,19 +1665,16 @@ void cmd_bodygroup(QC &qc, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	BodyPart newbp;
-
-	if (qc.bodyparts.empty())
+	if (g_num_bodygroup == 0)
 	{
-		newbp.base = 1;
+		qc.bodyparts[g_num_bodygroup].base = 1;
 	}
 	else
 	{
-		BodyPart &lastbp = qc.bodyparts.back();
-		newbp.base = lastbp.base * lastbp.num_submodels;
+		qc.bodyparts[g_num_bodygroup].base = qc.bodyparts[g_num_bodygroup - 1].base * qc.bodyparts[g_num_bodygroup - 1].num_submodels;
 	}
-	newbp.name = token;
-	qc.bodyparts.push_back(newbp);
+	qc.bodyparts[g_num_bodygroup].name = token;
+
 	while (true)
 	{
 		int is_started = 0;
@@ -1701,6 +1699,8 @@ void cmd_bodygroup(QC &qc, std::string &token)
 			cmd_body_option_blank(qc);
 		}
 	}
+	g_num_bodygroup++;
+
 	return;
 }
 
@@ -1709,21 +1709,18 @@ void cmd_body(QC &qc, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-	BodyPart newbp;
-	newbp.name = token;
-
-	if (qc.bodyparts.empty())
+	if (g_num_bodygroup == 0)
 	{
-		newbp.base = 1;
+		qc.bodyparts[g_num_bodygroup].base = 1;
 	}
 	else
 	{
-		BodyPart &lastbp = qc.bodyparts.back();
-		newbp.base = lastbp.base * lastbp.num_submodels;
+		qc.bodyparts[g_num_bodygroup].base = qc.bodyparts[g_num_bodygroup - 1].base * qc.bodyparts[g_num_bodygroup - 1].num_submodels;
 	}
+	qc.bodyparts[g_num_bodygroup].name = token;
 
-	qc.bodyparts.push_back(newbp);
 	cmd_body_option_studio(qc, token);
+	g_num_bodygroup++;
 }
 
 void grab_option_animation(QC &qc, Animation &anim)

@@ -4,6 +4,8 @@
 #include <iostream>
 
 
+int g_num_bodygroup = 0;
+
 std::vector<char> qc_script_buffer;
 char* qc_stream_p = nullptr;
 char* qc_stream_end_p = nullptr;
