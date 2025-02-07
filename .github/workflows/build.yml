@@ -74,8 +74,15 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
 
-    - name: Package Binaries
+    - name: Package Binaries (Linux)
+      if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p package
         cp -r ${{ steps.strings.outputs.build-output-dir }}/bin/* package/
-        tar -czvf binaries.tar.gz package/
+        tar -czvf binaries-${{ matrix.os }}.tar.gz package/
+
+    - name: Package Binaries (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        7z a binaries-windows.zip ${{ steps.strings.outputs.build-output-dir }}/bin/*
+
