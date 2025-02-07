@@ -78,7 +78,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest' && matrix.cpp_compiler == 'g++'
       uses: actions/upload-artifact@v4
       with:
-        name: binaries-${{ matrix.os }}-${{ matrix.cpp_compiler }}
+        name: studiomdl++-${{ matrix.os }}-${{ matrix.cpp_compiler }}
         path: ${{ steps.strings.outputs.build-output-dir }}/bin/*
         if-no-files-found: error
 
@@ -86,6 +86,6 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v4
       with:
-        name: binaries-${{ matrix.os }}-${{ matrix.cpp_compiler }}
+        name: studiomdl++-${{ matrix.os }}-${{ matrix.cpp_compiler }}
         path: ${{ steps.strings.outputs.build-output-dir }}/bin/Release/*.exe
         if-no-files-found: error
