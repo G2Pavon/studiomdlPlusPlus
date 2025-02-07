@@ -53,3 +53,28 @@ std::string strip_extension(const std::string& filename)
 {
     return std::filesystem::path(filename).stem().string();
 }
+
+bool case_insensitive_compare(const std::string& str1, const std::string& str2) 
+{
+    if (str1.size() != str2.size()) 
+	{
+        return false;
+    }
+    return std::equal(str1.begin(), str1.end(), str2.begin(),
+                      [](char c1, char c2) {
+                          return std::tolower(static_cast<unsigned char>(c1)) == std::tolower(static_cast<unsigned char>(c2));
+                      });
+}
+
+bool case_insensitive_n_compare(const std::string& str1, const std::string& str2, size_t n)
+{
+	if (str1.size() < n || str2.size() < n)
+	{
+		return false;
+	}
+	return std::equal(str1.begin(), str1.begin() + n, str2.begin(),
+						[](char c1, char c2) {
+							return std::tolower(static_cast<unsigned char>(c1)) == std::tolower(static_cast<unsigned char>(c2));
+						}
+					);
+}

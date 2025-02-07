@@ -17,8 +17,6 @@
 #include "monsters/activity.hpp"
 #include "monsters/activitymap.hpp"
 
-#define strnicmp strncasecmp
-#define stricmp strcasecmp
 
 // studiomdl.exe args -----------
 bool g_flaginvertnormals;
@@ -433,23 +431,23 @@ void simplify_model(QC &qc)
 			}
 			else
 			{
-				char *szAnim = "ROOT";
-				char *szNode = "ROOT";
+				std::string szAnim = "ROOT";
+				std::string szNode = "ROOT";
 
 				// whoa, check parent connections!
 				if (node.parent != -1)
-					szAnim = const_cast<char*>((sequence.anims[0].nodes[node.parent].name).c_str());
+					szAnim = (sequence.anims[0].nodes[node.parent].name);
 
 				if (g_bonetable[k].parent != -1)
-					szNode = const_cast<char*>(g_bonetable[g_bonetable[k].parent].name.c_str());
+					szNode = g_bonetable[g_bonetable[k].parent].name;
 
-				if (std::strcmp(szAnim, szNode))
+				if (!case_insensitive_compare(szAnim, szNode))
 				{
 					printf("illegal parent bone replacement in sequence \"%s\"\n\t\"%s\" has \"%s\", reference has \"%s\"\n",
-						   sequence.name,
-						   node.name,
-						   szAnim,
-						   szNode);
+						   sequence.name.c_str(),
+						   node.name.c_str(),
+						   szAnim.c_str(),
+						   szNode.c_str());
 					iError++;
 				}
 				sequence.anims[0].boneimap[k] = j;
@@ -922,35 +920,35 @@ void simplify_model(QC &qc)
 
 int lookup_control(const char *string)
 {
-	if (stricmp(string, "X") == 0)
+	if (case_insensitive_compare(string, "X"))
 		return STUDIO_X;
-	if (stricmp(string, "Y") == 0)
+	if (case_insensitive_compare(string, "Y"))
 		return STUDIO_Y;
-	if (stricmp(string, "Z") == 0)
+	if (case_insensitive_compare(string, "Z"))
 		return STUDIO_Z;
-	if (stricmp(string, "XR") == 0)
+	if (case_insensitive_compare(string, "XR"))
 		return STUDIO_XR;
-	if (stricmp(string, "YR") == 0)
+	if (case_insensitive_compare(string, "YR"))
 		return STUDIO_YR;
-	if (stricmp(string, "ZR") == 0)
+	if (case_insensitive_compare(string, "ZR"))
 		return STUDIO_ZR;
-	if (stricmp(string, "LX") == 0)
+	if (case_insensitive_compare(string, "LX"))
 		return STUDIO_LX;
-	if (stricmp(string, "LY") == 0)
+	if (case_insensitive_compare(string, "LY"))
 		return STUDIO_LY;
-	if (stricmp(string, "LZ") == 0)
+	if (case_insensitive_compare(string, "LZ"))
 		return STUDIO_LZ;
-	if (stricmp(string, "AX") == 0)
+	if (case_insensitive_compare(string, "AX"))
 		return STUDIO_AX;
-	if (stricmp(string, "AY") == 0)
+	if (case_insensitive_compare(string, "AY"))
 		return STUDIO_AY;
-	if (stricmp(string, "AZ") == 0)
+	if (case_insensitive_compare(string, "AZ"))
 		return STUDIO_AZ;
-	if (stricmp(string, "AXR") == 0)
+	if (case_insensitive_compare(string, "AXR"))
 		return STUDIO_AXR;
-	if (stricmp(string, "AYR") == 0)
+	if (case_insensitive_compare(string, "AYR"))
 		return STUDIO_AYR;
-	if (stricmp(string, "AZR") == 0)
+	if (case_insensitive_compare(string, "AZR"))
 		return STUDIO_AZR;
 	return -1;
 }
@@ -1358,7 +1356,7 @@ void grab_smd_triangles(QC &qc, Model *pmodel)
 
 			g_smdlinecount++;
 
-			if (std::strcmp("end\n", g_currentsmdline) == 0)
+			if (case_insensitive_compare("end\n", g_currentsmdline))
 				return;
 
 			// strip off trailing smag
@@ -1375,7 +1373,7 @@ void grab_smd_triangles(QC &qc, Model *pmodel)
 					std::strcpy(triangleMaterial, g_defaulttextures[i]);
 					break;
 				}
-				if (stricmp(triangleMaterial, g_sourcetexture[i]) == 0)
+				if (case_insensitive_compare(triangleMaterial, g_sourcetexture[i]))
 				{
 					std::strcpy(triangleMaterial, g_defaulttextures[i]);
 					break;
@@ -1490,7 +1488,7 @@ void grab_smd_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bone
 		}
 		else if (sscanf(g_currentsmdline, "%s %d", cmd, &node)) // Delete this
 		{
-			if (std::strcmp(cmd, "end") == 0)
+			if (case_insensitive_compare(cmd, "end"))
 			{
 				return;
 			}
@@ -1516,7 +1514,7 @@ int grab_smd_nodes(QC &qc, std::vector<Node> &nodes)
             // Check for mirrored bones
             for (int i = 0; i < qc.mirroredbones.size(); i++)
 			{
-                if (std::strcmp(bone_name, qc.mirroredbones[i].data()) == 0) {
+                if (case_insensitive_compare(bone_name, qc.mirroredbones[i].data())) {
                     nodes.back().mirrored = 1;
                 }
             }
@@ -1555,22 +1553,22 @@ void parse_smd(QC &qc, Model *pmodel)
 	{
 		g_smdlinecount++;
 		sscanf(g_currentsmdline, "%s %d", cmd, &option);
-		if (std::strcmp(cmd, "version") == 0)
+		if (case_insensitive_compare(cmd, "version"))
 		{
 			if (option != 1)
 			{
 				error("bad version\n");
 			}
 		}
-		else if (std::strcmp(cmd, "nodes") == 0)
+		else if (case_insensitive_compare(cmd, "nodes"))
 		{
 			grab_smd_nodes(qc, pmodel->nodes);
 		}
-		else if (std::strcmp(cmd, "skeleton") == 0)
+		else if (case_insensitive_compare(cmd, "skeleton"))
 		{
 			grab_smd_skeleton(qc, pmodel->nodes, pmodel->skeleton);
 		}
-		else if (std::strcmp(cmd, "triangles") == 0)
+		else if (case_insensitive_compare(cmd, "triangles"))
 		{
 			grab_smd_triangles(qc, pmodel);
 		}
@@ -1623,11 +1621,11 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 	while (token_available())
 	{
 		get_token(false, token);
-		if (stricmp("reverse", token.c_str()) == 0)
+		if (case_insensitive_compare("reverse", token))
 		{
 			g_flaginvertnormals = true;
 		}
-		else if (stricmp("scale", token.c_str()) == 0)
+		else if (case_insensitive_compare("scale", token))
 		{
 			get_token(false, token);
 			qc.scaleBodyAndSequenceOption = std::stof(token);
@@ -1689,11 +1687,11 @@ void cmd_bodygroup(QC &qc, std::string &token)
 		{
 			break;
 		}
-		else if (stricmp("studio", token.c_str()) == 0)
+		else if (case_insensitive_compare("studio", token))
 		{
 			cmd_body_option_studio(qc, token);
 		}
-		else if (stricmp("blank", token.c_str()) == 0)
+		else if (case_insensitive_compare("blank", token))
 		{
 			cmd_body_option_blank(qc);
 		}
@@ -1780,11 +1778,11 @@ void grab_option_animation(QC &qc, Animation &anim)
 		}
 		else if (sscanf(g_currentsmdline, "%s %d", cmd, &index))
 		{
-			if (std::strcmp(cmd, "time") == 0)
+			if (case_insensitive_compare(cmd, "time"))
 			{
 				t = index;
 			}
-			else if (std::strcmp(cmd, "end") == 0)
+			else if (case_insensitive_compare(cmd, "end"))
 			{
 				anim.startframe = start;
 				anim.endframe = end;
@@ -1846,18 +1844,18 @@ void cmd_sequence_option_animation(QC &qc, std::string &name, Animation &anim)
 	{
 		g_smdlinecount++;
 		sscanf(g_currentsmdline, "%s %d", cmd, &option);
-		if (std::strcmp(cmd, "version") == 0)
+		if (case_insensitive_compare(cmd, "version"))
 		{
 			if (option != 1)
 			{
 				error("bad version\n");
 			}
 		}
-		else if (std::strcmp(cmd, "nodes") == 0)
+		else if (case_insensitive_compare(cmd, "nodes"))
 		{
 			grab_smd_nodes(qc, anim.nodes);
 		}
-		else if (std::strcmp(cmd, "skeleton") == 0)
+		else if (case_insensitive_compare(cmd, "skeleton"))
 		{
 			grab_option_animation(qc, anim);
 			shift_option_animation(anim);
@@ -1868,7 +1866,7 @@ void cmd_sequence_option_animation(QC &qc, std::string &name, Animation &anim)
 			while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 			{
 				g_smdlinecount++;
-				if (strncmp(g_currentsmdline, "end", 3) == 0)
+				if (strncmp(g_currentsmdline, "end", 3))
 					break;
 			}
 		}
@@ -1975,12 +1973,12 @@ int cmd_sequence_option_action(std::string &szActivity)
 {
 	for (int i = 0; activity_map[i].name; i++)
 	{
-		if (stricmp(szActivity.c_str(), activity_map[i].name) == 0)
+		if (case_insensitive_compare(szActivity.c_str(), activity_map[i].name))
 		{
 			return activity_map[i].type;
 		}
 	}
-	if (strnicmp(szActivity.c_str(), "ACT_", 4) == 0)
+	if (case_insensitive_n_compare(szActivity.c_str(), "ACT_", 4))
 	{
 		return std::stoi(&szActivity[4]);
 	}
@@ -2136,7 +2134,7 @@ int cmd_sequence(QC &qc, std::string &token)
 		}
 	};
 
-	if (smd_files.size() == 0)
+	if (smd_files.empty())
 	{
 		printf("no animations found\n");
 		exit(1);
