@@ -765,7 +765,7 @@ void simplify_model(QC &qc)
 				float bonetransform[MAXSTUDIOBONES][3][4]; // bone transformation matrix
 				float bonematrix[3][4];					   // local transformation matrix
 				Vector3 pos;
-
+				int j = 0;
 				for (auto& bone : g_bonetable)
 				{
 
@@ -786,8 +786,9 @@ void simplify_model(QC &qc)
 					}
 					else
 					{
-						r_concat_transforms(bonetransform[bone.parent], bonematrix, bonetransform[j]);
+						concat_transforms(bonetransform[bone.parent], bonematrix, bonetransform[j]);
 					}
+					j++;
 				}
 
 				for (auto& submodel : qc.submodels)
@@ -796,18 +797,12 @@ void simplify_model(QC &qc)
 					{
 						vector_transform(vert.org, bonetransform[vert.bone], pos);
 
-						if (pos[0] < bmin[0])
-							bmin[0] = pos[0];
-						if (pos[1] < bmin[1])
-							bmin[1] = pos[1];
-						if (pos[2] < bmin[2])
-							bmin[2] = pos[2];
-						if (pos[0] > bmax[0])
-							bmax[0] = pos[0];
-						if (pos[1] > bmax[1])
-							bmax[1] = pos[1];
-						if (pos[2] > bmax[2])
-							bmax[2] = pos[2];
+						if (pos[0] < bmin[0]) bmin[0] = pos[0];
+						if (pos[1] < bmin[1]) bmin[1] = pos[1];
+						if (pos[2] < bmin[2]) bmin[2] = pos[2];
+						if (pos[0] > bmax[0]) bmax[0] = pos[0];
+						if (pos[1] > bmax[1]) bmax[1] = pos[1];
+						if (pos[2] > bmax[2]) bmax[2] = pos[2];
 					}
 				}
 			}
@@ -1331,9 +1326,9 @@ void build_reference(Model *pmodel)
 			// calc compound rotational matrices
 			// FIXME : Hey, it's orthogical so inv(A) == transpose(A)
 			angle_matrix(boneAngle, rotationMatrix);
-			r_concat_transforms(g_bonefixup[parent].matrix, rotationMatrix, g_bonefixup[i].matrix);
+			concat_transforms(g_bonefixup[parent].matrix, rotationMatrix, g_bonefixup[i].matrix);
 			angle_i_matrix(boneAngle, rotationMatrix);
-			r_concat_transforms(rotationMatrix, g_bonefixup[parent].inv_matrix, g_bonefixup[i].inv_matrix);
+			concat_transforms(rotationMatrix, g_bonefixup[parent].inv_matrix, g_bonefixup[i].inv_matrix);
 
 			// calc true world coord.
 			vector_transform(pmodel->skeleton[i].pos, g_bonefixup[parent].matrix, truePos);
