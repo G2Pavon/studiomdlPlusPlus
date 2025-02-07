@@ -295,9 +295,9 @@ void simplify_model(QC &qc)
 		{
 			submodel->boneref[k] = g_flagkeepallbones;
 		}
-		for (j = 0; j < submodel->verts.size(); j++)
+		for (auto& vert : submodel->verts)
 		{
-			submodel->boneref[submodel->verts[j].bone] = 1;
+			submodel->boneref[vert.bone] = 1;
 		}
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -315,15 +315,15 @@ void simplify_model(QC &qc)
 	}
 
 	// rename model bones if needed TODO: rename_submodel_bones()
-	for (i = 0; i < qc.submodels.size(); i++)
+	for (auto& submodel : qc.submodels)
 	{
-		for (j = 0; j < qc.submodels[i]->nodes.size(); j++)
+		for (auto& node : submodel->nodes)
 		{
-			for (k = 0; k < qc.renamebones.size(); k++)
+			for (auto& rename : qc.renamebones)
 			{
-				if (qc.submodels[i]->nodes[j].name == qc.renamebones[k].from)
+				if (node.name == rename.from)
 				{
-					qc.submodels[i]->nodes[j].name = qc.renamebones[k].to;
+					node.name = rename.to;
 					break;
 				}
 			}
@@ -402,13 +402,13 @@ void simplify_model(QC &qc)
 	// rename sequence bones if needed TODO: rename_sequence_bones()
 	for (auto& sequence : qc.sequences)
 	{
-		for (j = 0; j < sequence.anims[0].nodes.size(); j++)
+		for (auto& node : sequence.anims[0].nodes)
 		{
 			for (auto& rename : qc.renamebones)
 			{
-				if (sequence.anims[0].nodes[j].name == rename.from)
+				if (node.name == rename.from)
 				{
-					sequence.anims[0].nodes[j].name = rename.to;
+					node.name = rename.to;
 					break;
 				}
 			}
@@ -530,7 +530,7 @@ void simplify_model(QC &qc)
 			++k;
 		}
 		if (k >= g_bonetable.size())
-			error("cannot find bone " + hitgroup.name + " for hitgroup " + std::to_string(qc.hitgroups[j].group) + "\n");
+			error("cannot find bone " + hitgroup.name + " for hitgroup " + std::to_string(hitgroup.group) + "\n");
 	}
 	for (auto& bone : g_bonetable)
 	{
