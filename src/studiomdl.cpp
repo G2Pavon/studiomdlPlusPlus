@@ -1333,7 +1333,7 @@ void build_reference(Model *pmodel)
 	}
 }
 
-void grab_smd_triangles(QC &qc, Model *pmodel)
+void parse_smd_triangles(QC &qc, Model *pmodel)
 {
 	int i;
 	Vector3 vmin{99999, 99999, 99999};
@@ -1465,7 +1465,7 @@ void grab_smd_triangles(QC &qc, Model *pmodel)
 	}
 }
 
-void grab_smd_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones)
+void parse_smd_reference_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones)
 {
 	float posX, posY, posZ, rotX, rotY, rotZ;
 	char cmd[1024];
@@ -1496,7 +1496,7 @@ void grab_smd_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bone
 	}
 }
 
-int grab_smd_nodes(QC &qc, std::vector<Node> &nodes)
+int parse_smd_nodes(QC &qc, std::vector<Node> &nodes)
 {
     int index;
     char bone_name[1024];
@@ -1532,7 +1532,7 @@ int grab_smd_nodes(QC &qc, std::vector<Node> &nodes)
     return 0;
 }
 
-void parse_smd(QC &qc, Model *pmodel)
+void parse_smd_reference(QC &qc, Model *pmodel)
 {
 	char cmd[1024];
 	int option;
@@ -1562,15 +1562,15 @@ void parse_smd(QC &qc, Model *pmodel)
 		}
 		else if (case_insensitive_compare(cmd, "nodes"))
 		{
-			grab_smd_nodes(qc, pmodel->nodes);
+			parse_smd_nodes(qc, pmodel->nodes);
 		}
 		else if (case_insensitive_compare(cmd, "skeleton"))
 		{
-			grab_smd_skeleton(qc, pmodel->nodes, pmodel->skeleton);
+			parse_smd_reference_skeleton(qc, pmodel->nodes, pmodel->skeleton);
 		}
 		else if (case_insensitive_compare(cmd, "triangles"))
 		{
-			grab_smd_triangles(qc, pmodel);
+			parse_smd_triangles(qc, pmodel);
 		}
 		else
 		{
@@ -1632,7 +1632,7 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 		}
 	}
 
-	parse_smd(qc, new_submodel);
+	parse_smd_reference(qc, new_submodel);
 
 	qc.submodels.push_back(new_submodel);
 	qc.bodyparts.back().num_submodels++;
@@ -1722,7 +1722,7 @@ void cmd_body(QC &qc, std::string &token)
     cmd_body_option_studio(qc, token);
 }
 
-void grab_option_animation(QC &qc, Animation &anim)
+void parse_smd_animation_skeleton(QC &qc, Animation &anim)
 {
 	Vector3 pos;
 	Vector3 rot;
@@ -1820,7 +1820,7 @@ void shift_option_animation(Animation &anim)
 	}
 }
 
-void cmd_sequence_option_animation(QC &qc, std::string &name, Animation &anim)
+void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 {
 	char cmd[1024];
 	int option;
@@ -1853,16 +1853,16 @@ void cmd_sequence_option_animation(QC &qc, std::string &name, Animation &anim)
 		}
 		else if (case_insensitive_compare(cmd, "nodes"))
 		{
-			grab_smd_nodes(qc, anim.nodes);
+			parse_smd_nodes(qc, anim.nodes);
 		}
 		else if (case_insensitive_compare(cmd, "skeleton"))
 		{
-			grab_option_animation(qc, anim);
+			parse_smd_animation_skeleton(qc, anim);
 			shift_option_animation(anim);
 		}
 		else
 		{
-			printf("unknown studio command : %s\n", cmd);
+			printf("unknown studio model command : %s\n", cmd);
 			while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 			{
 				g_smdlinecount++;
@@ -2139,16 +2139,16 @@ int cmd_sequence(QC &qc, std::string &token)
 		printf("no animations found\n");
 		exit(1);
 	}
-
-	for (auto& file : smd_files)
+	for (auto& file : smd_files) // 
 	{
 		qc.sequenceAnimationOptions.push_back(Animation());
 		Animation& newAnim = qc.sequenceAnimationOptions.back();
-
+		
+		// crop the SMD animation from start to end
 		newAnim.startframe = start;
 		newAnim.endframe = end;
 
-		cmd_sequence_option_animation(qc, file, newAnim);
+		parse_smd_animation(qc, file, newAnim);
 		newseq.anims.push_back(newAnim);
 	}
 

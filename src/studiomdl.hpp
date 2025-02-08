@@ -54,8 +54,6 @@ int cmd_sequence_option_fps(std::string &token, Sequence &seq);
 void cmd_sequence_option_origin(QC &qc, std::string &token);
 void cmd_sequence_option_rotate(QC &qc, std::string &token);
 void cmd_sequence_option_scale(QC &qc, std::string &token);
-void cmd_sequence_option_animation(QC &qc, char *name, Animation &anim);
-void grab_option_animation(QC &qc, Animation &anim);
 void shift_option_animation(Animation &anim);
 int cmd_sequence_option_action(std::string &szActivity);
 void cmd_eyeposition(QC &qc, std::string &token);
@@ -75,10 +73,12 @@ int lookup_control(const char *string);
 void parse_qc_file(std::filesystem::path path, QC &qc);
 
 // SMD Parser
-void parse_smd(QC &qc, Model *pmodel);
-void grab_smd_triangles(QC &qc, Model *pmodel);
-void grab_smd_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones);
-int grab_smd_nodes(QC &qc, std::vector<Node> &nodes);
+void parse_smd_reference(QC &qc, Model *pmodel);
+void parse_smd_animation(QC &qc, std::string &name, Animation &anim);
+void parse_smd_reference_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones);
+void parse_smd_animation_skeleton(QC &qc, Animation &anim);
+void parse_smd_triangles(QC &qc, Model *pmodel);
+int parse_smd_nodes(QC &qc, std::vector<Node> &nodes);
 void build_reference(Model *pmodel);
 Mesh *find_mesh_by_texture(Model *pmodel, char *texturename);
 TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index);
