@@ -13,4 +13,4 @@ std::uint8_t *write_animations(QC &qc, std::uint8_t *pData, const std::uint8_t *
 void write_textures(StudioHeader *header);
 void write_model(StudioHeader *header, QC &qc);
 
-void write_file(QC &qc);
+void write_file(std::filesystem::path path, QC &qc);

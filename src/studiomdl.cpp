@@ -2567,6 +2567,7 @@ void usage(const char* program_name)
 int main(int argc, char **argv)
 {
     std::filesystem::path qc_input_path, qc_absolute_path;
+	std::filesystem::path mdl_output_path;
     static QC qc;
 
     g_flaginvertnormals = false;
@@ -2625,8 +2626,11 @@ int main(int argc, char **argv)
     load_qc_file(qc_absolute_path);       
     parse_qc_file(qc_absolute_path, qc); 
     set_skin_values(qc); 
-    simplify_model(qc); 
-    write_file(qc);      
+    simplify_model(qc);
+
+	// mdl file is writed in qc parent path
+	mdl_output_path = qc_absolute_path.parent_path();
+    write_file(mdl_output_path, qc);      
 
     return 0;
 }

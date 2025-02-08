@@ -446,20 +446,20 @@ void write_model(StudioHeader *header, QC &qc)
 	}
 }
 
-void write_file(QC &qc)
+void write_file(std::filesystem::path path, QC &qc)
 {
 	int total = 0;
 
 	g_bufferstart = (std::uint8_t *)std::calloc(1, FILEBUFFER);
 
-	std::string file_name = strip_extension(qc.modelname);
+	std::string file_name = strip_extension(qc.modelname) + ".mdl";
 	//
 	// write the model output file
 	//
-	file_name += ".mdl";
+	std::filesystem::path mdl_file = path / file_name;
 	printf("---------------------\n");
-	printf("writing %s:\n", file_name.c_str());
-	std::unique_ptr<std::ofstream> modelouthandle = safe_open_write(file_name);
+	printf("Writing %s:\n", mdl_file.string().c_str());
+	std::unique_ptr<std::ofstream> modelouthandle = safe_open_write(mdl_file);
 	if (!modelouthandle) {
 		error("Failed to open file: " + file_name);
 	}
