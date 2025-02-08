@@ -1198,22 +1198,18 @@ void resize_texture(QC &qc, Texture *ptexture)
 
 void grab_skin(QC &qc, Texture *ptexture)
 {
-	std::filesystem::path textureFilePath = qc.cdtexture / ptexture->name;
-	if (!std::filesystem::exists(textureFilePath))
+	std::filesystem::path texture_file_path = (qc.cdtexture / ptexture->name).lexically_normal();
+	if (!std::filesystem::exists(texture_file_path))
 	{
-		textureFilePath = qc.cdAbsolute / ptexture->name;
-		if (!std::filesystem::exists(textureFilePath))
-		{
-			error("cannot find " + ptexture->name + " texture in \"" + qc.cdtexture.string() + "\" nor \"" + qc.cdAbsolute.string() + "\"\nor those paths don't exist\n");
-		}
+		error("Cannot find \"" + ptexture->name + "\" texture in \"" + qc.cdtexture.string() + "\" or path does not exist\n");
 	}
-	if (textureFilePath.extension() == ".bmp")
+	if (texture_file_path.extension() == ".bmp")
 	{
-		grab_bmp(textureFilePath.string().c_str(), ptexture);
+		grab_bmp(texture_file_path.string().c_str(), ptexture);
 	}
 	else
 	{
-		error("unknown graphics type: \"" + textureFilePath.string() + "\"\n");
+		error("Not supported texture format: \"" + texture_file_path.string() + "\"\n");
 	}
 }
 
@@ -1537,7 +1533,7 @@ void parse_smd_reference(QC &qc, Model *pmodel)
 	char cmd[1024];
 	int option;
 
-	g_smdpath = (qc.cdAbsolute / (std::string(pmodel->name) + ".smd")).lexically_normal();
+	g_smdpath = (qc.cd / (std::string(pmodel->name) + ".smd")).lexically_normal();
 	if (!std::filesystem::exists(g_smdpath))
 		error(g_smdpath.string() + " doesn't exist");
 
@@ -1827,7 +1823,7 @@ void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 
 	anim.name = name;
 
-	g_smdpath = (qc.cdAbsolute / (std::string(anim.name) + ".smd")).lexically_normal();
+	g_smdpath = (qc.cd / (std::string(anim.name) + ".smd")).lexically_normal();
 	if (!std::filesystem::exists(g_smdpath))
 		error(g_smdpath.string() + " doesn't exist");
 
@@ -2442,24 +2438,16 @@ void parse_qc_file(std::filesystem::path path, QC &qc)
 				error("Two $cd in one model");
 			iscdalreadyset = true;
 			get_token(false, token);
-
-			qc.cd = token;
-			if (qc.cd == "." || qc.cd == "./" || qc.cd == ".\\")
-			{
-				qc.cdAbsolute = path.parent_path();
-			} 
-			else 
-			{
-				qc.cdAbsolute = path.parent_path() / qc.cd;
-			}
+			qc.cd = std::filesystem::absolute(path.parent_path() / token).string();
 		}
+
 		else if (token == "$cdtexture")
 		{
 			if (iscdtexturealreadyset)
 				error("Two $cdtexture in one model");
 			iscdtexturealreadyset = true;
 			get_token(false, token);
-			qc.cdtexture = token;
+			qc.cdtexture = std::filesystem::absolute(path.parent_path() / token).string();
 		}
 		else if (token == "$scale")
 		{

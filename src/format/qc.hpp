@@ -15,7 +15,6 @@ class QC
 public:
     std::string modelname;                                  // $modelname
     std::filesystem::path cd;                              // $cd
-    std::filesystem::path cdAbsolute;                      // $cd
     std::filesystem::path cdtexture;                       // $cdtexture
     Vector3 eyeposition{};                                 // $eyeposition
     float scale = 1.0f;                                    // $scale
