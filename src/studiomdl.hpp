@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
 
 #include "utils/mathlib.hpp"
 #include "modeldata.hpp"
@@ -71,7 +72,7 @@ int cmd_attachment(QC &qc, std::string &token);
 void cmd_renamebone(QC &qc, std::string &token);
 void cmd_texrendermode(std::string &token);
 int lookup_control(const char *string);
-void parse_qc_file(QC &qc);
+void parse_qc_file(std::filesystem::path path, QC &qc);
 
 // SMD Parser
 void parse_smd(QC &qc, Model *pmodel);

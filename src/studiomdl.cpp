@@ -1537,7 +1537,7 @@ void parse_smd(QC &qc, Model *pmodel)
 	char cmd[1024];
 	int option;
 
-	g_smdpath = qc.cdAbsolute / (std::string(pmodel->name) + ".smd");
+	g_smdpath = (qc.cdAbsolute / (std::string(pmodel->name) + ".smd")).lexically_normal();
 	if (!std::filesystem::exists(g_smdpath))
 		error(g_smdpath.string() + " doesn't exist");
 
@@ -1827,7 +1827,7 @@ void cmd_sequence_option_animation(QC &qc, std::string &name, Animation &anim)
 
 	anim.name = name;
 
-	g_smdpath = qc.cdAbsolute / (std::string(anim.name) + ".smd");
+	g_smdpath = (qc.cdAbsolute / (std::string(anim.name) + ".smd")).lexically_normal();
 	if (!std::filesystem::exists(g_smdpath))
 		error(g_smdpath.string() + " doesn't exist");
 
@@ -2410,7 +2410,7 @@ void cmd_texrendermode(std::string &token)
 		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name.c_str(), token.c_str());
 }
 
-void parse_qc_file(QC &qc)
+void parse_qc_file(std::filesystem::path path, QC &qc)
 {
 	std::string token;
 	bool iscdalreadyset = false;
@@ -2444,7 +2444,14 @@ void parse_qc_file(QC &qc)
 			get_token(false, token);
 
 			qc.cd = token;
-			qc.cdAbsolute = std::filesystem::absolute(qc.cd);
+			if (qc.cd == "." || qc.cd == "./" || qc.cd == ".\\")
+			{
+				qc.cdAbsolute = path.parent_path();
+			} 
+			else 
+			{
+				qc.cdAbsolute = path.parent_path() / qc.cd;
+			}
 		}
 		else if (token == "$cdtexture")
 		{
@@ -2540,7 +2547,7 @@ void parse_qc_file(QC &qc)
 
 int main(int argc, char **argv)
 {
-    std::filesystem::path path;
+    std::filesystem::path qc_input_path, qc_absolute_path;
     static QC qc;
 
     g_flaginvertnormals = false;
@@ -2561,7 +2568,7 @@ int main(int argc, char **argv)
     {
         error("Error: The first argument must be a .qc file\n");
     }
-    path = argv[1];
+    qc_input_path = argv[1];
 
     for (int i = 2; i < argc; i++)
     {
@@ -2599,9 +2606,9 @@ int main(int argc, char **argv)
             error("Error: Unexpected argument" + std::string(argv[i]) + "\n");
         }
     }
-
-    load_qc_file(path);       
-    parse_qc_file(qc); 
+	qc_absolute_path = std::filesystem::absolute(qc_input_path);
+    load_qc_file(qc_absolute_path);       
+    parse_qc_file(qc_absolute_path, qc); 
     set_skin_values(qc); 
     simplify_model(qc); 
     write_file(qc);      
