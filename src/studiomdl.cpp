@@ -955,7 +955,7 @@ int lookup_control(const char *string)
 
 int find_texture_index(std::string texturename)
 {
-	int i;
+	int i = 0;
 	for (auto& texture : g_textures)
 	{
 		if (texture.name == texturename)
