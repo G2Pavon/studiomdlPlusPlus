@@ -4,7 +4,7 @@
 #include <string>
 #include <filesystem>
 #include <algorithm>
-
+#include <iostream>
 
 #include "studiomdl.hpp"
 #include "utils/cmdlib.hpp"
@@ -2544,6 +2544,15 @@ void parse_qc_file(std::filesystem::path path, QC &qc)
 	}
 }
 
+void usage(const char* program_name)
+{
+    std::cerr << "Usage: " << program_name << " <inputfile.qc> <flags>\n"
+              << "  Flags:\n"
+              << "    [-f]                Invert normals\n"
+              << "    [-a <angle>]        Set vertex normal blend angle override\n"
+              << "    [-b]                Keep all unused bones\n";
+    std::exit(EXIT_FAILURE);
+}
 
 int main(int argc, char **argv)
 {
@@ -2556,17 +2565,13 @@ int main(int argc, char **argv)
 
     if (argc == 1)
     {
-        error("Usage: studiomdl <inputfile.qc> <flags>\n"
-              "  Flags:\n"
-              "    [-f]                Invert normals\n"
-              "    [-a <angle>]        Set vertex normal blend angle override\n"
-              "    [-b]                Keep all unused bones\n");
+        usage(argv[0]);
     }
 
     const char *ext = strrchr(argv[1], '.');
     if (!ext || strcmp(ext, ".qc") != 0)
     {
-        error("Error: The first argument must be a .qc file\n");
+        error("The first argument must be a .qc file\n");
     }
     qc_input_path = argv[1];
 
@@ -2582,7 +2587,7 @@ int main(int argc, char **argv)
             case 'a':
                 if (i + 1 >= argc)
                 {
-                    error("Error: Missing value for -a flag.\n");
+                    error("Missing value for -a flag.\n");
                 }
                 i++;
                 try
@@ -2591,19 +2596,19 @@ int main(int argc, char **argv)
                 }
                 catch (...)
                 {
-                    error("Error: Invalid value for -a flag. Expected a numeric angle.\n");
+                    error("Invalid value for -a flag. Expected a numeric angle.\n");
                 }
                 break;
             case 'b':
                 g_flagkeepallbones = true;
                 break;
             default:
-				error("Error: Unknown flag.\n");
+				error("Unknown flag.\n");
             }
         }
         else
         {
-            error("Error: Unexpected argument" + std::string(argv[i]) + "\n");
+            error("Unexpected argument" + std::string(argv[i]) + "\n");
         }
     }
 	qc_absolute_path = std::filesystem::absolute(qc_input_path);

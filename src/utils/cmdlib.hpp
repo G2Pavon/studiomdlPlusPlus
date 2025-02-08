@@ -9,7 +9,7 @@
 #include <memory>
 
 int file_length(std::ifstream& file);
-[[noreturn]] void error(const std::string& message);
+void error(const std::string& message);
 
 std::unique_ptr<std::ofstream> safe_open_write(const std::filesystem::path& filename);
 void safe_read(std::ifstream& file, void* buffer, std::size_t count);
