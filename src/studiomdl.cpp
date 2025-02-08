@@ -1533,11 +1533,14 @@ void parse_smd_reference(QC &qc, Model *pmodel)
 	char cmd[1024];
 	int option;
 
-	g_smdpath = (qc.cd / (std::string(pmodel->name) + ".smd")).lexically_normal();
-	if (!std::filesystem::exists(g_smdpath))
-		error(g_smdpath.string() + " doesn't exist");
+    g_smdpath = (qc.cd / (pmodel->name + ".smd")).lexically_normal();
 
-	printf("grabbing %s\n", g_smdpath.c_str());
+    if (!std::filesystem::exists(g_smdpath))
+    {
+        error("Cannot find \"" + pmodel->name + ".smd\" in \"" + qc.cd.string() + "\"\n");
+    }
+
+	printf("Grabbing reference: %s\n", g_smdpath.c_str());
 
 	if ((g_smdfile = fopen(g_smdpath.string().c_str(), "r")) == 0)
 	{
@@ -1823,11 +1826,11 @@ void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 
 	anim.name = name;
 
-	g_smdpath = (qc.cd / (std::string(anim.name) + ".smd")).lexically_normal();
+    g_smdpath = (qc.cd / (anim.name + ".smd")).lexically_normal();
 	if (!std::filesystem::exists(g_smdpath))
-		error(g_smdpath.string() + " doesn't exist");
+		error("Cannot find \"" + anim.name + ".smd\" in \"" + qc.cd.string() + "\"\n");
 
-	printf("grabbing %s\n", g_smdpath.c_str());
+	printf("Grabbing animation: %s\n", g_smdpath.c_str());
 
 	if ((g_smdfile = fopen(g_smdpath.string().c_str(), "r")) == 0)
 	{
@@ -2432,23 +2435,42 @@ void parse_qc_file(std::filesystem::path path, QC &qc)
 		{
 			cmd_modelname(qc, token);
 		}
-		else if (token == "$cd")
-		{
-			if (iscdalreadyset)
-				error("Two $cd in one model");
-			iscdalreadyset = true;
-			get_token(false, token);
-			qc.cd = std::filesystem::absolute(path.parent_path() / token).string();
-		}
+  		else if (token == "$cd")
+        {
+            if (iscdalreadyset)
+                error("Two $cd in one model");
+            iscdalreadyset = true;
 
-		else if (token == "$cdtexture")
-		{
-			if (iscdtexturealreadyset)
-				error("Two $cdtexture in one model");
-			iscdtexturealreadyset = true;
-			get_token(false, token);
-			qc.cdtexture = std::filesystem::absolute(path.parent_path() / token).string();
-		}
+            get_token(false, token);
+            std::filesystem::path cd_path(token);
+            if (cd_path.is_relative()) 
+			{
+                qc.cd = std::filesystem::absolute(path.parent_path() / cd_path);
+            }
+            else 
+			{
+                qc.cd = std::filesystem::absolute(cd_path);
+            }
+
+        }
+        else if (token == "$cdtexture")
+        {
+            if (iscdtexturealreadyset)
+                error("Two $cdtexture in one model");
+            iscdtexturealreadyset = true;
+
+            get_token(false, token);
+            std::filesystem::path cdtexture_path(token);
+
+            if (cdtexture_path.is_relative())
+			{
+                qc.cdtexture = std::filesystem::absolute(path.parent_path() / cdtexture_path);
+            }
+            else 
+			{
+                qc.cdtexture = std::filesystem::absolute(cdtexture_path);
+            }
+        }
 		else if (token == "$scale")
 		{
 			cmd_scale(qc, token);
