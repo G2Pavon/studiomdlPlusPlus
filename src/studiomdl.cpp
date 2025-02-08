@@ -1540,7 +1540,7 @@ void parse_smd_reference(QC &qc, Model *pmodel)
         error("Cannot find \"" + pmodel->name + ".smd\" in \"" + qc.cd.string() + "\"\n");
     }
 
-	printf("Grabbing reference: %s\n", g_smdpath.c_str());
+	printf("Grabbing reference: %s\n", g_smdpath.string().c_str());
 
 	if ((g_smdfile = fopen(g_smdpath.string().c_str(), "r")) == 0)
 	{
@@ -1830,7 +1830,7 @@ void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 	if (!std::filesystem::exists(g_smdpath))
 		error("Cannot find \"" + anim.name + ".smd\" in \"" + qc.cd.string() + "\"\n");
 
-	printf("Grabbing animation: %s\n", g_smdpath.c_str());
+	printf("Grabbing animation: %s\n", g_smdpath.string().c_str());
 
 	if ((g_smdfile = fopen(g_smdpath.string().c_str(), "r")) == 0)
 	{
