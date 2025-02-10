@@ -1531,8 +1531,8 @@ int parse_smd_nodes(QC &qc, std::vector<Node> &nodes)
 
 void parse_smd_reference(QC &qc, Model *pmodel)
 {
-	char cmd[1024];
-	int option;
+	std::string cmd;
+	int smd_version;
 
     g_smdpath = (qc.cd / (pmodel->name + ".smd")).lexically_normal();
 
@@ -1552,10 +1552,11 @@ void parse_smd_reference(QC &qc, Model *pmodel)
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
 		g_smdlinecount++;
-		sscanf(g_currentsmdline, "%s %d", cmd, &option);
+		std::istringstream iss(g_currentsmdline);
+		iss >> cmd >> smd_version;
 		if (case_insensitive_compare(cmd, "version"))
 		{
-			if (option != 1)
+			if (smd_version != 1)
 			{
 				error("bad version\n");
 			}
@@ -1726,7 +1727,7 @@ void parse_smd_animation_skeleton(QC &qc, Animation &anim)
 {
 	Vector3 pos;
 	Vector3 rot;
-	char cmd[1024];
+	std::string cmd;
 	int index;
 	int t = -99999999;
 	int start = 99999;
@@ -1744,18 +1745,19 @@ void parse_smd_animation_skeleton(QC &qc, Animation &anim)
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
 		g_smdlinecount++;
-		if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f", &index, &pos[0], &pos[1], &pos[2], &rot[0], &rot[1], &rot[2]) == 7)
+		std:: istringstream iss(g_currentsmdline);
+		if ( iss >> index >> pos.x >> pos.y >> pos.z >> rot.x >> rot.y >> rot.z)
 		{
 			if (t >= anim.startframe && t <= anim.endframe)
 			{
 				if (anim.nodes[index].parent == -1)
 				{
 					pos -= qc.sequenceOrigin; // adjust vertex to origin
-					anim.pos[index][t][0] = cz * pos[0] - sz * pos[1];
-					anim.pos[index][t][1] = sz * pos[0] + cz * pos[1];
-					anim.pos[index][t][2] = pos[2];
+					anim.pos[index][t].x = cz * pos.x - sz * pos.y;
+					anim.pos[index][t].y = sz * pos.x + cz * pos.y;
+					anim.pos[index][t].z = pos.z;
 					// rotate model
-					rot[2] += qc.rotate;
+					rot.z += qc.rotate;
 				}
 				else
 				{
@@ -1776,8 +1778,13 @@ void parse_smd_animation_skeleton(QC &qc, Animation &anim)
 				anim.rot[index][t] = rot;
 			}
 		}
-		else if (sscanf(g_currentsmdline, "%s %d", cmd, &index))
+		else
 		{
+			iss.clear();
+			iss.seekg(0);
+			std::string cmd;
+			iss >> cmd >> index;
+
 			if (case_insensitive_compare(cmd, "time"))
 			{
 				t = index;
@@ -1793,10 +1800,7 @@ void parse_smd_animation_skeleton(QC &qc, Animation &anim)
 				error("Error(" + std::to_string(g_smdlinecount) + ") : " + g_currentsmdline);
 			}
 		}
-		else
-		{
-			error("Error(" + std::to_string(g_smdlinecount) + ") : " + g_currentsmdline);
-		}
+
 	}
 	error("unexpected EOF: " + std::string(anim.name));
 }
@@ -1822,7 +1826,7 @@ void shift_option_animation(Animation &anim)
 
 void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 {
-	char cmd[1024];
+	std::string cmd;
 	int option;
 
 	anim.name = name;
@@ -1843,7 +1847,8 @@ void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
 		g_smdlinecount++;
-		sscanf(g_currentsmdline, "%s %d", cmd, &option);
+		std::istringstream iss(g_currentsmdline);
+		iss >> cmd >> option;
 		if (case_insensitive_compare(cmd, "version"))
 		{
 			if (option != 1)
