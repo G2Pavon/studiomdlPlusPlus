@@ -1461,36 +1461,36 @@ void parse_smd_triangles(QC &qc, Model *pmodel)
 	}
 }
 
-void parse_smd_reference_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones)
+void parse_smd_reference_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones, std::filesystem::path &path)
 {
-	float posX, posY, posZ, rotX, rotY, rotZ;
-	char cmd[1024];
-	int node;
+    std::ifstream smdstream(path);
+    std::string line, cmd;
+    int node;
+    float posX, posY, posZ, rotX, rotY, rotZ;
 
-	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
-	{
-		g_smdlinecount++;
-		if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f", &node, &posX, &posY, &posZ, &rotX, &rotY, &rotZ) == 7)
-		{
-			bones.emplace_back();
+    while (std::getline(smdstream, line))
+    {
+        g_smdlinecount++;
+        std::istringstream iss(line);
+
+        if (iss >> node >> posX >> posY >> posZ >> rotX >> rotY >> rotZ)
+        {
+            bones.emplace_back();
 			bones.back().pos = Vector3(posX, posY, posZ);
-			bones.back().pos *= qc.scaleBodyAndSequenceOption; // scale vertex
+            bones.back().pos *= qc.scaleBodyAndSequenceOption;
 
-			if (nodes[node].mirrored)
-				bones.back().pos *= -1.0;
-
+            if (nodes[node].mirrored)
+                bones.back().pos *= -1.0;
 			bones.back().rot = Vector3(rotX, rotY, rotZ);
-			clip_rotations(bones.back().rot);
-		}
-		else if (sscanf(g_currentsmdline, "%s %d", cmd, &node)) // Delete this
-		{
-			if (case_insensitive_compare(cmd, "end"))
-			{
-				return;
-			}
-		}
-	}
+            clip_rotations(bones.back().rot);
+        }
+        else if (iss >> cmd >> node && case_insensitive_compare(cmd, "end"))
+        {
+            return;
+        }
+    }
 }
+
 
 int parse_smd_nodes(QC &qc, std::vector<Node> &nodes)
 {
@@ -1565,7 +1565,7 @@ void parse_smd_reference(QC &qc, Model *pmodel)
 		}
 		else if (case_insensitive_compare(cmd, "skeleton"))
 		{
-			parse_smd_reference_skeleton(qc, pmodel->nodes, pmodel->skeleton);
+			parse_smd_reference_skeleton(qc, pmodel->nodes, pmodel->skeleton, g_smdpath);
 		}
 		else if (case_insensitive_compare(cmd, "triangles"))
 		{
