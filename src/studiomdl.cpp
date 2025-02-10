@@ -1401,11 +1401,10 @@ void parse_smd_triangles(QC &qc, Model *pmodel)
 					Normal triangleNormal;
 
 					g_smdlinecount++;
-					if (sscanf(g_currentsmdline, "%d %f %f %f %f %f %f %f %f",
-							   &parentBone,
-							   &triangleVertex.pos[0], &triangleVertex.pos[1], &triangleVertex.pos[2],
-							   &triangleNormal.pos[0], &triangleNormal.pos[1], &triangleNormal.pos[2],
-							   &ptriangleVert->u, &ptriangleVert->v) == 9)
+					if (std::istringstream(g_currentsmdline) >> parentBone
+						>> triangleVertex.pos.x >> triangleVertex.pos.y >> triangleVertex.pos.z
+						>> triangleNormal.pos.x >> triangleNormal.pos.y >> triangleNormal.pos.z
+						>> ptriangleVert->u >> ptriangleVert->v)
 					{
 						if (parentBone < 0 || parentBone >= pmodel->nodes.size())
 						{
