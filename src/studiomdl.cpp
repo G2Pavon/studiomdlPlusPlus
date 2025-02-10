@@ -1491,17 +1491,17 @@ void parse_smd_reference_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<
     }
 }
 
-
 int parse_smd_nodes(QC &qc, std::vector<Node> &nodes)
 {
     int index;
-    char bone_name[1024];
+    std::string bone_name;
     int parent;
 
     while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
     {
         g_smdlinecount++;
-        if (sscanf(g_currentsmdline, "%d \"%[^\"]\" %d", &index, bone_name, &parent) == 3)
+		std::istringstream iss(g_currentsmdline);
+        if (iss >> index >> std::quoted(bone_name) >> parent)
         {
             nodes.emplace_back();
             nodes.back().name = bone_name;
