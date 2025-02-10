@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 #include "studiomdl.hpp"
 #include "utils/cmdlib.hpp"
@@ -1399,9 +1401,9 @@ void parse_smd_triangles(QC &qc, Model *pmodel)
 				{
 					Vertex triangleVertex;
 					Normal triangleNormal;
-
+					std::istringstream iss(g_currentsmdline);
 					g_smdlinecount++;
-					if (std::istringstream(g_currentsmdline) >> parentBone
+					if (iss >> parentBone
 						>> triangleVertex.pos.x >> triangleVertex.pos.y >> triangleVertex.pos.z
 						>> triangleNormal.pos.x >> triangleNormal.pos.y >> triangleNormal.pos.z
 						>> ptriangleVert->u >> ptriangleVert->v)
