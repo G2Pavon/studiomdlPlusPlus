@@ -56,6 +56,21 @@ public:
         texturegroups.fill({});
         bbox.fill(Vector3{});
         cbox.fill(Vector3{});
+
+        renamebones.reserve(MAXSTUDIOSRCBONES);
+        hitgroups.reserve(MAXSTUDIOSRCBONES);
+        mirroredbones.reserve(MAXSTUDIOSRCBONES);
+        hitboxes.reserve(MAXSTUDIOSRCBONES);
+        bonecontrollers.reserve(MAXSTUDIOSRCBONES);
+        attachments.reserve(MAXSTUDIOSRCBONES);
+
+        sequences.reserve(MAXSTUDIOSEQUENCES);
+        sequenceAnimationOptions.reserve(MAXSTUDIOSEQUENCES*MAXSTUDIOBLENDS);
+
+        submodels.reserve(MAXSTUDIOMODELS);
+        bodyparts.reserve(MAXSTUDIOBODYPARTS);
+    
+
     }
 };
 
