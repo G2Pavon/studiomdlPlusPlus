@@ -2578,7 +2578,7 @@ int main(int argc, char **argv)
 
     g_flaginvertnormals = false;
     g_flagkeepallbones = false;
-    g_flagnormalblendangle = cosf(to_radians(0));
+    g_flagnormalblendangle = cos( 2.0 * (Q_PI / 180.0)); // don't use cos(0) because we need a threshold
 
     if (argc == 1)
     {
