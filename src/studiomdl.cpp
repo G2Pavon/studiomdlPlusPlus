@@ -475,7 +475,7 @@ void simplify_model(QC &qc)
 
 		if (j >= g_bonetable.size())
 		{
-			error("unknown bonecontroller link '" + bonecontroller.name + "'\n");
+			error("Unknown bonecontroller link '" + bonecontroller.name + "'\n");
 		}
 		bonecontroller.bone = j;
 	}
@@ -493,7 +493,7 @@ void simplify_model(QC &qc)
 		}
 		if (j >= g_bonetable.size())
 		{
-			error("unknown attachment link '" + attachment.bonename + "'\n");
+			error("Unknown attachment link '" + attachment.bonename + "'\n");
 		}
 		attachment.bone = j;
 	}
@@ -1575,7 +1575,7 @@ void parse_smd_reference(QC &qc, Model *pmodel)
 		}
 		else
 		{
-			printf("unknown studio command\n");
+			printf("Unknown smd command: %s\n", cmd.c_str());
 		}
 	}
 	fclose(g_smdfile);
@@ -1867,13 +1867,13 @@ void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 		}
 		else
 		{
-			printf("unknown studio model command : %s\n", cmd.c_str());
 			while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 			{
 				g_smdlinecount++;
-				if (strncmp(g_currentsmdline, "end", 3))
+				if (case_insensitive_n_compare(g_currentsmdline, "end", 3))
 					break;
 			}
+			printf("Unknow smd command: %s\n", cmd);
 		}
 	}
 	fclose(g_smdfile);
@@ -2180,7 +2180,7 @@ int cmd_controller(QC &qc, std::string &token)
 			get_token(false, token);
 			if ((newbc.type = lookup_control(token.c_str())) == -1)
 			{
-				printf("unknown bonecontroller type '%s'\n", token.c_str());
+				printf("Unknown bonecontroller type '%s'\n", token.c_str());
 				return 0;
 			}
 			get_token(false, token);

@@ -75,7 +75,7 @@ void write_bone_info(StudioHeader *header, QC &qc)
 			pbone[j].bonecontroller[5] = i;
 			break;
 		default:
-			printf("unknown bonecontroller type\n");
+			printf("Unknown bonecontroller type\n");
 			exit(1);
 		}
 	}
