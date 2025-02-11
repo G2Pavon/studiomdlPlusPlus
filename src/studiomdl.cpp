@@ -1147,7 +1147,7 @@ void resize_texture(QC &qc, Texture *ptexture)
 
 	ptexture->size = ptexture->skinwidth * ptexture->skinheight + 256 * 3;
 
-	printf("BMP %s [%d %d] (%.0f%%)  %6d bytes\n", ptexture->name.c_str(), ptexture->skinwidth, ptexture->skinheight,
+	printf("\t %s [%d %d] (%.0f%%)  %6d bytes\n", ptexture->name.c_str(), ptexture->skinwidth, ptexture->skinheight,
 		   (static_cast<float>(ptexture->skinwidth * ptexture->skinheight) / static_cast<float>(ptexture->srcwidth * ptexture->srcheight)) * 100.0f,
 		   ptexture->size);
 
@@ -1219,6 +1219,7 @@ void set_skin_values(QC &qc)
 {
 	int i, j;
 
+	printf("\nGrabbing texture:\n");
 	for (auto& texture : g_textures)
 	{
 		grab_skin(qc, &texture);
@@ -1443,7 +1444,7 @@ void parse_smd_triangles(QC &qc, Model *pmodel)
 					}
 					else
 					{
-						error("Error on line " + std::to_string(g_smdlinecount) + ": " + g_currentsmdline);
+						error("Triangles line " + std::to_string(g_smdlinecount) + ": " + g_currentsmdline);
 					}
 				}
 			}
@@ -1458,7 +1459,7 @@ void parse_smd_triangles(QC &qc, Model *pmodel)
 
 	if (vmin[2] != 0.0)
 	{
-		printf("lowest vector at %f\n", vmin[2]);
+		printf("Lowest vector at %f\n", vmin[2]);
 	}
 }
 
@@ -1533,6 +1534,7 @@ void parse_smd_reference(QC &qc, Model *pmodel)
 {
 	std::string cmd;
 	int smd_version;
+	g_smdlinecount = 0;
 
     g_smdpath = (qc.cd / (pmodel->name + ".smd")).lexically_normal();
 
@@ -1541,24 +1543,31 @@ void parse_smd_reference(QC &qc, Model *pmodel)
         error("Cannot find \"" + pmodel->name + ".smd\" in \"" + qc.cd.string() + "\"\n");
     }
 
-	printf("Grabbing reference: %s\n", g_smdpath.string().c_str());
+	printf("Grabbing reference: %s\n\n", g_smdpath.string().c_str());
 
 	if ((g_smdfile = fopen(g_smdpath.string().c_str(), "r")) == 0)
 	{
 		fprintf(stderr, "reader: could not open file '%s'\n", g_smdpath.c_str());
 	}
-	g_smdlinecount = 0;
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
 		g_smdlinecount++;
 		std::istringstream iss(g_currentsmdline);
-		iss >> cmd >> smd_version;
-		if (case_insensitive_compare(cmd, "version"))
+		
+		if (!(iss >> cmd))
+        	continue;
+		else if (case_insensitive_compare(cmd, "version"))
 		{
+			if (!(iss >> smd_version))
+			{
+				error("Missing SMD version number.\n");
+				return;
+			}
 			if (smd_version != 1)
 			{
-				error("bad version\n");
+				error("Unsupported SMD version: " + std::to_string(smd_version) + "\n");
+				return;
 			}
 		}
 		else if (case_insensitive_compare(cmd, "nodes"))
@@ -1573,10 +1582,7 @@ void parse_smd_reference(QC &qc, Model *pmodel)
 		{
 			parse_smd_triangles(qc, pmodel);
 		}
-		else
-		{
-			printf("Unknown smd command: %s\n", cmd.c_str());
-		}
+		else continue;
 	}
 	fclose(g_smdfile);
 }
@@ -1827,7 +1833,8 @@ void shift_option_animation(Animation &anim)
 void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 {
 	std::string cmd;
-	int option;
+	int smd_version;
+	g_smdlinecount = 0;
 
 	anim.name = name;
 
@@ -1842,18 +1849,25 @@ void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 		fprintf(stderr, "reader: could not open file '%s'\n", g_smdpath.c_str());
 		error(0);
 	}
-	g_smdlinecount = 0;
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
 		g_smdlinecount++;
 		std::istringstream iss(g_currentsmdline);
-		iss >> cmd >> option;
-		if (case_insensitive_compare(cmd, "version"))
+
+		if (!(iss >> cmd))
+        	continue;
+		else if (case_insensitive_compare(cmd, "version"))
 		{
-			if (option != 1)
+			if (!(iss >> smd_version))
 			{
-				error("bad version\n");
+				error("Missing SMD version number.\n");
+				return;
+			}
+			if (smd_version != 1)
+			{
+				error("Unsupported SMD version: " + std::to_string(smd_version) + "\n");
+				return;
 			}
 		}
 		else if (case_insensitive_compare(cmd, "nodes"))
@@ -1865,16 +1879,8 @@ void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 			parse_smd_animation_skeleton(qc, anim);
 			shift_option_animation(anim);
 		}
-		else
-		{
-			while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
-			{
-				g_smdlinecount++;
-				if (case_insensitive_n_compare(g_currentsmdline, "end", 3))
-					break;
-			}
-			printf("Unknow smd command: %s\n", cmd);
-		}
+		else 
+			continue;
 	}
 	fclose(g_smdfile);
 }
