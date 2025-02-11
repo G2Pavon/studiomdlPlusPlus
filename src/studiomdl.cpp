@@ -2424,8 +2424,6 @@ void cmd_texrendermode(std::string &token)
 void parse_qc_file(std::filesystem::path path, QC &qc)
 {
 	std::string token;
-	bool iscdalreadyset = false;
-	bool iscdtexturealreadyset = false;
 	while (true)
 	{
 		// Look for a line starting with a $ command
@@ -2449,9 +2447,8 @@ void parse_qc_file(std::filesystem::path path, QC &qc)
 		}
   		else if (token == "$cd")
         {
-            if (iscdalreadyset)
+            if (!qc.cd.empty())
                 error("Two $cd in one model");
-            iscdalreadyset = true;
 
             get_token(false, token);
             std::filesystem::path cd_path(token);
@@ -2467,9 +2464,8 @@ void parse_qc_file(std::filesystem::path path, QC &qc)
         }
         else if (token == "$cdtexture")
         {
-            if (iscdtexturealreadyset)
+            if (!qc.cdtexture.empty())
                 error("Two $cdtexture in one model");
-            iscdtexturealreadyset = true;
 
             get_token(false, token);
             std::filesystem::path cdtexture_path(token);
