@@ -1867,7 +1867,7 @@ void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
 		}
 		else
 		{
-			printf("unknown studio model command : %s\n", cmd);
+			printf("unknown studio model command : %s\n", cmd.c_str());
 			while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 			{
 				g_smdlinecount++;
