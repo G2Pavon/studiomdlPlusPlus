@@ -87,9 +87,9 @@ struct StudioHeader
 	int textureindex;	  // offset to the first texture
 	int texturedataindex; // offset to the texture pixel data.
 
-	int numskinref;		 // number of replaceable textures
+	int numskinref; // number of replaceable textures
 	int numskinfamilies;
-	int skinindex;		 // offset to the skin data (a matrix of texture indices)
+	int skinindex; // offset to the skin data (a matrix of texture indices)
 
 	int numbodyparts;
 	int bodypartindex; // offset to the first bodypart
@@ -129,7 +129,7 @@ struct StudioBone
 {
 	char name[MAXBONENAMELENGTH];
 	int parent;							  // index of the parent bone (-1 for root)
-	int flags = 0;							  // Unused.
+	int flags = 0;						  // Unused.
 	int bonecontroller[DEGREESOFFREEDOM]; // Bone controller indices for each degree of freedom (X, Y, Z, rotX, rotY, rotZ). -1 indicates no controller
 	float value[DEGREESOFFREEDOM];		  // Default values for each degree of freedom
 	float scale[DEGREESOFFREEDOM];		  // Scale values used for compressed animation data
@@ -285,8 +285,8 @@ struct StudioBodyPart
 {
 	char name[MAXBODYPARTSNAMELENGHT];
 	int nummodels;
-	int base;						   // Used to calculate the model index relative to the bodypart
-	int modelindex;					   // offset to the first model in this bodypart
+	int base;		// Used to calculate the model index relative to the bodypart
+	int modelindex; // offset to the first model in this bodypart
 };
 
 /**
@@ -297,10 +297,10 @@ struct StudioBodyPart
 struct StudioTexture
 {
 	char name[MAXTEXTURENAMELENGTH];
-	int flags;						 // Texture flags (e.g., STUDIO_NF_CHROME).
-	int width;						 
-	int height;						 
-	int index;						 // offset to the texture's data
+	int flags; // Texture flags (e.g., STUDIO_NF_CHROME).
+	int width;
+	int height;
+	int index; // offset to the texture's data
 };
 
 /**

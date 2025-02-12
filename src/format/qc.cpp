@@ -1,17 +1,16 @@
 // qc.cpp
-#include "cmdlib.hpp"
 #include "qc.hpp"
+#include "cmdlib.hpp"
 #include <iostream>
 
-
 std::vector<char> qc_script_buffer;
-char* qc_stream_p = nullptr;
-char* qc_stream_end_p = nullptr;
+char *qc_stream_p = nullptr;
+char *qc_stream_end_p = nullptr;
 bool token_ready = false;
 bool end_of_qc_file = false;
 int qc_line_number = 0;
 
-void load_qc_file(const std::filesystem::path& filename)
+void load_qc_file(const std::filesystem::path &filename)
 {
     qc_script_buffer = load_file(filename);
     qc_stream_p = qc_script_buffer.data();
@@ -22,7 +21,7 @@ void load_qc_file(const std::filesystem::path& filename)
     std::cout << "Processing " << filename << "\n";
 }
 
-bool get_token(bool crossline, std::string& token)
+bool get_token(bool crossline, std::string &token)
 {
     if (token_ready)
     {
@@ -35,7 +34,7 @@ bool get_token(bool crossline, std::string& token)
         end_of_qc_file = true;
         return false;
     }
-    
+
     while (*qc_stream_p <= 32 || *qc_stream_p == ';' || *qc_stream_p == '#' || (*qc_stream_p == '/' && *(qc_stream_p + 1) == '/'))
     {
         if (qc_stream_p >= qc_stream_end_p)
@@ -55,9 +54,9 @@ bool get_token(bool crossline, std::string& token)
                 qc_stream_p++;
         }
     }
-    
+
     token.clear();
-    
+
     if (*qc_stream_p == '"')
     {
         qc_stream_p++;
@@ -70,13 +69,13 @@ bool get_token(bool crossline, std::string& token)
         while (*qc_stream_p > 32 && *qc_stream_p != ';' && *qc_stream_p != '\n' && qc_stream_p < qc_stream_end_p)
             token.push_back(*qc_stream_p++);
     }
-    
+
     return true;
 }
 
 bool token_available()
 {
-    char* search_p = qc_stream_p;
+    char *search_p = qc_stream_p;
     while (*search_p <= 32)
     {
         if (*search_p == '\n')

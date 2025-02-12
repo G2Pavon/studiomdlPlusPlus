@@ -1,7 +1,7 @@
-#include <cstring>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include "format/image/bmp.hpp"
 

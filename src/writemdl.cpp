@@ -1,11 +1,11 @@
 #include <cstring>
 
-#include "writemdl.hpp"
 #include "format/mdl.hpp"
-#include "studiomdl.hpp"
 #include "format/qc.hpp"
+#include "studiomdl.hpp"
 #include "utils/mathlib.hpp"
 #include "utils/stripification.hpp"
+#include "writemdl.hpp"
 
 constexpr int FILEBUFFER = 16 * 1024 * 1024;
 extern int g_numcommandnodes;
@@ -252,7 +252,7 @@ std::uint8_t *write_animations(QC &qc, std::uint8_t *pData, const std::uint8_t *
 						}
 					}
 					if (((std::uint8_t *)panimvalue - (std::uint8_t *)panim) > 65535)
-						error("sequence "+  qc.sequences[i].name +" is greate than 64K\n");
+						error("sequence " + qc.sequences[i].name + " is greate than 64K\n");
 					panim++;
 				}
 			}
@@ -460,7 +460,8 @@ void write_file(std::filesystem::path path, QC &qc)
 	printf("---------------------\n");
 	printf("Writing %s:\n", mdl_file.string().c_str());
 	std::unique_ptr<std::ofstream> modelouthandle = safe_open_write(mdl_file);
-	if (!modelouthandle) {
+	if (!modelouthandle)
+	{
 		error("Failed to open file: " + file_name);
 	}
 

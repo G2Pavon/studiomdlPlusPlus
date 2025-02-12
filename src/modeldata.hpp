@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "utils/mathlib.hpp"
 #include "format/mdl.hpp"
+#include "utils/mathlib.hpp"
 
 struct TriangleVert
 {
@@ -20,14 +20,14 @@ struct TriangleVert
 
 struct Vertex
 {
-    int bone_id;    // bone transformation index
+    int bone_id; // bone transformation index
     Vector3 pos; // original position
 };
 
 struct Normal
 {
     int skinref;
-    int bone_id;    // bone transformation index
+    int bone_id; // bone transformation index
     Vector3 pos; // original position
 };
 
@@ -40,8 +40,8 @@ struct BoneFixUp
 
 struct BoneTable
 {
-    std::string name; // bone name for symbolic links. TODO: Check name length limits
-    int parent;                   // parent bone
+    std::string name;   // bone name for symbolic links. TODO: Check name length limits
+    int parent;         // parent bone
     Vector3 pos;        // default pos
     Vector3 posscale;   // pos values scale
     Vector3 rot;        // default pos
@@ -60,7 +60,7 @@ struct HitBox
 {
     std::string name; // bone name
     int bone;
-    int group; // hitgroup
+    int group;          // hitgroup
     Vector3 bmin, bmax; // bounding box
 };
 

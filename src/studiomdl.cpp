@@ -1,24 +1,23 @@
 // studiomdl.cpp: generates a studio .mdl file from a .qc script
 
-#include <cstring>
-#include <string>
-#include <filesystem>
+#include "studiomdl.hpp"
+
 #include <algorithm>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <fstream>
+#include <string>
 
-#include "studiomdl.hpp"
-#include "utils/cmdlib.hpp"
-#include "utils/mathlib.hpp"
 #include "format/image/bmp.hpp"
 #include "format/mdl.hpp"
 #include "format/qc.hpp"
-#include "writemdl.hpp"
-
 #include "monsters/activity.hpp"
 #include "monsters/activitymap.hpp"
-
+#include "utils/cmdlib.hpp"
+#include "utils/mathlib.hpp"
+#include "writemdl.hpp"
 
 // studiomdl.exe args -----------
 bool g_flaginvertnormals;
@@ -41,7 +40,8 @@ std::vector<BoneTable> g_bonetable;
 
 std::vector<Texture> g_textures;
 
-std::array<std::array<int, MAXSTUDIOSKINS>, 256> g_skinref; // [skin][skinref], returns texture index
+std::array<std::array<int, MAXSTUDIOSKINS>, 256>
+	g_skinref; // [skin][skinref], returns texture index
 int g_skinrefcount;
 int g_skinfamiliescount;
 
@@ -64,14 +64,14 @@ void extract_motion(QC &qc)
 	int blend_index;
 
 	// extract linear motion
-	for (auto& sequence : qc.sequences)
+	for (auto &sequence : qc.sequences)
 	{
 		if (sequence.numframes > 1)
 		{
 			// assume 0 for now.
 			Vector3 motion{0, 0, 0};
 			int type_motion = sequence.motiontype;
-			Vector3* ppos = sequence.anims[0].pos[0];
+			Vector3 *ppos = sequence.anims[0].pos[0];
 
 			int k = sequence.numframes - 1;
 
@@ -91,10 +91,14 @@ void extract_motion(QC &qc)
 					{
 						ppos = sequence.anims[0].pos[k];
 
-						adjusted_pos = motion * (static_cast<float>(j) / static_cast<float>(sequence.numframes - 1));
-						for (blend_index = 0; blend_index < sequence.anims.size(); blend_index++)
+						adjusted_pos =
+							motion * (static_cast<float>(j) /
+									  static_cast<float>(sequence.numframes - 1));
+						for (blend_index = 0; blend_index < sequence.anims.size();
+							 blend_index++)
 						{
-							sequence.anims[blend_index].pos[k][j] = sequence.anims[blend_index].pos[k][j] - adjusted_pos;
+							sequence.anims[blend_index].pos[k][j] =
+								sequence.anims[blend_index].pos[k][j] - adjusted_pos;
 						}
 					}
 				}
@@ -108,16 +112,16 @@ void extract_motion(QC &qc)
 		}
 	}
 
-
 	// extract unused motion
-	for (auto& sequence : qc.sequences)
+	for (auto &sequence : qc.sequences)
 	{
 		int type_unused_motion = sequence.motiontype;
 		for (k = 0; k < sequence.anims[0].nodes.size(); k++)
 		{
 			if (sequence.anims[0].nodes[k].parent == -1)
 			{
-				for (blend_index = 0; blend_index < sequence.anims.size(); blend_index++)
+				for (blend_index = 0; blend_index < sequence.anims.size();
+					 blend_index++)
 				{
 					float motion[6];
 					motion[0] = sequence.anims[blend_index].pos[k][0][0];
@@ -148,9 +152,10 @@ void optimize_animations(QC &qc)
 	int type_motion;
 
 	// optimize animations
-	for (auto& sequence : qc.sequences)
+	for (auto &sequence : qc.sequences)
 	{
-		sequence.numframes = sequence.anims[0].endframe - sequence.anims[0].startframe + 1;
+		sequence.numframes =
+			sequence.anims[0].endframe - sequence.anims[0].startframe + 1;
 
 		// force looping animations to be looping
 		if (sequence.flags & STUDIO_LOOPING)
@@ -162,7 +167,7 @@ void optimize_animations(QC &qc)
 					Vector3 *ppos = sequence.anims[blends].pos[j];
 					Vector3 *prot = sequence.anims[blends].rot[j];
 
-					start_frame = 0;								 // sequence[i].panim[q]->startframe;
+					start_frame = 0;					// sequence[i].panim[q]->startframe;
 					end_frame = sequence.numframes - 1; // sequence[i].panim[q]->endframe;
 
 					type_motion = sequence.motiontype;
@@ -180,16 +185,19 @@ void optimize_animations(QC &qc)
 			}
 		}
 
-		for (auto& event : sequence.events)
+		for (auto &event : sequence.events)
 		{
 			if (event.frame < sequence.anims[0].startframe)
 			{
-				printf("sequence %s has event (%d) before first frame (%d)\n", sequence.name.c_str(), event.frame, sequence.anims[0].startframe);
+				printf("sequence %s has event (%d) before first frame (%d)\n",
+					   sequence.name.c_str(), event.frame,
+					   sequence.anims[0].startframe);
 				event.frame = sequence.anims[0].startframe;
 			}
 			if (event.frame > sequence.anims[0].endframe)
 			{
-				printf("sequence %s has event (%d) after last frame (%d)\n", sequence.name.c_str(), event.frame, sequence.anims[0].endframe);
+				printf("sequence %s has event (%d) after last frame (%d)\n",
+					   sequence.name.c_str(), event.frame, sequence.anims[0].endframe);
 				event.frame = sequence.anims[0].endframe;
 			}
 		}
@@ -216,14 +224,16 @@ void make_transitions(QC &qc)
 	int hit;
 
 	// Add in direct node transitions
-	for (auto& sequence : qc.sequences)
+	for (auto &sequence : qc.sequences)
 	{
 		if (sequence.entrynode != sequence.exitnode)
 		{
-			g_xnode[sequence.entrynode - 1][sequence.exitnode - 1] = sequence.exitnode;
+			g_xnode[sequence.entrynode - 1][sequence.exitnode - 1] =
+				sequence.exitnode;
 			if (sequence.nodeflags)
 			{
-				g_xnode[sequence.exitnode - 1][sequence.entrynode - 1] = sequence.entrynode;
+				g_xnode[sequence.exitnode - 1][sequence.entrynode - 1] =
+					sequence.entrynode;
 			}
 		}
 		if (sequence.entrynode > g_numxnodes)
@@ -283,13 +293,13 @@ void simplify_model(QC &qc)
 	make_transitions(qc);
 
 	// find used bones TODO: find_used_bones()
-	for (auto& submodel : qc.submodels)
+	for (auto &submodel : qc.submodels)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
 			submodel->boneref[k] = g_flagkeepallbones;
 		}
-		for (auto& vert : submodel->verts)
+		for (auto &vert : submodel->verts)
 		{
 			submodel->boneref[vert.bone_id] = 1;
 		}
@@ -309,11 +319,11 @@ void simplify_model(QC &qc)
 	}
 
 	// rename model bones if needed TODO: rename_submodel_bones()
-	for (auto& submodel : qc.submodels)
+	for (auto &submodel : qc.submodels)
 	{
-		for (auto& node : submodel->nodes)
+		for (auto &node : submodel->nodes)
 		{
-			for (auto& rename : qc.renamebones)
+			for (auto &rename : qc.renamebones)
 			{
 				if (node.name == rename.from)
 				{
@@ -326,7 +336,7 @@ void simplify_model(QC &qc)
 
 	// union of all used bones TODO:create_bone_union()
 	g_bonetable.clear();
-	for (auto& submodel : qc.submodels)
+	for (auto &submodel : qc.submodels)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
@@ -348,8 +358,10 @@ void simplify_model(QC &qc)
 					else
 						newb.parent = -1;
 					// set defaults
-					defaultpos[k] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
-					defaultrot[k] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
+					defaultpos[k] =
+						(Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
+					defaultrot[k] =
+						(Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 					for (n = 0; n < MAXSTUDIOANIMATIONS; n++)
 					{
 						defaultpos[k][n] = submodel->skeleton[j].pos;
@@ -369,9 +381,9 @@ void simplify_model(QC &qc)
 
 					if (n != m)
 					{
-						printf("illegal parent bone replacement in model \"%s\"\n\t\"%s\" has \"%s\", previously was \"%s\"\n",
-							   submodel->name.c_str(),
-							   submodel->nodes[j].name.c_str(),
+						printf("illegal parent bone replacement in model \"%s\"\n\t\"%s\" "
+							   "has \"%s\", previously was \"%s\"\n",
+							   submodel->name.c_str(), submodel->nodes[j].name.c_str(),
 							   (n != -1) ? g_bonetable[n].name.c_str() : "ROOT",
 							   (m != -1) ? g_bonetable[m].name.c_str() : "ROOT");
 						illegal_parent_bone++;
@@ -390,15 +402,17 @@ void simplify_model(QC &qc)
 
 	if (g_bonetable.size() >= MAXSTUDIOBONES)
 	{
-		error("Too many bones used in model, used " + std::to_string(g_bonetable.size()) + ", max " + std::to_string(MAXSTUDIOBONES) + "\n");
+		error("Too many bones used in model, used " +
+			  std::to_string(g_bonetable.size()) + ", max " +
+			  std::to_string(MAXSTUDIOBONES) + "\n");
 	}
 
 	// rename sequence bones if needed TODO: rename_sequence_bones()
-	for (auto& sequence : qc.sequences)
+	for (auto &sequence : qc.sequences)
 	{
-		for (auto& node : sequence.anims[0].nodes)
+		for (auto &node : sequence.anims[0].nodes)
 		{
-			for (auto& rename : qc.renamebones)
+			for (auto &rename : qc.renamebones)
 			{
 				if (node.name == rename.from)
 				{
@@ -410,14 +424,14 @@ void simplify_model(QC &qc)
 	}
 
 	// map each sequences bone list to master list TODO: map_sequence_bones()
-	for (auto& sequence : qc.sequences)
+	for (auto &sequence : qc.sequences)
 	{
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
 			sequence.anims[0].boneimap[k] = -1;
 		}
 		int j = 0;
-		for (auto& node : sequence.anims[0].nodes)
+		for (auto &node : sequence.anims[0].nodes)
 		{
 			k = find_node(node.name);
 
@@ -439,11 +453,10 @@ void simplify_model(QC &qc)
 
 				if (!case_insensitive_compare(parent_anim_name, parent_bone_name))
 				{
-					printf("illegal parent bone replacement in sequence \"%s\"\n\t\"%s\" has \"%s\", reference has \"%s\"\n",
-						   sequence.name.c_str(),
-						   node.name.c_str(),
-						   parent_anim_name.c_str(),
-						   parent_bone_name.c_str());
+					printf("illegal parent bone replacement in sequence \"%s\"\n\t\"%s\" "
+						   "has \"%s\", reference has \"%s\"\n",
+						   sequence.name.c_str(), node.name.c_str(),
+						   parent_anim_name.c_str(), parent_bone_name.c_str());
 					illegal_parent_bone++;
 				}
 				sequence.anims[0].boneimap[k] = j;
@@ -457,10 +470,10 @@ void simplify_model(QC &qc)
 	}
 
 	// link bonecontrollers TODO: link_bone_controllers()
-	for (auto& bonecontroller : qc.bonecontrollers)
+	for (auto &bonecontroller : qc.bonecontrollers)
 	{
 		int j = 0;
-		for (auto& bone : g_bonetable)
+		for (auto &bone : g_bonetable)
 		{
 			if (bonecontroller.name == bone.name)
 				break;
@@ -474,12 +487,11 @@ void simplify_model(QC &qc)
 		bonecontroller.bone = j;
 	}
 
-
 	// link attachments TODO: link_attachments()
-	for (auto& attachment : qc.attachments)
+	for (auto &attachment : qc.attachments)
 	{
 		int j = 0;
-		for (auto& bone : g_bonetable)
+		for (auto &bone : g_bonetable)
 		{
 			if (attachment.bonename == bone.name)
 				break;
@@ -493,28 +505,28 @@ void simplify_model(QC &qc)
 	}
 
 	// relink model TODO: relink_model()
-	for (auto& submodel : qc.submodels)
+	for (auto &submodel : qc.submodels)
 	{
-		for (auto& vert : submodel->verts)
+		for (auto &vert : submodel->verts)
 		{
 			vert.bone_id = submodel->bonemap[vert.bone_id];
 		}
 
-		for (auto& normal : submodel->normals)
+		for (auto &normal : submodel->normals)
 		{
 			normal.bone_id = submodel->bonemap[normal.bone_id];
 		}
 	}
 
 	// set hitgroups TODO: set_hit_groups()
-	for (auto& bone_table : g_bonetable)
+	for (auto &bone_table : g_bonetable)
 	{
 		bone_table.group = -9999;
 	}
-	for (auto& hitgroup : qc.hitgroups)
+	for (auto &hitgroup : qc.hitgroups)
 	{
 		int k = 0;
-		for (auto& bone : g_bonetable)
+		for (auto &bone : g_bonetable)
 		{
 			if (bone.name == hitgroup.name)
 			{
@@ -524,9 +536,10 @@ void simplify_model(QC &qc)
 			++k;
 		}
 		if (k >= g_bonetable.size())
-			error("cannot find bone " + hitgroup.name + " for hitgroup " + std::to_string(hitgroup.group) + "\n");
+			error("cannot find bone " + hitgroup.name + " for hitgroup " +
+				  std::to_string(hitgroup.group) + "\n");
 	}
-	for (auto& bone : g_bonetable)
+	for (auto &bone : g_bonetable)
 	{
 		if (bone.group == -9999)
 		{
@@ -541,7 +554,7 @@ void simplify_model(QC &qc)
 	if (qc.hitboxes.empty())
 	{
 		// find intersection box volume for each bone
-		for (auto& bone : g_bonetable)
+		for (auto &bone : g_bonetable)
 		{
 			for (j = 0; j < 3; j++)
 			{
@@ -550,10 +563,10 @@ void simplify_model(QC &qc)
 			}
 		}
 		// try all the connect vertices
-		for (auto& submodel : qc.submodels)
+		for (auto &submodel : qc.submodels)
 		{
 			Vector3 p;
-			for (auto& vert : submodel->verts)
+			for (auto &vert : submodel->verts)
 			{
 				p = vert.pos;
 				k = vert.bone_id;
@@ -573,7 +586,7 @@ void simplify_model(QC &qc)
 			}
 		}
 		// add in all your children as well
-		for (auto& bone : g_bonetable)
+		for (auto &bone : g_bonetable)
 		{
 			int j = bone.parent;
 			if (j != -1)
@@ -594,9 +607,10 @@ void simplify_model(QC &qc)
 		}
 
 		int k = 0;
-		for (auto& bone : g_bonetable)
+		for (auto &bone : g_bonetable)
 		{
-			if (bone.bmin[0] < bone.bmax[0] - 1 && bone.bmin[1] < bone.bmax[1] - 1 && bone.bmin[2] < bone.bmax[2] - 1)
+			if (bone.bmin[0] < bone.bmax[0] - 1 && bone.bmin[1] < bone.bmax[1] - 1 &&
+				bone.bmin[2] < bone.bmax[2] - 1)
 			{
 				HitBox genhbox;
 				genhbox.bone = k;
@@ -610,10 +624,10 @@ void simplify_model(QC &qc)
 	}
 	else
 	{
-		for (auto& hitbox : qc.hitboxes)
+		for (auto &hitbox : qc.hitboxes)
 		{
 			int k = 0;
-			for (auto& bone : g_bonetable)
+			for (auto &bone : g_bonetable)
 			{
 				if (bone.name == hitbox.name)
 				{
@@ -628,7 +642,7 @@ void simplify_model(QC &qc)
 	}
 
 	// relink animations TODO: relink_animations()
-	for (auto& sequence : qc.sequences)
+	for (auto &sequence : qc.sequences)
 	{
 		Vector3 *origpos[MAXSTUDIOSRCBONES] = {nullptr};
 		Vector3 *origrot[MAXSTUDIOSRCBONES] = {nullptr};
@@ -678,9 +692,9 @@ void simplify_model(QC &qc)
 				maxv = Q_PI / 8.0;
 			}
 
-			for (auto& sequence : qc.sequences)
+			for (auto &sequence : qc.sequences)
 			{
-				for (auto& anim : sequence.anims)
+				for (auto &anim : sequence.anims)
 				{
 					for (n = 0; n < sequence.numframes; n++)
 					{
@@ -741,7 +755,7 @@ void simplify_model(QC &qc)
 	}
 
 	// find bounding box for each sequence TODO: find_sequence_bounding_boxes()
-	for (auto& sequence : qc.sequences)
+	for (auto &sequence : qc.sequences)
 	{
 		Vector3 bmin, bmax;
 
@@ -752,17 +766,16 @@ void simplify_model(QC &qc)
 			bmax[j] = -9999.0;
 		}
 
-		for (auto& anim : sequence.anims)
+		for (auto &anim : sequence.anims)
 		{
 			for (n = 0; n < sequence.numframes; n++)
 			{
 				Matrix3x4 bonetransform[MAXSTUDIOBONES]; // bone transformation matrix
-				Matrix3x4 bonematrix;					   // local transformation matrix
+				Matrix3x4 bonematrix;					 // local transformation matrix
 				Vector3 pos;
 				int j = 0;
-				for (auto& bone : g_bonetable)
+				for (auto &bone : g_bonetable)
 				{
-
 					Vector3 angles;
 					angles.x = to_degrees(anim.rot[j][n][0]);
 					angles.y = to_degrees(anim.rot[j][n][1]);
@@ -780,23 +793,30 @@ void simplify_model(QC &qc)
 					}
 					else
 					{
-						 bonetransform[j] = concat_transforms(bonetransform[bone.parent], bonematrix);
+						bonetransform[j] =
+							concat_transforms(bonetransform[bone.parent], bonematrix);
 					}
 					j++;
 				}
 
-				for (auto& submodel : qc.submodels)
+				for (auto &submodel : qc.submodels)
 				{
-					for (auto& vert : submodel->verts)
+					for (auto &vert : submodel->verts)
 					{
 						pos = vector_transform(vert.pos, bonetransform[vert.bone_id]);
 
-						if (pos[0] < bmin[0]) bmin[0] = pos[0];
-						if (pos[1] < bmin[1]) bmin[1] = pos[1];
-						if (pos[2] < bmin[2]) bmin[2] = pos[2];
-						if (pos[0] > bmax[0]) bmax[0] = pos[0];
-						if (pos[1] > bmax[1]) bmax[1] = pos[1];
-						if (pos[2] > bmax[2]) bmax[2] = pos[2];
+						if (pos[0] < bmin[0])
+							bmin[0] = pos[0];
+						if (pos[1] < bmin[1])
+							bmin[1] = pos[1];
+						if (pos[2] < bmin[2])
+							bmin[2] = pos[2];
+						if (pos[0] > bmax[0])
+							bmax[0] = pos[0];
+						if (pos[1] > bmax[1])
+							bmax[1] = pos[1];
+						if (pos[2] > bmax[2])
+							bmax[2] = pos[2];
 					}
 				}
 			}
@@ -811,9 +831,9 @@ void simplify_model(QC &qc)
 		int changes = 0;
 		int p;
 
-		for (auto& sequence : qc.sequences)
+		for (auto &sequence : qc.sequences)
 		{
-			for (auto& anim : sequence.anims)
+			for (auto &anim : sequence.anims)
 			{
 				for (j = 0; j < g_bonetable.size(); j++)
 				{
@@ -830,7 +850,9 @@ void simplify_model(QC &qc)
 							case 0:
 							case 1:
 							case 2:
-								value[n] = static_cast<short>((anim.pos[j][n][k] - g_bonetable[j].pos[k]) / g_bonetable[j].posscale[k]);
+								value[n] = static_cast<short>(
+									(anim.pos[j][n][k] - g_bonetable[j].pos[k]) /
+									g_bonetable[j].posscale[k]);
 								break;
 							case 3:
 							case 4:
@@ -841,7 +863,8 @@ void simplify_model(QC &qc)
 								if (v < -Q_PI)
 									v += Q_PI * 2;
 
-								value[n] = static_cast<short>(v / g_bonetable[j].rotscale[k - 3]);
+								value[n] =
+									static_cast<short>(v / g_bonetable[j].rotscale[k - 3]);
 								break;
 							}
 						}
@@ -883,7 +906,9 @@ void simplify_model(QC &qc)
 							}
 							// insert value if they're not equal,
 							// or if we're not on a run and the run is less than 3 units
-							else if ((value[m] != value[m - 1]) || ((pcount->num.total == pcount->num.valid) && ((m < n - 1) && value[m] != value[m + 1])))
+							else if ((value[m] != value[m - 1]) ||
+									 ((pcount->num.total == pcount->num.valid) &&
+									  ((m < n - 1) && value[m] != value[m + 1])))
 							{
 								if (pcount->num.total != pcount->num.valid)
 								{
@@ -904,8 +929,10 @@ void simplify_model(QC &qc)
 						}
 						else
 						{
-							anim.anims[j][k] = (StudioAnimationValue *)std::calloc(pvalue - data, sizeof(StudioAnimationValue));
-							std::memcpy(anim.anims[j][k], data, (pvalue - data) * sizeof(StudioAnimationValue));
+							anim.anims[j][k] = (StudioAnimationValue *)std::calloc(
+								pvalue - data, sizeof(StudioAnimationValue));
+							std::memcpy(anim.anims[j][k], data,
+										(pvalue - data) * sizeof(StudioAnimationValue));
 						}
 					}
 				}
@@ -952,7 +979,7 @@ int lookup_control(const std::string token)
 int find_texture_index(const std::string texturename)
 {
 	int i = 0;
-	for (auto& texture : g_textures)
+	for (auto &texture : g_textures)
 	{
 		if (texture.name == texturename)
 		{
@@ -963,8 +990,9 @@ int find_texture_index(const std::string texturename)
 	Texture newtexture;
 	newtexture.name = texturename;
 
-    std::string lower_texname = texturename;
-    std::transform(lower_texname.begin(), lower_texname.end(), lower_texname.begin(), ::tolower);
+	std::string lower_texname = texturename;
+	std::transform(lower_texname.begin(), lower_texname.end(),
+				   lower_texname.begin(), ::tolower);
 	if (lower_texname.find("chrome") != std::string::npos)
 		newtexture.flags = STUDIO_NF_FLATSHADE | STUDIO_NF_CHROME;
 	else if (lower_texname.find("bright") != std::string::npos)
@@ -991,7 +1019,8 @@ Mesh *find_mesh_by_texture(Model *pmodel, const std::string texturename)
 
 	if (i >= MAXSTUDIOMESHES)
 	{
-		error("too many textures in model: \"" + std::string(pmodel->name) + "\"\n");
+		error("too many textures in model: \"" + std::string(pmodel->name) +
+			  "\"\n");
 	}
 
 	pmodel->nummesh = i + 1;
@@ -1009,12 +1038,15 @@ TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, const int index)
 		pmesh->alloctris = index + 256;
 		if (pmesh->triangles)
 		{
-			pmesh->triangles = static_cast<TriangleVert(*)[3]>(realloc(pmesh->triangles, pmesh->alloctris * sizeof(*pmesh->triangles)));
-			std::memset(&pmesh->triangles[start], 0, (pmesh->alloctris - start) * sizeof(*pmesh->triangles));
+			pmesh->triangles = static_cast<TriangleVert(*)[3]>(realloc(
+				pmesh->triangles, pmesh->alloctris * sizeof(*pmesh->triangles)));
+			std::memset(&pmesh->triangles[start], 0,
+						(pmesh->alloctris - start) * sizeof(*pmesh->triangles));
 		}
 		else
 		{
-			pmesh->triangles = static_cast<TriangleVert(*)[3]>(std::calloc(pmesh->alloctris, sizeof(*pmesh->triangles)));
+			pmesh->triangles = static_cast<TriangleVert(*)[3]>(
+				std::calloc(pmesh->alloctris, sizeof(*pmesh->triangles)));
 		}
 	}
 
@@ -1024,9 +1056,11 @@ TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, const int index)
 int find_vertex_normal_index(Model *pmodel, const Normal *pnormal)
 {
 	int i = 0;
-	for (auto& normal : pmodel->normals)
+	for (auto &normal : pmodel->normals)
 	{
-		if (normal.pos.dot(pnormal->pos) > g_flagnormalblendangle && normal.bone_id == pnormal->bone_id && normal.skinref == pnormal->skinref)
+		if (normal.pos.dot(pnormal->pos) > g_flagnormalblendangle &&
+			normal.bone_id == pnormal->bone_id &&
+			normal.skinref == pnormal->skinref)
 		{
 			return i;
 		}
@@ -1048,7 +1082,7 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 	pv->pos[1] = static_cast<int>(pv->pos[1] * 100.0f) / 100.0f;
 	pv->pos[2] = static_cast<int>(pv->pos[2] * 100.0f) / 100.0f;
 
-	for (auto& vert : pmodel->verts)
+	for (auto &vert : pmodel->verts)
 	{
 		if ((vert.pos == pv->pos) && vert.bone_id == pv->bone_id)
 		{
@@ -1056,10 +1090,10 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 		}
 		i++;
 	}
-    if (pmodel->verts.size() >= MAXSTUDIOVERTS)
-    {
-        error("too many vertices in model: \"" + pmodel->name + "\"\n");
-    }
+	if (pmodel->verts.size() >= MAXSTUDIOVERTS)
+	{
+		error("too many vertices in model: \"" + pmodel->name + "\"\n");
+	}
 	pmodel->verts.push_back(*pv);
 	return i;
 }
@@ -1097,8 +1131,10 @@ void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 		for (j = 0; j < 3; j++)
 		{
 			// round to fix UV shift
-			pmesh->triangles[i][j].s = static_cast<int>(std::round(pmesh->triangles[i][j].u * static_cast<float>(ptexture->srcwidth)));
-			pmesh->triangles[i][j].t = static_cast<int>(std::round(pmesh->triangles[i][j].v * static_cast<float>(ptexture->srcheight)));
+			pmesh->triangles[i][j].s = static_cast<int>(std::round(
+				pmesh->triangles[i][j].u * static_cast<float>(ptexture->srcwidth)));
+			pmesh->triangles[i][j].t = static_cast<int>(std::round(
+				pmesh->triangles[i][j].v * static_cast<float>(ptexture->srcheight)));
 		}
 	}
 
@@ -1116,16 +1152,21 @@ void reset_texture_coord_ranges(Mesh *pmesh, const Texture *ptexture)
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			pmesh->triangles[i][j].t = -pmesh->triangles[i][j].t + ptexture->srcheight - static_cast<int>(ptexture->min_t);
+			pmesh->triangles[i][j].t = -pmesh->triangles[i][j].t +
+									   ptexture->srcheight -
+									   static_cast<int>(ptexture->min_t);
 		}
 	}
 }
 
 void grab_bmp(const char *filename, Texture *ptexture)
 {
-	if (int result = load_bmp(filename, &ptexture->ppicture, (std::uint8_t **)&ptexture->ppal, &ptexture->srcwidth, &ptexture->srcheight))
+	if (int result = load_bmp(filename, &ptexture->ppicture,
+							  (std::uint8_t **)&ptexture->ppal,
+							  &ptexture->srcwidth, &ptexture->srcheight))
 	{
-		error("error " + std::to_string(result) + " reading BMP image \"" + filename + "\"\n");
+		error("error " + std::to_string(result) + " reading BMP image \"" +
+			  filename + "\"\n");
 	}
 }
 
@@ -1141,13 +1182,17 @@ void resize_texture(const QC &qc, Texture *ptexture)
 
 	ptexture->size = ptexture->skinwidth * ptexture->skinheight + 256 * 3;
 
-	printf("\t %s [%d %d] (%.0f%%)  %6d bytes\n", ptexture->name.c_str(), ptexture->skinwidth, ptexture->skinheight,
-		   (static_cast<float>(ptexture->skinwidth * ptexture->skinheight) / static_cast<float>(ptexture->srcwidth * ptexture->srcheight)) * 100.0f,
+	printf("\t %s [%d %d] (%.0f%%)  %6d bytes\n", ptexture->name.c_str(),
+		   ptexture->skinwidth, ptexture->skinheight,
+		   (static_cast<float>(ptexture->skinwidth * ptexture->skinheight) /
+			static_cast<float>(ptexture->srcwidth * ptexture->srcheight)) *
+			   100.0f,
 		   ptexture->size);
 
 	if (ptexture->size > 1024 * 1024) // TODO: change this, 640 * 480 in hlsdk
 	{
-		printf("%.0f %.0f %.0f %.0f\n", ptexture->min_s, ptexture->max_s, ptexture->min_t, ptexture->max_t);
+		printf("%.0f %.0f %.0f %.0f\n", ptexture->min_s, ptexture->max_s,
+			   ptexture->min_t, ptexture->max_t);
 		error("Texture too large\n");
 	}
 	std::uint8_t *pdest = (std::uint8_t *)malloc(ptexture->size);
@@ -1156,14 +1201,18 @@ void resize_texture(const QC &qc, Texture *ptexture)
 	// Data is saved as a multiple of 4
 	const int srcadjustedwidth = (ptexture->srcwidth + 3) & ~3;
 
-	// Move the picture data to the model area, replicating missing data, deleting unused data.
-	for (i = 0, t = ptexture->srcheight - ptexture->skinheight - ptexture->skintop + 10 * ptexture->srcheight; i < ptexture->skinheight; i++, t++)
+	// Move the picture data to the model area, replicating missing data, deleting
+	// unused data.
+	for (i = 0, t = ptexture->srcheight - ptexture->skinheight -
+					ptexture->skintop + 10 * ptexture->srcheight;
+		 i < ptexture->skinheight; i++, t++)
 	{
 		while (t >= ptexture->srcheight)
 			t -= ptexture->srcheight;
 		while (t < 0)
 			t += ptexture->srcheight;
-		for (int j = 0, s = ptexture->skinleft + 10 * ptexture->srcwidth; j < ptexture->skinwidth; j++, s++)
+		for (int j = 0, s = ptexture->skinleft + 10 * ptexture->srcwidth;
+			 j < ptexture->skinwidth; j++, s++)
 		{
 			while (s >= ptexture->srcwidth)
 				s -= ptexture->srcwidth;
@@ -1171,7 +1220,8 @@ void resize_texture(const QC &qc, Texture *ptexture)
 		}
 	}
 
-	// TODO: process the texture and flag it if fullbright or transparent are used.
+	// TODO: process the texture and flag it if fullbright or transparent are
+	// used.
 	// TODO: only save as many palette entries as are actually used.
 	if (qc.gamma != 1.8f)
 	// gamma correct the monster textures to a gamma of 1.8
@@ -1180,7 +1230,8 @@ void resize_texture(const QC &qc, Texture *ptexture)
 		const float g = qc.gamma / 1.8f;
 		for (i = 0; i < 768; i++)
 		{
-			pdest[i] = static_cast<uint8_t>(std::round(pow(psrc[i] / 255.0, g) * 255));
+			pdest[i] =
+				static_cast<uint8_t>(std::round(pow(psrc[i] / 255.0, g) * 255));
 		}
 	}
 	else
@@ -1194,10 +1245,12 @@ void resize_texture(const QC &qc, Texture *ptexture)
 
 void grab_skin(const QC &qc, Texture *ptexture)
 {
-	const std::filesystem::path texture_file_path = (qc.cdtexture / ptexture->name).lexically_normal();
+	const std::filesystem::path texture_file_path =
+		(qc.cdtexture / ptexture->name).lexically_normal();
 	if (!std::filesystem::exists(texture_file_path))
 	{
-		error("Cannot find \"" + ptexture->name + "\" texture in \"" + qc.cdtexture.string() + "\" or path does not exist\n");
+		error("Cannot find \"" + ptexture->name + "\" texture in \"" +
+			  qc.cdtexture.string() + "\" or path does not exist\n");
 	}
 	if (texture_file_path.extension() == ".bmp")
 	{
@@ -1205,7 +1258,8 @@ void grab_skin(const QC &qc, Texture *ptexture)
 	}
 	else
 	{
-		error("Not supported texture format: \"" + texture_file_path.string() + "\"\n");
+		error("Not supported texture format: \"" + texture_file_path.string() +
+			  "\"\n");
 	}
 }
 
@@ -1214,7 +1268,7 @@ void set_skin_values(QC &qc)
 	int i, j;
 
 	printf("\nGrabbing texture:\n");
-	for (auto& texture : g_textures)
+	for (auto &texture : g_textures)
 	{
 		grab_skin(qc, &texture);
 
@@ -1224,15 +1278,16 @@ void set_skin_values(QC &qc)
 		texture.min_t = 9999999;
 	}
 
-	for (auto& submodel : qc.submodels)
+	for (auto &submodel : qc.submodels)
 	{
 		for (j = 0; j < submodel->nummesh; j++)
 		{
-			texture_coord_ranges(submodel->pmeshes[j], &g_textures[submodel->pmeshes[j]->skinref]);
+			texture_coord_ranges(submodel->pmeshes[j],
+								 &g_textures[submodel->pmeshes[j]->skinref]);
 		}
 	}
 
-	for (auto& texture : g_textures)
+	for (auto &texture : g_textures)
 	{
 		if (texture.max_s < texture.min_s)
 		{
@@ -1256,11 +1311,12 @@ void set_skin_values(QC &qc)
 		resize_texture(qc, &texture);
 	}
 
-	for (auto* submodel : qc.submodels)
+	for (auto *submodel : qc.submodels)
 	{
 		for (j = 0; j < submodel->nummesh; j++)
 		{
-			reset_texture_coord_ranges(submodel->pmeshes[j], &g_textures[submodel->pmeshes[j]->skinref]);
+			reset_texture_coord_ranges(submodel->pmeshes[j],
+									   &g_textures[submodel->pmeshes[j]->skinref]);
 		}
 	}
 
@@ -1293,7 +1349,7 @@ void set_skin_values(QC &qc)
 void build_reference(const Model *pmodel)
 {
 	Vector3 bone_angles{};
-	
+
 	for (int i = 0; i < pmodel->nodes.size(); i++)
 	{
 		// convert to degrees
@@ -1315,12 +1371,15 @@ void build_reference(const Model *pmodel)
 			// calc compound rotational matrices
 			// FIXME : Hey, it's orthogical so inv(A) == transpose(A)
 			Matrix3x4 rotation_matrix = angle_matrix(bone_angles);
-			g_bonefixup[i].matrix = concat_transforms(g_bonefixup[parent].matrix, rotation_matrix);
+			g_bonefixup[i].matrix =
+				concat_transforms(g_bonefixup[parent].matrix, rotation_matrix);
 			rotation_matrix = angle_i_matrix(bone_angles);
-			g_bonefixup[i].inv_matrix = concat_transforms(rotation_matrix, g_bonefixup[parent].inv_matrix);
+			g_bonefixup[i].inv_matrix =
+				concat_transforms(rotation_matrix, g_bonefixup[parent].inv_matrix);
 
 			// calc true world coord.
-			Vector3 true_pos = vector_transform(pmodel->skeleton[i].pos, g_bonefixup[parent].matrix);
+			Vector3 true_pos =
+				vector_transform(pmodel->skeleton[i].pos, g_bonefixup[parent].matrix);
 			g_bonefixup[i].worldorg = true_pos + g_bonefixup[parent].worldorg;
 		}
 	}
@@ -1337,7 +1396,8 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 	// load the base triangles
 	while (true)
 	{
-		if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
+		if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
+			nullptr)
 		{
 			Mesh *pmesh;
 			char triangle_material[64];
@@ -1354,7 +1414,8 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 
 			// strip off trailing smag
 			std::strcpy(triangle_material, g_currentsmdline);
-			for (i = static_cast<int>(strlen(triangle_material)) - 1; i >= 0 && !isgraph(triangle_material[i]); i--)
+			for (i = static_cast<int>(strlen(triangle_material)) - 1;
+				 i >= 0 && !isgraph(triangle_material[i]); i--)
 				;
 			triangle_material[i + 1] = '\0';
 
@@ -1373,24 +1434,28 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 			for (int j = 0; j < 3; j++)
 			{
 				if (g_flaginvertnormals)
-					ptriangle_vert = find_mesh_triangle_by_index(pmesh, pmesh->numtris) + j;
+					ptriangle_vert =
+						find_mesh_triangle_by_index(pmesh, pmesh->numtris) + j;
 				else // quake wants them in the reverse order
-					ptriangle_vert = find_mesh_triangle_by_index(pmesh, pmesh->numtris) + 2 - j;
+					ptriangle_vert =
+						find_mesh_triangle_by_index(pmesh, pmesh->numtris) + 2 - j;
 
-				if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
+				if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
+					nullptr)
 				{
 					Vertex triangle_vertex;
 					Normal triangle_normal;
 					std::istringstream iss(g_currentsmdline);
 					g_smdlinecount++;
-					if (iss >> parent_bone
-						>> triangle_vertex.pos.x >> triangle_vertex.pos.y >> triangle_vertex.pos.z
-						>> triangle_normal.pos.x >> triangle_normal.pos.y >> triangle_normal.pos.z
-						>> ptriangle_vert->u >> ptriangle_vert->v)
+					if (iss >> parent_bone >> triangle_vertex.pos.x >>
+						triangle_vertex.pos.y >> triangle_vertex.pos.z >>
+						triangle_normal.pos.x >> triangle_normal.pos.y >>
+						triangle_normal.pos.z >> ptriangle_vert->u >> ptriangle_vert->v)
 					{
 						if (parent_bone < 0 || parent_bone >= pmodel->nodes.size())
 						{
-							error("Bogus bone index at line " + std::to_string(g_smdlinecount));
+							error("Bogus bone index at line " +
+								  std::to_string(g_smdlinecount));
 						}
 
 						triangle_vertices[j] = triangle_vertex.pos;
@@ -1403,25 +1468,32 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 						if (triangle_vertex.pos[2] < vmin[2])
 							vmin[2] = triangle_vertex.pos[2];
 
-						triangle_vertex.pos -= qc.sequence_origin; // adjust vertex to origin
+						triangle_vertex.pos -=
+							qc.sequence_origin;							   // adjust vertex to origin
 						triangle_vertex.pos *= qc.scale_body_and_sequence; // scale vertex
 
 						// move vertex position to object space.
 						Vector3 tmp;
-						tmp = triangle_vertex.pos - g_bonefixup[triangle_vertex.bone_id].worldorg;
-						triangle_vertex.pos = vector_transform(tmp, g_bonefixup[triangle_vertex.bone_id].inv_matrix);
+						tmp = triangle_vertex.pos -
+							  g_bonefixup[triangle_vertex.bone_id].worldorg;
+						triangle_vertex.pos = vector_transform(
+							tmp, g_bonefixup[triangle_vertex.bone_id].inv_matrix);
 
 						// move normal to object space.
 						tmp = triangle_normal.pos;
-						triangle_normal.pos = vector_transform(tmp, g_bonefixup[triangle_vertex.bone_id].inv_matrix);
+						triangle_normal.pos = vector_transform(
+							tmp, g_bonefixup[triangle_vertex.bone_id].inv_matrix);
 						triangle_normal.pos.normalize();
 
-						ptriangle_vert->normindex = find_vertex_normal_index(pmodel, &triangle_normal);
-						ptriangle_vert->vertindex = find_vertex_index(pmodel, &triangle_vertex);
+						ptriangle_vert->normindex =
+							find_vertex_normal_index(pmodel, &triangle_normal);
+						ptriangle_vert->vertindex =
+							find_vertex_index(pmodel, &triangle_vertex);
 					}
 					else
 					{
-						error("Triangles line " + std::to_string(g_smdlinecount) + ": " + g_currentsmdline);
+						error("Triangles line " + std::to_string(g_smdlinecount) + ": " +
+							  g_currentsmdline);
 					}
 				}
 			}
@@ -1440,71 +1512,76 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 	}
 }
 
-void parse_smd_reference_skeleton(const QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones, std::filesystem::path &path)
+void parse_smd_reference_skeleton(const QC &qc, std::vector<Node> &nodes,
+								  std::vector<Bone> &bones,
+								  std::filesystem::path &path)
 {
-    std::ifstream smdstream(path);
-    std::string line, cmd;
-    int node;
-    float posX, posY, posZ, rotX, rotY, rotZ;
+	std::ifstream smdstream(path);
+	std::string line, cmd;
+	int node;
+	float posX, posY, posZ, rotX, rotY, rotZ;
 
-    while (std::getline(smdstream, line))
-    {
-        g_smdlinecount++;
-        std::istringstream iss(line);
+	while (std::getline(smdstream, line))
+	{
+		g_smdlinecount++;
+		std::istringstream iss(line);
 
-        if (iss >> node >> posX >> posY >> posZ >> rotX >> rotY >> rotZ)
-        {
-            bones.emplace_back();
+		if (iss >> node >> posX >> posY >> posZ >> rotX >> rotY >> rotZ)
+		{
+			bones.emplace_back();
 			bones.back().pos = Vector3(posX, posY, posZ);
-            bones.back().pos *= qc.scale_body_and_sequence;
+			bones.back().pos *= qc.scale_body_and_sequence;
 
-            if (nodes[node].mirrored)
-                bones.back().pos *= -1.0;
+			if (nodes[node].mirrored)
+				bones.back().pos *= -1.0;
 			bones.back().rot = Vector3(rotX, rotY, rotZ);
-            clip_rotations(bones.back().rot);
-        }
-        else if (iss >> cmd >> node && case_insensitive_compare(cmd, "end"))
-        {
-            return;
-        }
-    }
+			clip_rotations(bones.back().rot);
+		}
+		else if (iss >> cmd >> node && case_insensitive_compare(cmd, "end"))
+		{
+			return;
+		}
+	}
 }
 
 int parse_smd_nodes(const QC &qc, std::vector<Node> &nodes)
 {
-    int index;
-    std::string bone_name;
-    int parent;
+	int index;
+	std::string bone_name;
+	int parent;
 
-    while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
-    {
-        g_smdlinecount++;
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
+		   nullptr)
+	{
+		g_smdlinecount++;
 		std::istringstream iss(g_currentsmdline);
-        if (iss >> index >> std::quoted(bone_name) >> parent)
-        {
-            nodes.emplace_back();
-            nodes.back().name = bone_name;
-            nodes.back().parent = parent;
+		if (iss >> index >> std::quoted(bone_name) >> parent)
+		{
+			nodes.emplace_back();
+			nodes.back().name = bone_name;
+			nodes.back().parent = parent;
 
-            // Check for mirrored bones
-            for (int i = 0; i < qc.mirroredbones.size(); i++)
+			// Check for mirrored bones
+			for (int i = 0; i < qc.mirroredbones.size(); i++)
 			{
-                if (case_insensitive_compare(bone_name, qc.mirroredbones[i].data())) {
-                    nodes.back().mirrored = 1;
-                }
-            }
+				if (case_insensitive_compare(bone_name, qc.mirroredbones[i].data()))
+				{
+					nodes.back().mirrored = 1;
+				}
+			}
 
-            if ((!nodes.back().mirrored) && parent != -1) {
-                nodes.back().mirrored = nodes[parent].mirrored;
-            }
-        }
-        else
-        {
-            return 1;
-        }
-    }
-    error("Unexpected EOF at line " + std::to_string(g_smdlinecount) + "\n");
-    return 0;
+			if ((!nodes.back().mirrored) && parent != -1)
+			{
+				nodes.back().mirrored = nodes[parent].mirrored;
+			}
+		}
+		else
+		{
+			return 1;
+		}
+	}
+	error("Unexpected EOF at line " + std::to_string(g_smdlinecount) + "\n");
+	return 0;
 }
 
 void parse_smd_reference(const QC &qc, Model *pmodel)
@@ -1513,12 +1590,13 @@ void parse_smd_reference(const QC &qc, Model *pmodel)
 	int smd_version;
 	g_smdlinecount = 0;
 
-    g_smdpath = (qc.cd / (pmodel->name + ".smd")).lexically_normal();
+	g_smdpath = (qc.cd / (pmodel->name + ".smd")).lexically_normal();
 
-    if (!std::filesystem::exists(g_smdpath))
-    {
-        error("Cannot find \"" + pmodel->name + ".smd\" in \"" + qc.cd.string() + "\"\n");
-    }
+	if (!std::filesystem::exists(g_smdpath))
+	{
+		error("Cannot find \"" + pmodel->name + ".smd\" in \"" + qc.cd.string() +
+			  "\"\n");
+	}
 
 	printf("Grabbing reference: %s\n\n", g_smdpath.string().c_str());
 
@@ -1527,13 +1605,14 @@ void parse_smd_reference(const QC &qc, Model *pmodel)
 		fprintf(stderr, "reader: could not open file '%s'\n", g_smdpath.c_str());
 	}
 
-	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
+		   nullptr)
 	{
 		g_smdlinecount++;
 		std::istringstream iss(g_currentsmdline);
-		
+
 		if (!(iss >> cmd))
-        	continue;
+			continue;
 		else if (case_insensitive_compare(cmd, "version"))
 		{
 			if (!(iss >> smd_version))
@@ -1553,13 +1632,15 @@ void parse_smd_reference(const QC &qc, Model *pmodel)
 		}
 		else if (case_insensitive_compare(cmd, "skeleton"))
 		{
-			parse_smd_reference_skeleton(qc, pmodel->nodes, pmodel->skeleton, g_smdpath);
+			parse_smd_reference_skeleton(qc, pmodel->nodes, pmodel->skeleton,
+										 g_smdpath);
 		}
 		else if (case_insensitive_compare(cmd, "triangles"))
 		{
 			parse_smd_triangles(qc, pmodel);
 		}
-		else continue;
+		else
+			continue;
 	}
 	fclose(g_smdfile);
 }
@@ -1590,13 +1671,12 @@ void cmd_modelname(QC &qc, std::string &token)
 	qc.modelname = token;
 }
 
-
 void cmd_body_option_studio(QC &qc, std::string &token)
 {
 	if (!get_token(false, token))
 		return;
 
-	Model* new_submodel = new Model();
+	Model *new_submodel = new Model();
 
 	new_submodel->name = token;
 
@@ -1621,16 +1701,15 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 	qc.submodels.push_back(new_submodel);
 	qc.bodyparts.back().num_submodels++;
 
-
 	qc.scale_body_and_sequence = qc.scale;
 }
 
 int cmd_body_option_blank(QC &qc)
 {
-	Model* new_submodel = new Model();
+	Model *new_submodel = new Model();
 
 	new_submodel->name = "blank";
-	
+
 	qc.submodels.push_back(new_submodel);
 	qc.bodyparts.back().num_submodels++;
 	return 0;
@@ -1643,18 +1722,18 @@ void cmd_bodygroup(QC &qc, std::string &token)
 
 	BodyPart newbp{};
 
-    if (qc.bodyparts.empty())
-    {
-        newbp.base = 1;
-    }
-    else
-    {
-        BodyPart &lastbp = qc.bodyparts.back();
-        newbp.base = lastbp.base * lastbp.num_submodels;
-    }
+	if (qc.bodyparts.empty())
+	{
+		newbp.base = 1;
+	}
+	else
+	{
+		BodyPart &lastbp = qc.bodyparts.back();
+		newbp.base = lastbp.base * lastbp.num_submodels;
+	}
 
-    newbp.name = token;
-    qc.bodyparts.push_back(newbp);
+	newbp.name = token;
+	qc.bodyparts.push_back(newbp);
 
 	while (true)
 	{
@@ -1689,21 +1768,21 @@ void cmd_body(QC &qc, std::string &token)
 	if (!get_token(false, token))
 		return;
 
-    BodyPart newbp{};
-    newbp.name = token;
+	BodyPart newbp{};
+	newbp.name = token;
 
-    if (qc.bodyparts.empty())
-    {
-        newbp.base = 1;
-    }
-    else
-    {
-        BodyPart &lastbp = qc.bodyparts.back();
-        newbp.base = lastbp.base * lastbp.num_submodels;
-    }
+	if (qc.bodyparts.empty())
+	{
+		newbp.base = 1;
+	}
+	else
+	{
+		BodyPart &lastbp = qc.bodyparts.back();
+		newbp.base = lastbp.base * lastbp.num_submodels;
+	}
 
-    qc.bodyparts.push_back(newbp);
-    cmd_body_option_studio(qc, token);
+	qc.bodyparts.push_back(newbp);
+	cmd_body_option_studio(qc, token);
 }
 
 void parse_smd_animation_skeleton(const QC &qc, Animation &anim)
@@ -1717,18 +1796,21 @@ void parse_smd_animation_skeleton(const QC &qc, Animation &anim)
 
 	for (index = 0; index < anim.nodes.size(); index++)
 	{
-		anim.pos[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
-		anim.rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
+		anim.pos[index] =
+			(Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
+		anim.rot[index] =
+			(Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 	}
 
 	const float cosz = cosf(qc.rotate);
 	const float sinz = sinf(qc.rotate);
 
-	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
+		   nullptr)
 	{
 		g_smdlinecount++;
-		std:: istringstream iss(g_currentsmdline);
-		if ( iss >> index >> pos.x >> pos.y >> pos.z >> rot.x >> rot.y >> rot.z)
+		std::istringstream iss(g_currentsmdline);
+		if (iss >> index >> pos.x >> pos.y >> pos.z >> rot.x >> rot.y >> rot.z)
 		{
 			if (t >= anim.startframe && t <= anim.endframe)
 			{
@@ -1779,10 +1861,10 @@ void parse_smd_animation_skeleton(const QC &qc, Animation &anim)
 			}
 			else
 			{
-				error("Error(" + std::to_string(g_smdlinecount) + ") : " + g_currentsmdline);
+				error("Error(" + std::to_string(g_smdlinecount) +
+					  ") : " + g_currentsmdline);
 			}
 		}
-
 	}
 	error("unexpected EOF: " + std::string(anim.name));
 }
@@ -1814,9 +1896,10 @@ void parse_smd_animation(const QC &qc, std::string &name, Animation &anim)
 
 	anim.name = name;
 
-    g_smdpath = (qc.cd / (anim.name + ".smd")).lexically_normal();
+	g_smdpath = (qc.cd / (anim.name + ".smd")).lexically_normal();
 	if (!std::filesystem::exists(g_smdpath))
-		error("Cannot find \"" + anim.name + ".smd\" in \"" + qc.cd.string() + "\"\n");
+		error("Cannot find \"" + anim.name + ".smd\" in \"" + qc.cd.string() +
+			  "\"\n");
 
 	printf("Grabbing animation: %s\n", g_smdpath.string().c_str());
 
@@ -1826,13 +1909,14 @@ void parse_smd_animation(const QC &qc, std::string &name, Animation &anim)
 		error(0);
 	}
 
-	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
+	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
+		   nullptr)
 	{
 		g_smdlinecount++;
 		std::istringstream iss(g_currentsmdline);
 
 		if (!(iss >> cmd))
-        	continue;
+			continue;
 		else if (case_insensitive_compare(cmd, "version"))
 		{
 			if (!(iss >> smd_version))
@@ -1855,7 +1939,7 @@ void parse_smd_animation(const QC &qc, std::string &name, Animation &anim)
 			parse_smd_animation_skeleton(qc, anim);
 			shift_option_animation(anim);
 		}
-		else 
+		else
 			continue;
 	}
 	fclose(g_smdfile);
@@ -1863,33 +1947,32 @@ void parse_smd_animation(const QC &qc, std::string &name, Animation &anim)
 
 int cmd_sequence_option_event(std::string &token, Sequence &seq)
 {
-    if (seq.events.size() >= MAXSTUDIOEVENTS)
- 	{
-		error("Too many events in sequence \"" + seq.name +"\"");
+	if (seq.events.size() >= MAXSTUDIOEVENTS)
+	{
+		error("Too many events in sequence \"" + seq.name + "\"");
 	}
 
-    get_token(false, token);
-    int event_id;
+	get_token(false, token);
+	int event_id;
 
 	event_id = std::stoi(token);
 
-    get_token(false, token);
-    int frame;
+	get_token(false, token);
+	int frame;
 	frame = std::stoi(token);
 
-    seq.events.emplace_back(Event{event_id, frame, ""});
+	seq.events.emplace_back(Event{event_id, frame, ""});
 
-    if (token_available())
-    {
-        get_token(false, token);
-        if (token[0] == '}')
-            return 1;
-        seq.events.back().options = token;
-    }
+	if (token_available())
+	{
+		get_token(false, token);
+		if (token[0] == '}')
+			return 1;
+		seq.events.back().options = token;
+	}
 
-    return 0;
+	return 0;
 }
-
 
 int cmd_sequence_option_fps(std::string &token, Sequence &seq)
 {
@@ -1898,7 +1981,6 @@ int cmd_sequence_option_fps(std::string &token, Sequence &seq)
 
 	return 0;
 }
-
 
 void cmd_origin(QC &qc, std::string &token)
 {
@@ -2020,7 +2102,7 @@ int cmd_sequence(QC &qc, std::string &token)
 		{
 			if (depth != 0)
 			{
-				error("Missing '}' in sequence: \""+ newseq.name + "\"");
+				error("Missing '}' in sequence: \"" + newseq.name + "\"");
 			}
 			return 1;
 		}
@@ -2092,7 +2174,8 @@ int cmd_sequence(QC &qc, std::string &token)
 			newseq.exitnode = std::stoi(token);
 			newseq.nodeflags |= 1;
 		}
-		else if (lookup_control(token.c_str()) != -1) // motion flags [motion extraction]
+		else if (lookup_control(token.c_str()) !=
+				 -1) // motion flags [motion extraction]
 		{
 			newseq.motiontype |= lookup_control(token.c_str());
 		}
@@ -2114,19 +2197,19 @@ int cmd_sequence(QC &qc, std::string &token)
 
 		if (depth < 0)
 		{
-			error("Missing '{' in sequence: \""+ newseq.name + "\"");
+			error("Missing '{' in sequence: \"" + newseq.name + "\"");
 		}
 	};
 
 	if (smd_files.empty())
 	{
-		error("No animations found in sequence: \""+ newseq.name + "\"");
+		error("No animations found in sequence: \"" + newseq.name + "\"");
 	}
-	for (auto& file : smd_files) // 
+	for (auto &file : smd_files) //
 	{
 		qc.sequenceAnimationOptions.push_back(Animation());
-		Animation& new_anim = qc.sequenceAnimationOptions.back();
-		
+		Animation &new_anim = qc.sequenceAnimationOptions.back();
+
 		// crop the SMD animation from start to end
 		new_anim.startframe = start;
 		new_anim.endframe = end;
@@ -2168,7 +2251,8 @@ int cmd_controller(QC &qc, std::string &token)
 
 			if (newbc.type & (STUDIO_XR | STUDIO_YR | STUDIO_ZR))
 			{
-				if ((static_cast<int>(newbc.start + 360) % 360) == (static_cast<int>(newbc.end + 360) % 360))
+				if ((static_cast<int>(newbc.start + 360) % 360) ==
+					(static_cast<int>(newbc.end + 360) % 360))
 				{
 					newbc.type |= STUDIO_RLOOP;
 				}
@@ -2180,7 +2264,7 @@ int cmd_controller(QC &qc, std::string &token)
 }
 
 void cmd_bbox(QC &qc, std::string &token)
-{	// min
+{ // min
 	get_token(false, token);
 	qc.bbox[0].x = std::stof(token);
 
@@ -2201,7 +2285,7 @@ void cmd_bbox(QC &qc, std::string &token)
 }
 
 void cmd_cbox(QC &qc, std::string &token)
-{	// min
+{ // min
 	get_token(false, token);
 	qc.cbox[0].x = std::stof(token);
 
@@ -2222,7 +2306,7 @@ void cmd_cbox(QC &qc, std::string &token)
 }
 
 void cmd_mirror(QC &qc, std::string &token)
-{	
+{
 	get_token(false, token);
 	std::string bonename = token;
 	qc.mirroredbones.push_back(bonename);
@@ -2417,40 +2501,40 @@ void parse_qc_file(const std::filesystem::path path, QC &qc)
 		{
 			cmd_modelname(qc, token);
 		}
-  		else if (token == "$cd")
-        {
-            if (!qc.cd.empty())
-                error("Two $cd in one model");
+		else if (token == "$cd")
+		{
+			if (!qc.cd.empty())
+				error("Two $cd in one model");
 
-            get_token(false, token);
-            const std::filesystem::path cd_path(token);
-            if (cd_path.is_relative()) 
+			get_token(false, token);
+			const std::filesystem::path cd_path(token);
+			if (cd_path.is_relative())
 			{
-                qc.cd = std::filesystem::absolute(path.parent_path() / cd_path);
-            }
-            else 
+				qc.cd = std::filesystem::absolute(path.parent_path() / cd_path);
+			}
+			else
 			{
-                qc.cd = std::filesystem::absolute(cd_path);
-            }
+				qc.cd = std::filesystem::absolute(cd_path);
+			}
+		}
+		else if (token == "$cdtexture")
+		{
+			if (!qc.cdtexture.empty())
+				error("Two $cdtexture in one model");
 
-        }
-        else if (token == "$cdtexture")
-        {
-            if (!qc.cdtexture.empty())
-                error("Two $cdtexture in one model");
+			get_token(false, token);
+			const std::filesystem::path cdtexture_path(token);
 
-            get_token(false, token);
-            const std::filesystem::path cdtexture_path(token);
-
-            if (cdtexture_path.is_relative())
+			if (cdtexture_path.is_relative())
 			{
-                qc.cdtexture = std::filesystem::absolute(path.parent_path() / cdtexture_path);
-            }
-            else 
+				qc.cdtexture =
+					std::filesystem::absolute(path.parent_path() / cdtexture_path);
+			}
+			else
 			{
-                qc.cdtexture = std::filesystem::absolute(cdtexture_path);
-            }
-        }
+				qc.cdtexture = std::filesystem::absolute(cdtexture_path);
+			}
+		}
 		else if (token == "$scale")
 		{
 			cmd_scale(qc, token);
@@ -2534,83 +2618,85 @@ void parse_qc_file(const std::filesystem::path path, QC &qc)
 	}
 }
 
-void usage(const char* program_name)
+void usage(const char *program_name)
 {
-    std::cerr << "Usage: " << program_name << " <inputfile.qc> <flags>\n"
-              << "  Flags:\n"
-              << "    [-f]                Invert normals\n"
-              << "    [-a <angle>]        Set vertex normal blend angle override\n"
-              << "    [-b]                Keep all unused bones\n";
-    std::exit(EXIT_FAILURE);
+	std::cerr
+		<< "Usage: " << program_name << " <inputfile.qc> <flags>\n"
+		<< "  Flags:\n"
+		<< "    [-f]                Invert normals\n"
+		<< "    [-a <angle>]        Set vertex normal blend angle override\n"
+		<< "    [-b]                Keep all unused bones\n";
+	std::exit(EXIT_FAILURE);
 }
 
 int main(int argc, char **argv)
 {
-    std::filesystem::path qc_input_path, qc_absolute_path;
+	std::filesystem::path qc_input_path, qc_absolute_path;
 	std::filesystem::path mdl_output_path;
-    static QC qc;
+	static QC qc;
 
-    g_flaginvertnormals = false;
-    g_flagkeepallbones = false;
-    g_flagnormalblendangle = cos( 2.0 * (Q_PI / 180.0)); // don't use cos(0) because we need a threshold
+	g_flaginvertnormals = false;
+	g_flagkeepallbones = false;
+	g_flagnormalblendangle =
+		cos(2.0 * (Q_PI / 180.0)); // don't use cos(0) because we need a threshold
 
-    if (argc == 1)
-    {
-        usage(argv[0]);
-    }
+	if (argc == 1)
+	{
+		usage(argv[0]);
+	}
 
-    const char *ext = strrchr(argv[1], '.');
-    if (!ext || strcmp(ext, ".qc") != 0)
-    {
-        error("The first argument must be a .qc file\n");
-    }
-    qc_input_path = argv[1];
+	const char *ext = strrchr(argv[1], '.');
+	if (!ext || strcmp(ext, ".qc") != 0)
+	{
+		error("The first argument must be a .qc file\n");
+	}
+	qc_input_path = argv[1];
 
-    for (int i = 2; i < argc; i++)
-    {
-        if (argv[i][0] == '-')
-        {
-            switch (argv[i][1])
-            {
-            case 'f':
-                g_flaginvertnormals = true;
-                break;
-            case 'a':
-                if (i + 1 >= argc)
-                {
-                    error("Missing value for -a flag.\n");
-                }
-                i++;
-                try
-                {
-                    g_flagnormalblendangle = cosf(to_radians(std::stof(argv[i])));
-                }
-                catch (...)
-                {
-                    error("Invalid value for -a flag. Expected a numeric angle.\n");
-                }
-                break;
-            case 'b':
-                g_flagkeepallbones = true;
-                break;
-            default:
+	for (int i = 2; i < argc; i++)
+	{
+		if (argv[i][0] == '-')
+		{
+			switch (argv[i][1])
+			{
+			case 'f':
+				g_flaginvertnormals = true;
+				break;
+			case 'a':
+				if (i + 1 >= argc)
+				{
+					error("Missing value for -a flag.\n");
+				}
+				i++;
+				try
+				{
+					g_flagnormalblendangle = cosf(to_radians(std::stof(argv[i])));
+				}
+				catch (...)
+				{
+					error("Invalid value for -a flag. Expected a numeric angle.\n");
+				}
+				break;
+			case 'b':
+				g_flagkeepallbones = true;
+				break;
+			default:
 				error("Unknown flag.\n");
-            }
-        }
-        else
-        {
-            error("Unexpected argument" + std::string(argv[i]) + "\n");
-        }
-    }
+			}
+		}
+		else
+		{
+			error("Unexpected argument" + std::string(argv[i]) + "\n");
+		}
+	}
 	qc_absolute_path = std::filesystem::absolute(qc_input_path);
-    load_qc_file(qc_absolute_path);       
-    parse_qc_file(qc_absolute_path, qc); 
-    set_skin_values(qc); 
-    simplify_model(qc);
+	load_qc_file(qc_absolute_path);
+	parse_qc_file(qc_absolute_path, qc);
+	set_skin_values(qc);
+	simplify_model(qc);
 
 	// mdl file is writed in qc parent path
 	mdl_output_path = qc_absolute_path.parent_path();
-    write_file(mdl_output_path, qc);      
+	write_file(mdl_output_path, qc);
 
-    return 0;
+	return 0;
 }

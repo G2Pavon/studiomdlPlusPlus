@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string>
 #include <filesystem>
+#include <string>
 
-#include "utils/mathlib.hpp"
-#include "modeldata.hpp"
 #include "format/mdl.hpp"
 #include "format/qc.hpp"
+#include "modeldata.hpp"
+#include "utils/mathlib.hpp"
 
 // Common studiomdl and writemdl variables -----------------
 extern std::array<std::array<int, 100>, 100> g_xnode;

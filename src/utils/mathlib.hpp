@@ -1,8 +1,8 @@
 // mathlib.c -- math primitives
 #pragma once
 
-#include <cmath>
 #include <array>
+#include <cmath>
 
 constexpr float Q_PI = 3.14159265358979323846f;
 constexpr float EPSILON = 0.001f;
@@ -136,7 +136,6 @@ struct Vector3
 
 float to_radians(float deg);
 float to_degrees(float rad);
-
 
 using Matrix3x4 = std::array<std::array<float, 4>, 3>;
 
