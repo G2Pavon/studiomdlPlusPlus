@@ -1,8 +1,11 @@
 This tool is a C++ port of Valve's goldsrc studiomdl, the Half-Life 1 MDL (version 10) file format compiler tool.
+Compiles [Studio Model Data](https://developer.valvesoftware.com/wiki/SMD) from [QC](https://developer.valvesoftware.com/wiki/QC) files to a [MDL](https://developer.valvesoftware.com/wiki/QC) file.
+
+
 
 This project aims to provide a modern, cleaner, and more maintainable alternative to Valve's original GoldSrc studiomdl tool. While Sven-Coop's SDK offers a modern version, it isn't open-source for some reason.
 
-Feel free to contribute, suggest improvements, or offer feedback!. This repositry was created by a mapper, not a programmer, so contributions are welcome. I simply made this project because, as a mapper, I want to use the best tools for mapping.
+Feel free to contribute, suggest improvements, or offer feedback!. This repositry was created by a mapper, not a programmer, so contributions are welcome. I start this project because, as a mapper, I want to use the best tools for mapping.
 
 ---
 
