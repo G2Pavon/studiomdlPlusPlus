@@ -24,16 +24,16 @@ extern int g_skinfamiliescount;
 
 // setSkinValues:
 void set_skin_values(QC &qc);
-void grab_skin(QC &qc, Texture *ptexture);
-void grab_bmp(char *filename, Texture *ptexture);
-void resize_texture(QC &qc, Texture *ptexture);
-void reset_texture_coord_ranges(Mesh *pmesh, Texture *ptexture);
+void grab_skin(const QC &qc, Texture *ptexture);
+void grab_bmp(const char *filename, Texture *ptexture);
+void resize_texture(const QC &qc, Texture *ptexture);
+void reset_texture_coord_ranges(Mesh *pmesh, const Texture *ptexture);
 void texture_coord_ranges(Mesh *pmesh, Texture *ptexture);
 
 // SimplifyModel:
 void simplify_model(QC &qc);
 void make_transitions(QC &qc);
-int find_node(std::string name);
+int find_node(const std::string name);
 void optimize_animations(QC &qc);
 void extract_motion(QC &qc);
 
@@ -69,22 +69,22 @@ int cmd_hitbox(QC &qc, std::string &token);
 int cmd_attachment(QC &qc, std::string &token);
 void cmd_renamebone(QC &qc, std::string &token);
 void cmd_texrendermode(std::string &token);
-int lookup_control(const char *string);
-void parse_qc_file(std::filesystem::path path, QC &qc);
+int lookup_control(const std::string);
+void parse_qc_file(const std::filesystem::path path, QC &qc);
 
 // SMD Parser
-void parse_smd_reference(QC &qc, Model *pmodel);
-void parse_smd_animation(QC &qc, std::string &name, Animation &anim);
-void parse_smd_reference_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones, std::filesystem::path &path);
-void parse_smd_animation_skeleton(QC &qc, Animation &anim);
-void parse_smd_triangles(QC &qc, Model *pmodel);
-int parse_smd_nodes(QC &qc, std::vector<Node> &nodes);
-void build_reference(Model *pmodel);
-Mesh *find_mesh_by_texture(Model *pmodel, char *texturename);
-TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index);
-int find_vertex_normal_index(Model *pmodel, Normal *pnormal);
+void parse_smd_reference(const QC &qc, Model *pmodel);
+void parse_smd_animation(const QC &qc, std::string &name, Animation &anim);
+void parse_smd_reference_skeleton(const QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones, std::filesystem::path &path);
+void parse_smd_animation_skeleton(const QC &qc, Animation &anim);
+void parse_smd_triangles(const QC &qc, Model *pmodel);
+int parse_smd_nodes(const QC &qc, std::vector<Node> &nodes);
+void build_reference(const Model *pmodel);
+Mesh *find_mesh_by_texture(Model *pmodel, const std::string texturename);
+TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, const int index);
+int find_vertex_normal_index(Model *pmodel, const Normal *pnormal);
 int find_vertex_index(Model *pmodel, Vertex *pv);
 void clip_rotations(Vector3 rot);
 
 // Common QC and SMD parser
-int find_texture_index(std::string texturename);
+int find_texture_index(const std::string texturename);

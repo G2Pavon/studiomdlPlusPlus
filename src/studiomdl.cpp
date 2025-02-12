@@ -198,7 +198,7 @@ void optimize_animations(QC &qc)
 	}
 }
 
-int find_node(std::string name)
+int find_node(const std::string name)
 {
 	for (int k = 0; k < g_bonetable.size(); k++)
 	{
@@ -914,42 +914,42 @@ void simplify_model(QC &qc)
 	}
 }
 
-int lookup_control(const char *string)
+int lookup_control(const std::string token)
 {
-	if (case_insensitive_compare(string, "X"))
+	if (case_insensitive_compare(token, "X"))
 		return STUDIO_X;
-	if (case_insensitive_compare(string, "Y"))
+	if (case_insensitive_compare(token, "Y"))
 		return STUDIO_Y;
-	if (case_insensitive_compare(string, "Z"))
+	if (case_insensitive_compare(token, "Z"))
 		return STUDIO_Z;
-	if (case_insensitive_compare(string, "XR"))
+	if (case_insensitive_compare(token, "XR"))
 		return STUDIO_XR;
-	if (case_insensitive_compare(string, "YR"))
+	if (case_insensitive_compare(token, "YR"))
 		return STUDIO_YR;
-	if (case_insensitive_compare(string, "ZR"))
+	if (case_insensitive_compare(token, "ZR"))
 		return STUDIO_ZR;
-	if (case_insensitive_compare(string, "LX"))
+	if (case_insensitive_compare(token, "LX"))
 		return STUDIO_LX;
-	if (case_insensitive_compare(string, "LY"))
+	if (case_insensitive_compare(token, "LY"))
 		return STUDIO_LY;
-	if (case_insensitive_compare(string, "LZ"))
+	if (case_insensitive_compare(token, "LZ"))
 		return STUDIO_LZ;
-	if (case_insensitive_compare(string, "AX"))
+	if (case_insensitive_compare(token, "AX"))
 		return STUDIO_AX;
-	if (case_insensitive_compare(string, "AY"))
+	if (case_insensitive_compare(token, "AY"))
 		return STUDIO_AY;
-	if (case_insensitive_compare(string, "AZ"))
+	if (case_insensitive_compare(token, "AZ"))
 		return STUDIO_AZ;
-	if (case_insensitive_compare(string, "AXR"))
+	if (case_insensitive_compare(token, "AXR"))
 		return STUDIO_AXR;
-	if (case_insensitive_compare(string, "AYR"))
+	if (case_insensitive_compare(token, "AYR"))
 		return STUDIO_AYR;
-	if (case_insensitive_compare(string, "AZR"))
+	if (case_insensitive_compare(token, "AZR"))
 		return STUDIO_AZR;
 	return -1;
 }
 
-int find_texture_index(std::string texturename)
+int find_texture_index(const std::string texturename)
 {
 	int i = 0;
 	for (auto& texture : g_textures)
@@ -976,10 +976,10 @@ int find_texture_index(std::string texturename)
 	return i;
 }
 
-Mesh *find_mesh_by_texture(Model *pmodel, char *texturename)
+Mesh *find_mesh_by_texture(Model *pmodel, const std::string texturename)
 {
 	int i;
-	int j = find_texture_index(std::string(texturename));
+	int j = find_texture_index(texturename);
 
 	for (i = 0; i < pmodel->nummesh; i++)
 	{
@@ -1001,7 +1001,7 @@ Mesh *find_mesh_by_texture(Model *pmodel, char *texturename)
 	return pmodel->pmeshes[i];
 }
 
-TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index)
+TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, const int index)
 {
 	if (index >= pmesh->alloctris)
 	{
@@ -1021,7 +1021,7 @@ TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, int index)
 	return pmesh->triangles[index];
 }
 
-int find_vertex_normal_index(Model *pmodel, Normal *pnormal)
+int find_vertex_normal_index(Model *pmodel, const Normal *pnormal)
 {
 	int i = 0;
 	for (auto& normal : pmodel->normals)
@@ -1109,7 +1109,7 @@ void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 	ptexture->min_t = 0;
 }
 
-void reset_texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
+void reset_texture_coord_ranges(Mesh *pmesh, const Texture *ptexture)
 {
 	// adjust top, left edge
 	for (int i = 0; i < pmesh->numtris; i++)
@@ -1129,7 +1129,7 @@ void grab_bmp(const char *filename, Texture *ptexture)
 	}
 }
 
-void resize_texture(QC &qc, Texture *ptexture)
+void resize_texture(const QC &qc, Texture *ptexture)
 {
 	int i, t;
 
@@ -1154,7 +1154,7 @@ void resize_texture(QC &qc, Texture *ptexture)
 	ptexture->pdata = pdest;
 
 	// Data is saved as a multiple of 4
-	int srcadjustedwidth = (ptexture->srcwidth + 3) & ~3;
+	const int srcadjustedwidth = (ptexture->srcwidth + 3) & ~3;
 
 	// Move the picture data to the model area, replicating missing data, deleting unused data.
 	for (i = 0, t = ptexture->srcheight - ptexture->skinheight - ptexture->skintop + 10 * ptexture->srcheight; i < ptexture->skinheight; i++, t++)
@@ -1176,8 +1176,8 @@ void resize_texture(QC &qc, Texture *ptexture)
 	if (qc.gamma != 1.8f)
 	// gamma correct the monster textures to a gamma of 1.8
 	{
-		std::uint8_t *psrc = (std::uint8_t *)ptexture->ppal;
-		float g = qc.gamma / 1.8f;
+		const std::uint8_t *psrc = (std::uint8_t *)ptexture->ppal;
+		const float g = qc.gamma / 1.8f;
 		for (i = 0; i < 768; i++)
 		{
 			pdest[i] = static_cast<uint8_t>(std::round(pow(psrc[i] / 255.0, g) * 255));
@@ -1192,9 +1192,9 @@ void resize_texture(QC &qc, Texture *ptexture)
 	free(ptexture->ppal);
 }
 
-void grab_skin(QC &qc, Texture *ptexture)
+void grab_skin(const QC &qc, Texture *ptexture)
 {
-	std::filesystem::path texture_file_path = (qc.cdtexture / ptexture->name).lexically_normal();
+	const std::filesystem::path texture_file_path = (qc.cdtexture / ptexture->name).lexically_normal();
 	if (!std::filesystem::exists(texture_file_path))
 	{
 		error("Cannot find \"" + ptexture->name + "\" texture in \"" + qc.cdtexture.string() + "\" or path does not exist\n");
@@ -1256,7 +1256,7 @@ void set_skin_values(QC &qc)
 		resize_texture(qc, &texture);
 	}
 
-	for (auto& submodel : qc.submodels)
+	for (auto* submodel : qc.submodels)
 	{
 		for (j = 0; j < submodel->nummesh; j++)
 		{
@@ -1290,7 +1290,7 @@ void set_skin_values(QC &qc)
 	}
 }
 
-void build_reference(Model *pmodel)
+void build_reference(const Model *pmodel)
 {
 	Vector3 bone_angles{};
 	
@@ -1326,7 +1326,7 @@ void build_reference(Model *pmodel)
 	}
 }
 
-void parse_smd_triangles(QC &qc, Model *pmodel)
+void parse_smd_triangles(const QC &qc, Model *pmodel)
 {
 	int i;
 	Vector3 vmin{99999, 99999, 99999};
@@ -1440,7 +1440,7 @@ void parse_smd_triangles(QC &qc, Model *pmodel)
 	}
 }
 
-void parse_smd_reference_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones, std::filesystem::path &path)
+void parse_smd_reference_skeleton(const QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones, std::filesystem::path &path)
 {
     std::ifstream smdstream(path);
     std::string line, cmd;
@@ -1470,7 +1470,7 @@ void parse_smd_reference_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<
     }
 }
 
-int parse_smd_nodes(QC &qc, std::vector<Node> &nodes)
+int parse_smd_nodes(const QC &qc, std::vector<Node> &nodes)
 {
     int index;
     std::string bone_name;
@@ -1507,7 +1507,7 @@ int parse_smd_nodes(QC &qc, std::vector<Node> &nodes)
     return 0;
 }
 
-void parse_smd_reference(QC &qc, Model *pmodel)
+void parse_smd_reference(const QC &qc, Model *pmodel)
 {
 	std::string cmd;
 	int smd_version;
@@ -1706,11 +1706,10 @@ void cmd_body(QC &qc, std::string &token)
     cmd_body_option_studio(qc, token);
 }
 
-void parse_smd_animation_skeleton(QC &qc, Animation &anim)
+void parse_smd_animation_skeleton(const QC &qc, Animation &anim)
 {
 	Vector3 pos;
 	Vector3 rot;
-	std::string cmd;
 	int index;
 	int t = -99999999;
 	int start = 99999;
@@ -1722,8 +1721,8 @@ void parse_smd_animation_skeleton(QC &qc, Animation &anim)
 		anim.rot[index] = (Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 	}
 
-	float cosz = cosf(qc.rotate);
-	float sinz = sinf(qc.rotate);
+	const float cosz = cosf(qc.rotate);
+	const float sinz = sinf(qc.rotate);
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) != nullptr)
 	{
@@ -1790,7 +1789,7 @@ void parse_smd_animation_skeleton(QC &qc, Animation &anim)
 
 void shift_option_animation(Animation &anim)
 {
-	int size = (anim.endframe - anim.startframe + 1) * sizeof(Vector3);
+	const int size = (anim.endframe - anim.startframe + 1) * sizeof(Vector3);
 	for (int j = 0; j < anim.nodes.size(); j++)
 	{
 		Vector3 *ppos = (Vector3 *)std::calloc(1, size);
@@ -1807,7 +1806,7 @@ void shift_option_animation(Animation &anim)
 	}
 }
 
-void parse_smd_animation(QC &qc, std::string &name, Animation &anim)
+void parse_smd_animation(const QC &qc, std::string &name, Animation &anim)
 {
 	std::string cmd;
 	int smd_version;
@@ -2371,7 +2370,7 @@ void cmd_renamebone(QC &qc, std::string &token)
 void cmd_texrendermode(std::string &token)
 {
 	get_token(false, token);
-	std::string tex_name = token;
+	const std::string tex_name = token;
 
 	get_token(false, token);
 	if (token == "additive")
@@ -2394,7 +2393,7 @@ void cmd_texrendermode(std::string &token)
 		error("Texture \"" + tex_name + "\" has unknown render mode: " + token);
 }
 
-void parse_qc_file(std::filesystem::path path, QC &qc)
+void parse_qc_file(const std::filesystem::path path, QC &qc)
 {
 	std::string token;
 	while (true)
@@ -2424,7 +2423,7 @@ void parse_qc_file(std::filesystem::path path, QC &qc)
                 error("Two $cd in one model");
 
             get_token(false, token);
-            std::filesystem::path cd_path(token);
+            const std::filesystem::path cd_path(token);
             if (cd_path.is_relative()) 
 			{
                 qc.cd = std::filesystem::absolute(path.parent_path() / cd_path);
@@ -2441,7 +2440,7 @@ void parse_qc_file(std::filesystem::path path, QC &qc)
                 error("Two $cdtexture in one model");
 
             get_token(false, token);
-            std::filesystem::path cdtexture_path(token);
+            const std::filesystem::path cdtexture_path(token);
 
             if (cdtexture_path.is_relative())
 			{
