@@ -1894,6 +1894,10 @@ void parse_smd_animation(const QC &qc, std::filesystem::path &sequence_smd_path,
 	{
 		smd_path = (qc.cd / sequence_smd_path).lexically_normal();
 	}
+	else
+	{
+		smd_path = sequence_smd_path;
+	}
 
 	if (!std::filesystem::exists(smd_path))
 	{
