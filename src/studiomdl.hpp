@@ -74,7 +74,7 @@ void parse_qc_file(const std::filesystem::path path, QC &qc);
 
 // SMD Parser
 void parse_smd_reference(const QC &qc, Model *pmodel);
-void parse_smd_animation(const QC &qc, std::string &name, Animation &anim);
+void parse_smd_animation(const QC &qc, std::filesystem::path &smd_path, Animation &anim);
 void parse_smd_reference_skeleton(const QC &qc, std::vector<Node> &nodes, std::vector<Bone> &bones, std::filesystem::path &path);
 void parse_smd_animation_skeleton(const QC &qc, Animation &anim);
 void parse_smd_triangles(const QC &qc, Model *pmodel);

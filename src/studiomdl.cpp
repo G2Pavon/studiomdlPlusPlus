@@ -25,7 +25,6 @@ float g_flagnormalblendangle;
 bool g_flagkeepallbones;
 
 // SMD variables --------------------------
-std::filesystem::path g_smdpath;
 FILE *g_smdfile;
 char g_currentsmdline[1024];
 int g_smdlinecount;
@@ -1579,19 +1578,19 @@ void parse_smd_reference(const QC &qc, Model *pmodel)
 	int smd_version;
 	g_smdlinecount = 0;
 
-	g_smdpath = (qc.cd / (pmodel->name + ".smd")).lexically_normal();
+	std::filesystem::path smd_path = (qc.cd / (pmodel->name + ".smd")).lexically_normal();
 
-	if (!std::filesystem::exists(g_smdpath))
+	if (!std::filesystem::exists(smd_path))
 	{
 		error("Cannot find \"" + pmodel->name + ".smd\" in \"" + qc.cd.string() +
 			  "\"\n");
 	}
 
-	printf("Grabbing reference: %s\n\n", g_smdpath.string().c_str());
+	printf("Grabbing reference: %s\n\n", smd_path.string().c_str());
 
-	if ((g_smdfile = fopen(g_smdpath.string().c_str(), "r")) == 0)
+	if ((g_smdfile = fopen(smd_path.string().c_str(), "r")) == 0)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", g_smdpath.c_str());
+		fprintf(stderr, "reader: could not open file '%s'\n", smd_path.c_str());
 	}
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
@@ -1622,7 +1621,7 @@ void parse_smd_reference(const QC &qc, Model *pmodel)
 		else if (case_insensitive_compare(cmd, "skeleton"))
 		{
 			parse_smd_reference_skeleton(qc, pmodel->nodes, pmodel->skeleton,
-										 g_smdpath);
+										 smd_path);
 		}
 		else if (case_insensitive_compare(cmd, "triangles"))
 		{
@@ -1877,24 +1876,35 @@ void shift_option_animation(Animation &anim)
 	}
 }
 
-void parse_smd_animation(const QC &qc, std::string &name, Animation &anim)
+void parse_smd_animation(const QC &qc, std::filesystem::path &sequence_smd_path, Animation &anim)
 {
+	std::filesystem::path smd_path;
 	std::string cmd;
 	int smd_version;
 	g_smdlinecount = 0;
 
-	anim.name = name;
-
-	g_smdpath = (qc.cd / (anim.name + ".smd")).lexically_normal();
-	if (!std::filesystem::exists(g_smdpath))
-		error("Cannot find \"" + anim.name + ".smd\" in \"" + qc.cd.string() +
-			  "\"\n");
-
-	printf("Grabbing animation: %s\n", g_smdpath.string().c_str());
-
-	if ((g_smdfile = fopen(g_smdpath.string().c_str(), "r")) == 0)
+	if (sequence_smd_path.extension().empty()) // TODO: Add error check if extension != ".smd"
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", g_smdpath.c_str());
+		sequence_smd_path += ".smd";
+	}
+
+	anim.name = sequence_smd_path.stem().string();
+
+	if (sequence_smd_path.is_relative())
+	{
+		smd_path = (qc.cd / sequence_smd_path).lexically_normal();
+	}
+
+	if (!std::filesystem::exists(smd_path))
+	{
+		error("Cannot find \"" + anim.name + ".smd\" in \"" + smd_path.string() + "\"\n");
+	}
+
+	printf("Grabbing animation: %s\n", smd_path.string().c_str());
+
+	if ((g_smdfile = fopen(smd_path.string().c_str(), "r")) == 0)
+	{
+		fprintf(stderr, "reader: could not open file '%s'\n", smd_path.c_str());
 		error(0);
 	}
 
@@ -2045,7 +2055,7 @@ int cmd_sequence_option_action(std::string &szActivity)
 int cmd_sequence(QC &qc, std::string &token)
 {
 	int depth = 0;
-	std::vector<std::string> smd_files;
+	std::vector<std::filesystem::path> smd_files;
 	int i;
 	int start = 0;
 	int end = MAXSTUDIOANIMATIONS - 1;
@@ -2171,7 +2181,9 @@ int cmd_sequence(QC &qc, std::string &token)
 		else if (token == "animation")
 		{
 			get_token(false, token);
-			smd_files.push_back(token);
+			std::replace(token.begin(), token.end(), '\\', '/');
+			std::filesystem::path smd_path(token);
+			smd_files.push_back(smd_path);
 		}
 		else if ((i = cmd_sequence_option_action(token)) != 0)
 		{
@@ -2181,7 +2193,9 @@ int cmd_sequence(QC &qc, std::string &token)
 		}
 		else
 		{
-			smd_files.push_back(token);
+			std::replace(token.begin(), token.end(), '\\', '/');
+			std::filesystem::path smd_path(token);
+			smd_files.push_back(smd_path);
 		}
 
 		if (depth < 0)
