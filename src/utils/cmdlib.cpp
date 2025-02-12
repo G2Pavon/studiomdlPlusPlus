@@ -79,3 +79,12 @@ bool case_insensitive_n_compare(const std::string &str1, const std::string &str2
                           return std::tolower(static_cast<unsigned char>(c1)) == std::tolower(static_cast<unsigned char>(c2));
                       });
 }
+
+void trim_newline_carriage(char *str)
+{
+    char *p = str;
+    while (*p)
+        p++;
+    while (p > str && (p[-1] == '\n' || p[-1] == '\r'))
+        *(--p) = '\0';
+}

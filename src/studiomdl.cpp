@@ -1407,8 +1407,8 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 			Vector3 triangle_normals[3];
 
 			g_smdlinecount++;
-
-			if (case_insensitive_compare("end\n", g_currentsmdline))
+			trim_newline_carriage(g_currentsmdline); // end-of-line CRLF sheningans
+			if (case_insensitive_compare("end", g_currentsmdline))
 				return;
 
 			std::string material = g_currentsmdline;
