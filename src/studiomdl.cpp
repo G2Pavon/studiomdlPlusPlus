@@ -1572,18 +1572,30 @@ int parse_smd_nodes(const QC &qc, std::vector<Node> &nodes)
 	return 0;
 }
 
-void parse_smd_reference(const QC &qc, Model *pmodel)
+void parse_smd_reference(const QC &qc, std::filesystem::path &smd_ref_path, Model *pmodel)
 {
+	std::filesystem::path smd_path;
 	std::string cmd;
 	int smd_version;
 	g_smdlinecount = 0;
 
-	std::filesystem::path smd_path = (qc.cd / (pmodel->name + ".smd")).lexically_normal();
+	if (smd_ref_path.extension().empty()) // TODO: Add error check if extension != ".smd"
+	{
+		smd_ref_path += ".smd";
+	}
+
+	if (smd_ref_path.is_relative())
+	{
+		smd_path = (qc.cd / smd_ref_path).lexically_normal();
+	}
+	else
+	{
+		smd_path = smd_ref_path;
+	}
 
 	if (!std::filesystem::exists(smd_path))
 	{
-		error("Cannot find \"" + pmodel->name + ".smd\" in \"" + qc.cd.string() +
-			  "\"\n");
+		error("Cannot find \"" + pmodel->name + "\" in " + smd_ref_path.string() + "\"\n");
 	}
 
 	printf("Grabbing reference: %s\n\n", smd_path.string().c_str());
@@ -1664,9 +1676,11 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 	if (!get_token(false, token))
 		return;
 
+	std::replace(token.begin(), token.end(), '\\', '/');
+	std::filesystem::path smd_ref_path(token);
 	Model *new_submodel = new Model();
 
-	new_submodel->name = token;
+	new_submodel->name = smd_ref_path.stem().string();
 
 	qc.scale_body_and_sequence = qc.scale;
 
@@ -1684,7 +1698,7 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 		}
 	}
 
-	parse_smd_reference(qc, new_submodel);
+	parse_smd_reference(qc, smd_ref_path, new_submodel);
 
 	qc.submodels.push_back(new_submodel);
 	qc.bodyparts.back().num_submodels++;
