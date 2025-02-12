@@ -2,14 +2,14 @@ This tool is a C++ port of Valve's goldsrc studiomdl, the Half-Life 1 MDL (versi
 
 This project aims to provide a modern, cleaner, and more maintainable alternative to Valve's original GoldSrc studiomdl tool. While Sven-Coop's SDK offers a modern version, it isn't open-source for some reason.
 
-Feel free to contribute, suggest improvements, or offer feedback!. This repositry was created by a mapper, not a programmer, so contributions from developers are especially welcome. I simply made this project because, as a mapper, I want to use the best tools for mapping.
+Feel free to contribute, suggest improvements, or offer feedback!. This repositry was created by a mapper, not a programmer, so contributions are welcome. I simply made this project because, as a mapper, I want to use the best tools for mapping.
 
 ---
 
 ## Features
 
-*   Modernized code*:  use C++17 features.
-*   Cleaned Up Code*:
+*   Modernized code¹:  use C++17 features.
+*   Cleaned Up Code¹:
 *   64-bit Support:
 *   UV Shift Correction: (not fully tested yet) fix for UV shifting issues.
 *   Support $flatshade texture mode.
@@ -30,7 +30,7 @@ Feel free to contribute, suggest improvements, or offer feedback!. This repositr
 Prerequisites:
 
 *   A C++17 compatible compiler (GCC, Clang, MSVC)
-*   CMake (version 3.15 or later)
+*   CMake (version 3.14 or later)
 
 
 Clone the repository:
