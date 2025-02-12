@@ -2496,6 +2496,7 @@ void parse_qc_file(const std::filesystem::path path, QC &qc)
 				error("Two $cd in one model");
 
 			get_token(false, token);
+			std::replace(token.begin(), token.end(), '\\', '/');
 			const std::filesystem::path cd_path(token);
 			if (cd_path.is_relative())
 			{
@@ -2512,8 +2513,8 @@ void parse_qc_file(const std::filesystem::path path, QC &qc)
 				error("Two $cdtexture in one model");
 
 			get_token(false, token);
+			std::replace(token.begin(), token.end(), '\\', '/');
 			const std::filesystem::path cdtexture_path(token);
-
 			if (cdtexture_path.is_relative())
 			{
 				qc.cdtexture =
