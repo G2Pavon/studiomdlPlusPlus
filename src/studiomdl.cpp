@@ -1148,10 +1148,10 @@ void resize_texture(QC &qc, Texture *ptexture)
 		   (static_cast<float>(ptexture->skinwidth * ptexture->skinheight) / static_cast<float>(ptexture->srcwidth * ptexture->srcheight)) * 100.0f,
 		   ptexture->size);
 
-	if (ptexture->size > 1024 * 1024)
+	if (ptexture->size > 1024 * 1024) // TODO: change this, 640 * 480 in hlsdk
 	{
 		printf("%.0f %.0f %.0f %.0f\n", ptexture->min_s, ptexture->max_s, ptexture->min_t, ptexture->max_t);
-		error("texture too large\n");
+		error("Texture too large\n");
 	}
 	std::uint8_t *pdest = (std::uint8_t *)malloc(ptexture->size);
 	ptexture->pdata = pdest;
@@ -1408,9 +1408,7 @@ void parse_smd_triangles(QC &qc, Model *pmodel)
 					{
 						if (parent_bone < 0 || parent_bone >= pmodel->nodes.size())
 						{
-							fprintf(stderr, "bogus bone index\n");
-							fprintf(stderr, "%d %s :\n%s", g_smdlinecount, g_smdpath.c_str(), g_currentsmdline);
-							exit(1);
+							error("Bogus bone index at line " + std::to_string(g_smdlinecount));
 						}
 
 						triangle_vertices[j] = triangle_vertex.pos;
@@ -1886,8 +1884,7 @@ int cmd_sequence_option_event(std::string &token, Sequence &seq)
 {
     if (seq.events.size() >= MAXSTUDIOEVENTS)
  	{
-		printf("too many events\n");
-		exit(0);
+		error("Too many events in sequence \"" + seq.name +"\"");
 	}
 
     get_token(false, token);
@@ -2042,8 +2039,7 @@ int cmd_sequence(QC &qc, std::string &token)
 		{
 			if (depth != 0)
 			{
-				printf("missing }\n");
-				exit(1);
+				error("Missing '}' in sequence: \""+ newseq.name + "\"");
 			}
 			return 1;
 		}
@@ -2137,15 +2133,13 @@ int cmd_sequence(QC &qc, std::string &token)
 
 		if (depth < 0)
 		{
-			printf("missing {\n");
-			exit(1);
+			error("Missing '{' in sequence: \""+ newseq.name + "\"");
 		}
 	};
 
 	if (smd_files.empty())
 	{
-		printf("no animations found\n");
-		exit(1);
+		error("No animations found in sequence: \""+ newseq.name + "\"");
 	}
 	for (auto& file : smd_files) // 
 	{
@@ -2267,7 +2261,7 @@ int cmd_texturegroup(QC &qc, std::string &token)
 	int row_index = 0;
 
 	if (g_textures.empty())
-		error("texturegroups must follow model loading\n");
+		error("Texturegroups must follow model loading\n");
 
 	if (!get_token(false, token))
 		return 0;
@@ -2286,7 +2280,7 @@ int cmd_texturegroup(QC &qc, std::string &token)
 		{
 			if (depth != 0)
 			{
-				error("missing }\n");
+				error("Missing '}' in texturegroup");
 			}
 			return 1;
 		}
@@ -2415,7 +2409,7 @@ void cmd_texrendermode(std::string &token)
 		g_textures[find_texture_index(tex_name)].flags |= STUDIO_NF_FLATSHADE;
 	}
 	else
-		printf("Texture '%s' has unknown render mode '%s'!\n", tex_name.c_str(), token.c_str());
+		error("Texture \"" + tex_name + "\" has unknown render mode: " + token);
 }
 
 void parse_qc_file(std::filesystem::path path, QC &qc)
