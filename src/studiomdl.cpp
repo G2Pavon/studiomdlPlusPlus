@@ -31,9 +31,6 @@ FILE *g_smdfile;
 char g_currentsmdline[1024];
 int g_smdlinecount;
 
-char g_defaulttextures[16][256];
-char g_sourcetexture[16][256];
-int g_numtextureteplacements;
 BoneFixUp g_bonefixup[MAXSTUDIOSRCBONES];
 
 // Common studiomdl and writemdl variables -----------------
@@ -1360,21 +1357,6 @@ void parse_smd_triangles(QC &qc, Model *pmodel)
 			for (i = static_cast<int>(strlen(triangle_material)) - 1; i >= 0 && !isgraph(triangle_material[i]); i--)
 				;
 			triangle_material[i + 1] = '\0';
-
-			// funky texture overrides
-			for (i = 0; i < g_numtextureteplacements; i++)
-			{
-				if (g_sourcetexture[i][0] == '\0')
-				{
-					std::strcpy(triangle_material, g_defaulttextures[i]);
-					break;
-				}
-				if (case_insensitive_compare(triangle_material, g_sourcetexture[i]))
-				{
-					std::strcpy(triangle_material, g_defaulttextures[i]);
-					break;
-				}
-			}
 
 			if (triangle_material[0] == '\0')
 			{
