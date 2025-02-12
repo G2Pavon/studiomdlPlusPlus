@@ -15,7 +15,7 @@ Feel free to contribute, suggest improvements, or offer feedback!. This repositr
 *   Support $flatshade texture mode.
 
 >Note¹:
->Although the code has been cleaned up, it still has a lot of messy code and is being cleaned up progressively.
+>Although the code has been cleaned up, it still has a lot of mess old C code.
 
 >Note²:
 >Developed on linux, at the moment cross platform is a bit broken
