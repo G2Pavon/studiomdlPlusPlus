@@ -18,11 +18,11 @@ public:
     std::filesystem::path cdtexture;                       // $cdtexture
     Vector3 eyeposition{};                                 // $eyeposition
     float scale = 1.0f;                                    // $scale
-    float scaleBodyAndSequenceOption = 1.0f;               // $body studio <value> // also for $sequence
+    float scale_body_and_sequence = 1.0f;               // $body studio <value> // also for $sequence
     Vector3 origin{};                                      // $origin
-    float originRotation = to_radians(ENGINE_ORIENTATION); // $origin <X> <Y> <Z> <rotation>
+    float origin_rotation = to_radians(ENGINE_ORIENTATION); // $origin <X> <Y> <Z> <rotation>
     float rotate = 0.0f;                                   // $rotate and $sequence <sequence name> <SMD path> {[rotate <zrotation>]} only z axis
-    Vector3 sequenceOrigin{};                              // $sequence <sequence name> <SMD path> {[origin <X> <Y> <Z>]}
+    Vector3 sequence_origin{};                              // $sequence <sequence name> <SMD path> {[origin <X> <Y> <Z>]}
     float gamma = 1.8f;                                    // $$gamma
 
     std::vector<RenameBone> renamebones; // $renamebone

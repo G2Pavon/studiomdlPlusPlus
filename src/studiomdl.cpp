@@ -1423,8 +1423,8 @@ void parse_smd_triangles(QC &qc, Model *pmodel)
 						if (triangle_vertex.pos[2] < vmin[2])
 							vmin[2] = triangle_vertex.pos[2];
 
-						triangle_vertex.pos -= qc.sequenceOrigin; // adjust vertex to origin
-						triangle_vertex.pos *= qc.scaleBodyAndSequenceOption; // scale vertex
+						triangle_vertex.pos -= qc.sequence_origin; // adjust vertex to origin
+						triangle_vertex.pos *= qc.scale_body_and_sequence; // scale vertex
 
 						// move vertex position to object space.
 						Vector3 tmp;
@@ -1476,7 +1476,7 @@ void parse_smd_reference_skeleton(QC &qc, std::vector<Node> &nodes, std::vector<
         {
             bones.emplace_back();
 			bones.back().pos = Vector3(posX, posY, posZ);
-            bones.back().pos *= qc.scaleBodyAndSequenceOption;
+            bones.back().pos *= qc.scale_body_and_sequence;
 
             if (nodes[node].mirrored)
                 bones.back().pos *= -1.0;
@@ -1620,7 +1620,7 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 
 	new_submodel->name = token;
 
-	qc.scaleBodyAndSequenceOption = qc.scale;
+	qc.scale_body_and_sequence = qc.scale;
 
 	while (token_available())
 	{
@@ -1632,7 +1632,7 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 		else if (case_insensitive_compare("scale", token))
 		{
 			get_token(false, token);
-			qc.scaleBodyAndSequenceOption = std::stof(token);
+			qc.scale_body_and_sequence = std::stof(token);
 		}
 	}
 
@@ -1642,7 +1642,7 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 	qc.bodyparts.back().num_submodels++;
 
 
-	qc.scaleBodyAndSequenceOption = qc.scale;
+	qc.scale_body_and_sequence = qc.scale;
 }
 
 int cmd_body_option_blank(QC &qc)
@@ -1755,7 +1755,7 @@ void parse_smd_animation_skeleton(QC &qc, Animation &anim)
 			{
 				if (anim.nodes[index].parent == -1)
 				{
-					pos -= qc.sequenceOrigin; // adjust vertex to origin
+					pos -= qc.sequence_origin; // adjust vertex to origin
 					anim.pos[index][t].x = cosz * pos.x - sinz * pos.y;
 					anim.pos[index][t].y = sinz * pos.x + cosz * pos.y;
 					anim.pos[index][t].z = pos.z;
@@ -1774,7 +1774,7 @@ void parse_smd_animation_skeleton(QC &qc, Animation &anim)
 				if (anim.nodes[index].mirrored)
 					anim.pos[index][t] = anim.pos[index][t] * -1.0;
 
-				anim.pos[index][t] *= qc.scaleBodyAndSequenceOption; // scale vertex
+				anim.pos[index][t] *= qc.scale_body_and_sequence; // scale vertex
 
 				clip_rotations(rot);
 
@@ -1936,20 +1936,20 @@ void cmd_origin(QC &qc, std::string &token)
 	if (token_available())
 	{
 		get_token(false, token);
-		qc.originRotation = to_radians(std::stof(token) + ENGINE_ORIENTATION);
+		qc.origin_rotation = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 	}
 }
 
 void cmd_sequence_option_origin(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc.sequenceOrigin[0] = std::stof(token);
+	qc.sequence_origin[0] = std::stof(token);
 
 	get_token(false, token);
-	qc.sequenceOrigin[1] = std::stof(token);
+	qc.sequence_origin[1] = std::stof(token);
 
 	get_token(false, token);
-	qc.sequenceOrigin[2] = std::stof(token);
+	qc.sequence_origin[2] = std::stof(token);
 }
 
 void cmd_sequence_option_rotate(QC &qc, std::string &token)
@@ -1961,7 +1961,7 @@ void cmd_sequence_option_rotate(QC &qc, std::string &token)
 void cmd_scale(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc.scale = qc.scaleBodyAndSequenceOption = std::stof(token);
+	qc.scale = qc.scale_body_and_sequence = std::stof(token);
 }
 
 void cmd_rotate(QC &qc, std::string &token) // XDM
@@ -1974,7 +1974,7 @@ void cmd_rotate(QC &qc, std::string &token) // XDM
 void cmd_sequence_option_scale(QC &qc, std::string &token)
 {
 	get_token(false, token);
-	qc.scaleBodyAndSequenceOption = std::stof(token);
+	qc.scale_body_and_sequence = std::stof(token);
 }
 
 int cmd_sequence_option_action(std::string &szActivity)
@@ -2008,10 +2008,10 @@ int cmd_sequence(QC &qc, std::string &token)
 
 	newseq.name = token;
 
-	qc.sequenceOrigin = qc.origin;
-	qc.scaleBodyAndSequenceOption = qc.scale;
+	qc.sequence_origin = qc.origin;
+	qc.scale_body_and_sequence = qc.scale;
 
-	qc.rotate = qc.originRotation;
+	qc.rotate = qc.origin_rotation;
 	newseq.fps = 30.0;
 	newseq.seqgroup = 0; // 0 since $sequencegroup is deprecated
 	newseq.blendstart[0] = 0.0;
