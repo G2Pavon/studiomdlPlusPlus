@@ -8,7 +8,7 @@ Feel free to contribute, suggest improvements, or offer feedback!. This repositr
 
 ## Features
 
-*   Modernized a bit*:  use C++17 features.
+*   Modernized code*:  use C++17 features.
 *   Cleaned Up Code*:
 *   64-bit Support:
 *   UV Shift Correction: (not fully tested yet) fix for UV shifting issues.
