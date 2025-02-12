@@ -5,7 +5,7 @@ Compiles [Studio Model Data](https://developer.valvesoftware.com/wiki/SMD) from 
 
 This project aims to provide a modern, cleaner, and more maintainable alternative to Valve's original GoldSrc studiomdl tool. While Sven Co-op's SDK offers a modern version, it isn't open-source for some reason.
 
-Feel free to contribute, suggest improvements, or offer feedback!. This repositry was created by a mapper, not a programmer, so contributions are welcome. I start this project because, as a mapper, I want to use the best tools for mapping.
+Contributions, suggest improvements, or feedback are welcome.
 
 ---
 
