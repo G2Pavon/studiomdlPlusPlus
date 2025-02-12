@@ -1400,7 +1400,6 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 			nullptr)
 		{
 			Mesh *pmesh;
-			char triangle_material[64];
 			TriangleVert *ptriangle_vert;
 			int parent_bone;
 
@@ -1412,24 +1411,14 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 			if (case_insensitive_compare("end\n", g_currentsmdline))
 				return;
 
+			std::string material = g_currentsmdline;
 			// strip off trailing smag
-			std::strcpy(triangle_material, g_currentsmdline);
-			for (i = static_cast<int>(strlen(triangle_material)) - 1;
-				 i >= 0 && !isgraph(triangle_material[i]); i--)
-				;
-			triangle_material[i + 1] = '\0';
+			material.erase(std::find_if(material.rbegin(), material.rend(), [](unsigned char ch)
+										{ return std::isgraph(ch); })
+							   .base(),
+						   material.end());
 
-			if (triangle_material[0] == '\0')
-			{
-				// weird model problem, skip them
-				fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile);
-				fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile);
-				fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile);
-				g_smdlinecount += 3;
-				continue;
-			}
-
-			pmesh = find_mesh_by_texture(pmodel, triangle_material);
+			pmesh = find_mesh_by_texture(pmodel, material);
 
 			for (int j = 0; j < 3; j++)
 			{
