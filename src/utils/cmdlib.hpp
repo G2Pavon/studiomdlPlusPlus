@@ -22,3 +22,5 @@ std::string strip_extension(const std::string &filename);
 bool case_insensitive_compare(const std::string &str1, const std::string &str2);
 bool case_insensitive_n_compare(const std::string &str1, const std::string &str2, size_t n);
 void trim_newline_carriage(char *str);
+std::string to_lowercase(const std::string &str);
+std::string extension_to_lowercase(const std::string &filename);

@@ -1,5 +1,6 @@
 // cmdlib.cpp
 #include "cmdlib.hpp"
+#include <algorithm>
 #include <cstdarg>
 #include <cstring>
 #include <iostream>
@@ -87,4 +88,28 @@ void trim_newline_carriage(char *str)
         p++;
     while (p > str && (p[-1] == '\n' || p[-1] == '\r'))
         *(--p) = '\0';
+}
+
+std::string to_lowercase(const std::string &str)
+{
+    std::string result = str;
+    std::transform(result.begin(), result.end(), result.begin(),
+                   [](unsigned char c)
+                   { return std::tolower(c); });
+    return result;
+}
+
+std::string extension_to_lowercase(const std::string &filename)
+{
+    size_t dot_pos = filename.find_last_of('.');
+    if (dot_pos == std::string::npos)
+    {
+        return filename;
+    }
+
+    std::string extension = filename.substr(dot_pos);
+    std::string name = filename.substr(0, dot_pos);
+    extension = to_lowercase(extension);
+
+    return name + extension;
 }

@@ -2475,7 +2475,7 @@ void cmd_renamebone(QC &qc, std::string &token)
 void cmd_texrendermode(std::string &token)
 {
 	get_token(false, token);
-	const std::string tex_name = token;
+	const std::string tex_name = extension_to_lowercase(token);
 
 	get_token(false, token);
 	if (token == "additive")
