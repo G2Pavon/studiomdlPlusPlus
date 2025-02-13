@@ -2482,6 +2482,10 @@ void cmd_texrendermode(std::string &token)
 	{
 		g_textures[find_texture_index(tex_name)].flags |= STUDIO_NF_ADDITIVE;
 	}
+	else if (token == "chrome")
+	{
+		g_textures[find_texture_index(tex_name)].flags |= STUDIO_NF_CHROME;
+	}
 	else if (token == "masked")
 	{
 		g_textures[find_texture_index(tex_name)].flags |= STUDIO_NF_MASKED;
