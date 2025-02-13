@@ -2635,7 +2635,7 @@ void parse_qc_file(const std::filesystem::path path, QC &qc)
 		}
 		else
 		{
-			error("Incorrect/Unsupported command " + token + "\n");
+			printf("Incorrect/Unsupported command: %s\n", token.c_str());
 		}
 	}
 }
