@@ -357,21 +357,15 @@ struct StudioMesh
 #define STUDIO_NF_MASKED 0x0040
 
 // Motion flags (used in bone controllers and animation data)
-#define STUDIO_X 0x0001	  // X-axis movement
-#define STUDIO_Y 0x0002	  // Y-axis movement
-#define STUDIO_Z 0x0004	  // Z-axis movement
-#define STUDIO_XR 0x0008  // X-axis rotation
-#define STUDIO_YR 0x0010  // Y-axis rotation
-#define STUDIO_ZR 0x0020  // Z-axis rotation
-#define STUDIO_LX 0x0040  // Unused
-#define STUDIO_LY 0x0080  // Unused
-#define STUDIO_LZ 0x0100  // Unused
-#define STUDIO_AX 0x0200  // Unused
-#define STUDIO_AY 0x0400  // Unused
-#define STUDIO_AZ 0x0800  // Unused
-#define STUDIO_AXR 0x1000 // Unused
-#define STUDIO_AYR 0x2000 // Unused
-#define STUDIO_AZR 0x4000 // Unused
+#define STUDIO_X 0x0001	 // X-axis movement
+#define STUDIO_Y 0x0002	 // Y-axis movement
+#define STUDIO_Z 0x0004	 // Z-axis movement
+#define STUDIO_XR 0x0008 // X-axis rotation
+#define STUDIO_YR 0x0010 // Y-axis rotation
+#define STUDIO_ZR 0x0020 // Z-axis rotation
+#define STUDIO_LX 0x0040 //
+#define STUDIO_LY 0x0080 //
+#define STUDIO_LZ 0x0100 //
 #define STUDIO_TYPES 0x7FFF
 #define STUDIO_RLOOP 0x8000 // Indicates that the controller wraps around (e.g., for angles)
 

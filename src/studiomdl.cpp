@@ -960,18 +960,6 @@ int lookup_control(const std::string token)
 		return STUDIO_LY;
 	if (case_insensitive_compare(token, "LZ"))
 		return STUDIO_LZ;
-	if (case_insensitive_compare(token, "AX"))
-		return STUDIO_AX;
-	if (case_insensitive_compare(token, "AY"))
-		return STUDIO_AY;
-	if (case_insensitive_compare(token, "AZ"))
-		return STUDIO_AZ;
-	if (case_insensitive_compare(token, "AXR"))
-		return STUDIO_AXR;
-	if (case_insensitive_compare(token, "AYR"))
-		return STUDIO_AYR;
-	if (case_insensitive_compare(token, "AZR"))
-		return STUDIO_AZR;
 	return -1;
 }
 
