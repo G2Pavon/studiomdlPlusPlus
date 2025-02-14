@@ -62,33 +62,31 @@ void extract_motion(QC &qc)
 	int i, j, k;
 	int blend_index;
 
-	// extract linear motion
+	// extract linear motion, Relative movement distance between the first and last frame
 	for (auto &sequence : qc.sequences)
 	{
 		if (sequence.numframes > 1)
 		{
 			// assume 0 for now.
 			Vector3 motion{0, 0, 0};
-			int type_motion = sequence.motiontype;
 			Vector3 *ppos = sequence.anims[0].pos[0];
+			int last_frame = sequence.numframes - 1;
 
-			int k = sequence.numframes - 1;
-
-			if (type_motion & STUDIO_LX)
-				motion[0] = ppos[k][0] - ppos[0][0];
-			if (type_motion & STUDIO_LY)
-				motion[1] = ppos[k][1] - ppos[0][1];
-			if (type_motion & STUDIO_LZ)
-				motion[2] = ppos[k][2] - ppos[0][2];
+			if (sequence.motiontype & STUDIO_LX)
+				motion.x = ppos[last_frame].x - ppos[0].x;
+			if (sequence.motiontype & STUDIO_LY)
+				motion.y = ppos[last_frame].y - ppos[0].z;
+			if (sequence.motiontype & STUDIO_LZ)
+				motion.z = ppos[last_frame].z - ppos[0].z;
 
 			for (j = 0; j < sequence.numframes; j++)
 			{
 				Vector3 adjusted_pos;
-				for (k = 0; k < sequence.anims[0].nodes.size(); k++)
+				for (last_frame = 0; last_frame < sequence.anims[0].nodes.size(); last_frame++)
 				{
-					if (sequence.anims[0].nodes[k].parent == -1)
+					if (sequence.anims[0].nodes[last_frame].parent == -1)
 					{
-						ppos = sequence.anims[0].pos[k];
+						ppos = sequence.anims[0].pos[last_frame];
 
 						adjusted_pos =
 							motion * (static_cast<float>(j) /
@@ -96,8 +94,8 @@ void extract_motion(QC &qc)
 						for (blend_index = 0; blend_index < sequence.anims.size();
 							 blend_index++)
 						{
-							sequence.anims[blend_index].pos[k][j] =
-								sequence.anims[blend_index].pos[k][j] - adjusted_pos;
+							sequence.anims[blend_index].pos[last_frame][j] =
+								sequence.anims[blend_index].pos[last_frame][j] - adjusted_pos;
 						}
 					}
 				}
@@ -107,7 +105,7 @@ void extract_motion(QC &qc)
 		}
 		else
 		{
-			sequence.linearmovement = Vector3(0, 0, 0);
+			sequence.linearmovement = Vector3{0, 0, 0};
 		}
 	}
 
@@ -122,22 +120,14 @@ void extract_motion(QC &qc)
 				for (blend_index = 0; blend_index < sequence.anims.size();
 					 blend_index++)
 				{
-					float motion[6];
-					motion[0] = sequence.anims[blend_index].pos[k][0][0];
-					motion[1] = sequence.anims[blend_index].pos[k][0][1];
-					motion[2] = sequence.anims[blend_index].pos[k][0][2];
-					motion[3] = sequence.anims[blend_index].rot[k][0][0];
-					motion[4] = sequence.anims[blend_index].rot[k][0][1];
-					motion[5] = sequence.anims[blend_index].rot[k][0][2];
-
 					for (j = 0; j < sequence.numframes; j++)
 					{
 						if (type_unused_motion & STUDIO_XR)
-							sequence.anims[blend_index].rot[k][j][0] = motion[3];
+							sequence.anims[blend_index].rot[k][j].x = sequence.anims[blend_index].rot[k][0].x;
 						if (type_unused_motion & STUDIO_YR)
-							sequence.anims[blend_index].rot[k][j][1] = motion[4];
+							sequence.anims[blend_index].rot[k][j].y = sequence.anims[blend_index].rot[k][0].y;
 						if (type_unused_motion & STUDIO_ZR)
-							sequence.anims[blend_index].rot[k][j][2] = motion[5];
+							sequence.anims[blend_index].rot[k][j].z = sequence.anims[blend_index].rot[k][0].z;
 					}
 				}
 			}
