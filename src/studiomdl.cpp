@@ -20,9 +20,9 @@
 #include "writemdl.hpp"
 
 // studiomdl.exe args -----------
-bool g_flaginvertnormals;
-float g_flagnormalblendangle;
-bool g_flagkeepallbones;
+bool g_flaginvertnormals = false;
+bool g_flagkeepallbones = false;
+float g_flagnormalblendangle = cos(to_radians(2.0f)); // threshold of 2°
 
 // SMD variables --------------------------
 FILE *g_smdfile;
@@ -138,9 +138,6 @@ void extract_motion(QC &qc)
 
 void optimize_animations(QC &qc)
 {
-	int start_frame, end_frame;
-	int type_motion;
-
 	// optimize animations
 	for (auto &sequence : qc.sequences)
 	{
@@ -157,20 +154,20 @@ void optimize_animations(QC &qc)
 					Vector3 *ppos = sequence.anims[blends].pos[j];
 					Vector3 *prot = sequence.anims[blends].rot[j];
 
-					start_frame = 0;					// sequence[i].panim[q]->startframe;
-					end_frame = sequence.numframes - 1; // sequence[i].panim[q]->endframe;
+					int start_frame = 0;					// sequence[i].panim[q]->startframe;
+					int end_frame = sequence.numframes - 1; // sequence[i].panim[q]->endframe;
+					int type_motion = sequence.motiontype;
 
-					type_motion = sequence.motiontype;
 					if (!(type_motion & STUDIO_LX))
-						ppos[end_frame][0] = ppos[start_frame][0];
+						ppos[end_frame].x = ppos[start_frame].x;
 					if (!(type_motion & STUDIO_LY))
-						ppos[end_frame][1] = ppos[start_frame][1];
+						ppos[end_frame].y = ppos[start_frame].y;
 					if (!(type_motion & STUDIO_LZ))
-						ppos[end_frame][2] = ppos[start_frame][2];
+						ppos[end_frame].z = ppos[start_frame].z;
 
-					prot[end_frame][0] = prot[start_frame][0];
-					prot[end_frame][1] = prot[start_frame][1];
-					prot[end_frame][2] = prot[start_frame][2];
+					prot[end_frame].x = prot[start_frame].x;
+					prot[end_frame].y = prot[start_frame].y;
+					prot[end_frame].z = prot[start_frame].z;
 				}
 			}
 		}
@@ -2478,7 +2475,7 @@ void cmd_texrendermode(std::string &token)
 		error("Texture \"" + tex_name + "\" has unknown render mode: " + token);
 }
 
-void parse_qc_file(const std::filesystem::path path, QC &qc)
+void parse_qc_file(const std::filesystem::path working_dir, QC &qc)
 {
 	std::string token;
 	while (true)
@@ -2512,7 +2509,7 @@ void parse_qc_file(const std::filesystem::path path, QC &qc)
 			const std::filesystem::path cd_path{token};
 			if (cd_path.is_relative())
 			{
-				qc.cd = std::filesystem::absolute(path.parent_path() / cd_path);
+				qc.cd = std::filesystem::absolute(working_dir / cd_path);
 			}
 			else
 			{
@@ -2530,7 +2527,7 @@ void parse_qc_file(const std::filesystem::path path, QC &qc)
 			if (cdtexture_path.is_relative())
 			{
 				qc.cdtexture =
-					std::filesystem::absolute(path.parent_path() / cdtexture_path);
+					std::filesystem::absolute(working_dir / cdtexture_path);
 			}
 			else
 			{
@@ -2633,27 +2630,18 @@ void usage(const char *program_name)
 
 int main(int argc, char **argv)
 {
-	std::filesystem::path qc_input_path, qc_absolute_path, mdl_output_path;
-	static QC qc;
-
-	g_flaginvertnormals = false;
-	g_flagkeepallbones = false;
-	g_flagnormalblendangle =
-		cos(2.0 * (Q_PI / 180.0)); // don't use cos(0) because we need a threshold
-
-	if (argc == 1)
+	if (argc < 2)
 	{
 		usage(argv[0]);
 	}
 
-	const char *ext = strrchr(argv[1], '.');
-	if (!ext || strcmp(ext, ".qc") != 0)
+	std::filesystem::path qc_input_path = argv[1];
+	if (qc_input_path.extension() != ".qc")
 	{
-		error("The first argument must be a .qc file\n");
+		error("The first argument must be a .qc file");
 	}
-	qc_input_path = argv[1];
 
-	for (int i = 2; i < argc; i++)
+	for (int i = 2; i < argc; ++i)
 	{
 		if (argv[i][0] == '-')
 		{
@@ -2665,39 +2653,40 @@ int main(int argc, char **argv)
 			case 'a':
 				if (i + 1 >= argc)
 				{
-					error("Missing value for -a flag.\n");
+					error("Missing value for -a flag.");
 				}
-				i++;
 				try
 				{
-					g_flagnormalblendangle = cosf(to_radians(std::stof(argv[i])));
+					g_flagnormalblendangle = cos(to_radians(std::stof(argv[++i])));
 				}
-				catch (...)
+				catch (const std::invalid_argument &)
 				{
-					error("Invalid value for -a flag. Expected a numeric angle.\n");
+					error("Invalid value for -a flag. Expected a numeric angle.");
 				}
 				break;
 			case 'b':
 				g_flagkeepallbones = true;
 				break;
 			default:
-				error("Unknown flag.\n");
+				error("Unknown flag: " + std::string(argv[i]));
 			}
 		}
 		else
 		{
-			error("Unexpected argument" + std::string{argv[i]} + "\n");
+			error("Unexpected argument: " + std::string(argv[i]));
 		}
 	}
-	qc_absolute_path = std::filesystem::absolute(qc_input_path);
+
+	QC qc{};
+	std::filesystem::path qc_absolute_path = std::filesystem::absolute(qc_input_path);
+	std::filesystem::path working_dir = qc_absolute_path.parent_path();
+
 	load_qc_file(qc_absolute_path);
-	parse_qc_file(qc_absolute_path, qc);
+	parse_qc_file(working_dir, qc);
 	set_skin_values(qc);
 	simplify_model(qc);
 
-	// mdl file is writed in qc parent path
-	mdl_output_path = qc_absolute_path.parent_path();
-	write_file(mdl_output_path, qc);
+	write_file(working_dir, qc);
 
 	return 0;
 }
