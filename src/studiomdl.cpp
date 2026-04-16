@@ -422,11 +422,7 @@ void simplify_model(QC &qc)
 		{
 			k = find_node(node.name);
 
-			if (k == -1)
-			{
-				continue;
-			}
-			else
+			if (k != -1)
 			{
 				std::string parent_anim_name = "ROOT";
 				std::string parent_bone_name = "ROOT";
