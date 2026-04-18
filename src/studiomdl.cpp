@@ -807,7 +807,6 @@ void simplify_model(QC &qc)
 	// reduce animations TODO: reduce_animations()
 	{
 		int changes = 0;
-		int p;
 
 		for (auto &sequence : qc.sequences)
 		{
