@@ -59,7 +59,7 @@ void clip_rotations(Vector3 rot)
 
 void extract_motion(QC &qc)
 {
-	int i, j, k;
+	int j, k;
 	int blend_index;
 
 	// extract linear motion, Relative movement distance between the first and last frame
@@ -269,7 +269,7 @@ void make_transitions(QC &qc)
 
 void simplify_model(QC &qc)
 {
-	int i, j, k;
+	int j, k;
 	int n, m, q;
 	std::array<Vector3 *, MAXSTUDIOSRCBONES> defaultpos{};
 	std::array<Vector3 *, MAXSTUDIOSRCBONES> defaultrot{};
@@ -1356,9 +1356,7 @@ void build_reference(const Model *pmodel)
 
 void parse_smd_triangles(const QC &qc, Model *pmodel)
 {
-	int i;
 	Vector3 vmin{99999, 99999, 99999};
-	Vector3 vmax{-99999, -99999, -99999};
 
 	build_reference(pmodel);
 
