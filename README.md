@@ -1,30 +1,10 @@
-This tool is a C++ port of Valve's goldsrc studiomdl, the Half-Life 1 MDL (version 10) file format compiler tool.
-Compiles [Studio Model Data](https://developer.valvesoftware.com/wiki/SMD) from [QC](https://developer.valvesoftware.com/wiki/QC) files to a [MDL](https://developer.valvesoftware.com/wiki/QC) file.
+This is a cross-platform, C++ version of [studiomdl](https://developer.valvesoftware.com/wiki/StudioMDL_(GoldSrc)) for GoldSrc.
 
-
-
-This project aims to provide a modern, cleaner, and more maintainable alternative to Valve's original GoldSrc studiomdl tool. While Sven Co-op's SDK offers a modern version, it isn't open-source for some reason.
-
-Contributions, suggest improvements, or feedback are welcome.
-
----
+studiomdl compiles [Studio Model Data](https://developer.valvesoftware.com/wiki/SMD) from [QC](https://developer.valvesoftware.com/wiki/QC) files to a [MDL](https://developer.valvesoftware.com/wiki/QC) file.
 
 ## Features
-
-*   Modernized code¹:  use C++17 features.
-*   Cleaned Up Code¹:
-*   64-bit Support:
-*   UV Shift Correction: (not fully tested yet) fix for UV shifting issues.
+*   UV Shift Correction (not fully tested).
 *   Support $flatshade texture mode.
-
->Note¹:
->Although the code has been cleaned up, it still has a lot of mess old C code.
-
->Note²:
->Developed on linux, at the moment cross platform is a bit broken
-
->Note³:
->Your QC and SMD files has to use LF (Unix) line-endings in order to work.
 
 ---
 
