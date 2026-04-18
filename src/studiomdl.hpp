@@ -70,7 +70,7 @@ int cmd_attachment(QC &qc, std::string &token);
 void cmd_renamebone(QC &qc, std::string &token);
 void cmd_texrendermode(std::string &token);
 int lookup_control(const std::string);
-void parse_qc_file(const std::filesystem::path path, QC &qc);
+void parse_qc_file(const std::filesystem::path &path, QC &qc);
 
 // SMD Parser
 void parse_smd_reference(const QC &qc, std::filesystem::path &smd_path, Model *pmodel);

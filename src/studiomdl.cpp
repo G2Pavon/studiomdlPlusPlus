@@ -2468,7 +2468,7 @@ void cmd_texrendermode(std::string &token)
 		error("Texture \"" + tex_name + "\" has unknown render mode: " + token);
 }
 
-void parse_qc_file(const std::filesystem::path working_dir, QC &qc)
+void parse_qc_file(const std::filesystem::path &working_dir, QC &qc)
 {
 	std::string token;
 	while (true)
