@@ -193,7 +193,7 @@ void optimize_animations(QC &qc)
 	}
 }
 
-int find_node(const std::string name)
+int find_node(const std::string &name)
 {
 	for (int k = 0; k < g_bonetable.size(); k++)
 	{
