@@ -2024,12 +2024,12 @@ int cmd_sequence_option_action(std::string &szActivity)
 {
 	for (int i = 0; activity_map[i].name; i++)
 	{
-		if (case_insensitive_compare(szActivity.c_str(), activity_map[i].name))
+		if (case_insensitive_compare(szActivity, activity_map[i].name))
 		{
 			return activity_map[i].type;
 		}
 	}
-	if (case_insensitive_n_compare(szActivity.c_str(), "ACT_", 4))
+	if (case_insensitive_n_compare(szActivity, "ACT_", 4))
 	{
 		return std::stoi(&szActivity[4]);
 	}
@@ -2131,7 +2131,7 @@ int cmd_sequence(QC &qc, std::string &token)
 		else if (token == "blend")
 		{
 			get_token(false, token);
-			newseq.blendtype[0] = static_cast<float>(lookup_control(token.c_str()));
+			newseq.blendtype[0] = static_cast<float>(lookup_control(token));
 			get_token(false, token);
 			newseq.blendstart[0] = std::stof(token);
 			get_token(false, token);
@@ -2157,10 +2157,10 @@ int cmd_sequence(QC &qc, std::string &token)
 			newseq.exitnode = std::stoi(token);
 			newseq.nodeflags |= 1;
 		}
-		else if (lookup_control(token.c_str()) !=
+		else if (lookup_control(token) !=
 				 -1) // motion flags [motion extraction]
 		{
-			newseq.motiontype |= lookup_control(token.c_str());
+			newseq.motiontype |= lookup_control(token);
 		}
 		else if (token == "animation")
 		{
@@ -2226,7 +2226,7 @@ int cmd_controller(QC &qc, std::string &token)
 		{
 			newbc.name = token;
 			get_token(false, token);
-			if ((newbc.type = lookup_control(token.c_str())) == -1)
+			if ((newbc.type = lookup_control(token)) == -1)
 			{
 				printf("Unknown bonecontroller type '%s'\n", token.c_str());
 				return 0;
