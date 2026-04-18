@@ -269,8 +269,6 @@ void make_transitions(QC &qc)
 
 void simplify_model(QC &qc)
 {
-	int j, k;
-	int n, m, q;
 	std::array<Vector3 *, MAXSTUDIOSRCBONES> defaultpos{};
 	std::array<Vector3 *, MAXSTUDIOSRCBONES> defaultrot{};
 	int illegal_parent_bone = 0;
@@ -282,7 +280,7 @@ void simplify_model(QC &qc)
 	// find used bones TODO: find_used_bones()
 	for (auto &submodel : qc.submodels)
 	{
-		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
+		for (int k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
 			submodel->boneref[k] = g_flagkeepallbones;
 		}
@@ -290,12 +288,12 @@ void simplify_model(QC &qc)
 		{
 			submodel->boneref[vert.bone_id] = 1;
 		}
-		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
+		for (int k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
 			// tag parent bones as used if child has been used
 			if (submodel->boneref[k])
 			{
-				n = submodel->nodes[k].parent;
+				int n = submodel->nodes[k].parent;
 				while (n != -1 && !submodel->boneref[n])
 				{
 					submodel->boneref[n] = 1;
@@ -325,22 +323,23 @@ void simplify_model(QC &qc)
 	g_bonetable.clear();
 	for (auto &submodel : qc.submodels)
 	{
-		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
+		for (int k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
 			submodel->boneimap[k] = -1;
 		}
-		for (j = 0; j < submodel->nodes.size(); j++)
+		for (int j = 0; j < submodel->nodes.size(); j++)
 		{
 			if (submodel->boneref[j])
 			{
-				k = find_node(submodel->nodes[j].name);
+				int k = find_node(submodel->nodes[j].name);
 				if (k == -1)
 				{
 					// create new bone
 					k = g_bonetable.size();
 					BoneTable newb{};
 					newb.name = submodel->nodes[j].name;
-					if ((n = submodel->nodes[j].parent) != -1)
+					int n = submodel->nodes[j].parent;
+					if (n != -1)
 						newb.parent = find_node(submodel->nodes[n].name);
 					else
 						newb.parent = -1;
@@ -349,7 +348,7 @@ void simplify_model(QC &qc)
 						(Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 					defaultrot[k] =
 						(Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
-					for (n = 0; n < MAXSTUDIOANIMATIONS; n++)
+					for (int n = 0; n < MAXSTUDIOANIMATIONS; n++)
 					{
 						defaultpos[k][n] = submodel->skeleton[j].pos;
 						defaultrot[k][n] = submodel->skeleton[j].rot;
@@ -361,10 +360,10 @@ void simplify_model(QC &qc)
 				else
 				{
 					// double check parent assignments
-					n = submodel->nodes[j].parent;
+					int n = submodel->nodes[j].parent;
 					if (n != -1)
 						n = find_node(submodel->nodes[n].name);
-					m = g_bonetable[k].parent;
+					int m = g_bonetable[k].parent;
 
 					if (n != m)
 					{
@@ -413,14 +412,14 @@ void simplify_model(QC &qc)
 	// map each sequences bone list to master list TODO: map_sequence_bones()
 	for (auto &sequence : qc.sequences)
 	{
-		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
+		for (int k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
 			sequence.anims[0].boneimap[k] = -1;
 		}
 		int j = 0;
 		for (auto &node : sequence.anims[0].nodes)
 		{
-			k = find_node(node.name);
+			int k = find_node(node.name);
 
 			if (k != -1)
 			{
@@ -539,7 +538,7 @@ void simplify_model(QC &qc)
 		// find intersection box volume for each bone
 		for (auto &bone : g_bonetable)
 		{
-			for (j = 0; j < 3; j++)
+			for (int j = 0; j < 3; j++)
 			{
 				bone.bmin[j] = 0.0;
 				bone.bmax[j] = 0.0;
@@ -552,7 +551,7 @@ void simplify_model(QC &qc)
 			for (auto &vert : submodel->verts)
 			{
 				p = vert.pos;
-				k = vert.bone_id;
+				int k = vert.bone_id;
 
 				if (p[0] < g_bonetable[k].bmin[0])
 					g_bonetable[k].bmin[0] = p[0];
@@ -630,18 +629,19 @@ void simplify_model(QC &qc)
 		std::array<Vector3 *, MAXSTUDIOSRCBONES> origpos{nullptr};
 		std::array<Vector3 *, MAXSTUDIOSRCBONES> origrot{nullptr};
 
-		for (q = 0; q < sequence.anims.size(); q++)
+		for (int q = 0; q < sequence.anims.size(); q++)
 		{
 			// save pointers to original animations
-			for (j = 0; j < sequence.anims[q].nodes.size(); j++)
+			for (int j = 0; j < sequence.anims[q].nodes.size(); j++)
 			{
 				origpos[j] = sequence.anims[q].pos[j];
 				origrot[j] = sequence.anims[q].rot[j];
 			}
 
-			for (j = 0; j < g_bonetable.size(); j++)
+			for (int j = 0; j < g_bonetable.size(); j++)
 			{
-				if ((k = sequence.anims[0].boneimap[j]) >= 0)
+				int k = sequence.anims[0].boneimap[j];
+				if (k >= 0)
 				{
 					// link to original animations
 					sequence.anims[q].pos[j] = origpos[k];
@@ -658,9 +658,9 @@ void simplify_model(QC &qc)
 	}
 
 	// find scales for all bones TODO: find_bone_scales()
-	for (j = 0; j < g_bonetable.size(); j++)
+	for (int j = 0; j < g_bonetable.size(); j++)
 	{
-		for (k = 0; k < DEGREESOFFREEDOM; k++)
+		for (int k = 0; k < DEGREESOFFREEDOM; k++)
 		{
 			float minv, maxv, scale;
 
@@ -679,7 +679,7 @@ void simplify_model(QC &qc)
 			{
 				for (auto &anim : sequence.anims)
 				{
-					for (n = 0; n < sequence.numframes; n++)
+					for (int n = 0; n < sequence.numframes; n++)
 					{
 						float v;
 						switch (k)
@@ -746,7 +746,7 @@ void simplify_model(QC &qc)
 		// find intersection box volume for each bone
 		for (auto &anim : sequence.anims)
 		{
-			for (n = 0; n < sequence.numframes; n++)
+			for (int n = 0; n < sequence.numframes; n++)
 			{
 				std::array<Matrix3x4, MAXSTUDIOBONES> bonetransform{}; // bone transformation matrix
 				Matrix3x4 bonematrix{};								   // local transformation matrix
@@ -813,14 +813,14 @@ void simplify_model(QC &qc)
 		{
 			for (auto &anim : sequence.anims)
 			{
-				for (j = 0; j < g_bonetable.size(); j++)
+				for (int j = 0; j < g_bonetable.size(); j++)
 				{
-					for (k = 0; k < DEGREESOFFREEDOM; k++)
+					for (int k = 0; k < DEGREESOFFREEDOM; k++)
 					{
 						float v;
 						std::array<short, MAXSTUDIOANIMATIONS> value{};
 						std::array<StudioAnimationValue, MAXSTUDIOANIMATIONS> data{};
-
+						int n;
 						for (n = 0; n < sequence.numframes; n++)
 						{
 							switch (k)
@@ -860,7 +860,7 @@ void simplify_model(QC &qc)
 						pvalue->value = value[0];
 						pvalue++;
 
-						for (m = 1, p = 0; m < n; m++)
+						for (int m = 1, p = 0; m < n; m++)
 						{
 							if (abs(value[p] - value[m]) > 1600)
 							{
@@ -871,7 +871,7 @@ void simplify_model(QC &qc)
 
 						// this compression algorithm needs work
 
-						for (m = 1; m < n; m++)
+						for (int m = 1; m < n; m++)
 						{
 							if (pcount->num.total == 255)
 							{
