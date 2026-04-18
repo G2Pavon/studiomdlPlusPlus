@@ -66,17 +66,17 @@ Matrix3x4 angle_matrix(const Vector3 &angles)
 	float pitch = to_radians(angles.y);
 	float roll = to_radians(angles.x);
 
-	m[0][0] = cosf(pitch) * cosf(yaw);
-	m[1][0] = cosf(pitch) * sinf(yaw);
-	m[2][0] = -sinf(pitch);
+	m[0][0] = std::cos(pitch) * std::cos(yaw);
+	m[1][0] = std::cos(pitch) * std::sin(yaw);
+	m[2][0] = -std::sin(pitch);
 
-	m[0][1] = sinf(roll) * sinf(pitch) * cosf(yaw) + cosf(roll) * -sinf(yaw);
-	m[1][1] = sinf(roll) * sinf(pitch) * sinf(yaw) + cosf(roll) * cosf(yaw);
-	m[2][1] = sinf(roll) * cosf(pitch);
+	m[0][1] = std::sin(roll) * std::sin(pitch) * std::cos(yaw) + std::cos(roll) * -std::sin(yaw);
+	m[1][1] = std::sin(roll) * std::sin(pitch) * std::sin(yaw) + std::cos(roll) * std::cos(yaw);
+	m[2][1] = std::sin(roll) * std::cos(pitch);
 
-	m[0][2] = cosf(roll) * sinf(pitch) * cosf(yaw) + -sinf(roll) * -sinf(yaw);
-	m[1][2] = cosf(roll) * sinf(pitch) * sinf(yaw) + -sinf(roll) * cosf(yaw);
-	m[2][2] = cosf(roll) * cosf(pitch);
+	m[0][2] = std::cos(roll) * std::sin(pitch) * std::cos(yaw) + -std::sin(roll) * -std::sin(yaw);
+	m[1][2] = std::cos(roll) * std::sin(pitch) * std::sin(yaw) + -std::sin(roll) * std::cos(yaw);
+	m[2][2] = std::cos(roll) * std::cos(pitch);
 
 	m[0][3] = 0.0;
 	m[1][3] = 0.0;
@@ -110,17 +110,17 @@ Matrix3x4 angle_i_matrix(const Vector3 &angles)
 	float pitch = to_radians(angles.y);
 	float roll = to_radians(angles.x);
 
-	m[0][0] = cosf(pitch) * cosf(yaw);
-	m[1][0] = sinf(roll) * sinf(pitch) * cosf(yaw) + cosf(roll) * -sinf(yaw);
-	m[2][0] = cosf(roll) * sinf(pitch) * cosf(yaw) + -sinf(roll) * -sinf(yaw);
+	m[0][0] = std::cos(pitch) * std::cos(yaw);
+	m[1][0] = std::sin(roll) * std::sin(pitch) * std::cos(yaw) + std::cos(roll) * -std::sin(yaw);
+	m[2][0] = std::cos(roll) * std::sin(pitch) * std::cos(yaw) + -std::sin(roll) * -std::sin(yaw);
 
-	m[0][1] = cosf(pitch) * sinf(yaw);
-	m[1][1] = sinf(roll) * sinf(pitch) * sinf(yaw) + cosf(roll) * cosf(yaw);
-	m[2][1] = cosf(roll) * sinf(pitch) * sinf(yaw) + -sinf(roll) * cosf(yaw);
+	m[0][1] = std::cos(pitch) * std::sin(yaw);
+	m[1][1] = std::sin(roll) * std::sin(pitch) * std::sin(yaw) + std::cos(roll) * std::cos(yaw);
+	m[2][1] = std::cos(roll) * std::sin(pitch) * std::sin(yaw) + -std::sin(roll) * std::cos(yaw);
 
-	m[0][2] = -sinf(pitch);
-	m[1][2] = sinf(roll) * cosf(pitch);
-	m[2][2] = cosf(roll) * cosf(pitch);
+	m[0][2] = -std::sin(pitch);
+	m[1][2] = std::sin(roll) * std::cos(pitch);
+	m[2][2] = std::cos(roll) * std::cos(pitch);
 
 	m[0][3] = 0.0;
 	m[1][3] = 0.0;

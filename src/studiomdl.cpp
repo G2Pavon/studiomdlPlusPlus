@@ -22,7 +22,7 @@
 // studiomdl.exe args -----------
 bool g_flaginvertnormals = false;
 bool g_flagkeepallbones = false;
-float g_flagnormalblendangle = cos(to_radians(2.0f)); // threshold of 2°
+float g_flagnormalblendangle = std::cos(to_radians(2.0f)); // threshold of 2°
 
 // SMD variables --------------------------
 FILE *g_smdfile;
@@ -1770,8 +1770,8 @@ void parse_smd_animation_skeleton(const QC &qc, Animation &anim)
 			(Vector3 *)std::calloc(MAXSTUDIOANIMATIONS, sizeof(Vector3));
 	}
 
-	const float cosz = cosf(qc.rotate);
-	const float sinz = sinf(qc.rotate);
+	const float cosz = std::cos(qc.rotate);
+	const float sinz = std::sin(qc.rotate);
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
 		   nullptr)
@@ -2650,7 +2650,7 @@ int main(int argc, char **argv)
 				}
 				try
 				{
-					g_flagnormalblendangle = cos(to_radians(std::stof(argv[++i])));
+					g_flagnormalblendangle = std::cos(to_radians(std::stof(argv[++i])));
 				}
 				catch (const std::invalid_argument &)
 				{
