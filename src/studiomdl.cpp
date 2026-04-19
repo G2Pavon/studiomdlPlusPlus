@@ -45,7 +45,7 @@ int g_skinrefcount;
 int g_skinfamiliescount;
 
 // ---------------------------------------
-void clip_rotations(Vector3 rot)
+static void clip_rotations(Vector3 rot)
 {
 	// clip everything to : -Q_PI <= x < Q_PI
 	for (int j = 0; j < 3; j++)
@@ -57,7 +57,7 @@ void clip_rotations(Vector3 rot)
 	}
 }
 
-void extract_motion(QC &qc)
+static void extract_motion(QC &qc)
 {
 	// extract linear motion, Relative movement distance between the first and last frame
 	for (auto &sequence : qc.sequences)
@@ -133,7 +133,7 @@ void extract_motion(QC &qc)
 	}
 }
 
-void optimize_animations(QC &qc)
+static void optimize_animations(QC &qc)
 {
 	// optimize animations
 	for (auto &sequence : qc.sequences)
@@ -190,7 +190,7 @@ void optimize_animations(QC &qc)
 	}
 }
 
-int find_node(const std::string &name)
+static int find_node(const std::string &name)
 {
 	for (int k = 0; k < g_bonetable.size(); k++)
 	{
@@ -202,7 +202,7 @@ int find_node(const std::string &name)
 	return -1;
 }
 
-void make_transitions(const QC &qc)
+static void make_transitions(const QC &qc)
 {
 	// Add in direct node transitions
 	for (auto &sequence : qc.sequences)
@@ -261,7 +261,7 @@ void make_transitions(const QC &qc)
 	}
 }
 
-void simplify_model(QC &qc)
+static void simplify_model(QC &qc)
 {
 	std::array<Vector3 *, MAXSTUDIOSRCBONES> defaultpos{};
 	std::array<Vector3 *, MAXSTUDIOSRCBONES> defaultrot{};
@@ -912,7 +912,7 @@ void simplify_model(QC &qc)
 	}
 }
 
-int lookup_control(const std::string& token)
+static int lookup_control(const std::string& token)
 {
 	if (case_insensitive_compare(token, "X"))
 		return STUDIO_X;
@@ -939,7 +939,7 @@ int lookup_control(const std::string& token)
 	return -1;
 }
 
-int find_texture_index(const std::string& texturename)
+static int find_texture_index(const std::string& texturename) // Common QC and SMD parser
 {
 	int i = 0;
 	for (auto &texture : g_textures)
@@ -967,7 +967,7 @@ int find_texture_index(const std::string& texturename)
 	return i;
 }
 
-Mesh *find_mesh_by_texture(Model *pmodel, const std::string& texturename)
+static Mesh *find_mesh_by_texture(Model *pmodel, const std::string& texturename) // SMD Parser
 {
 	int i;
 	int j = find_texture_index(texturename);
@@ -993,7 +993,7 @@ Mesh *find_mesh_by_texture(Model *pmodel, const std::string& texturename)
 	return pmodel->pmeshes[i];
 }
 
-TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, const int index)
+static TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, const int index)
 {
 	if (index >= pmesh->alloctris)
 	{
@@ -1016,7 +1016,7 @@ TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, const int index)
 	return pmesh->triangles[index];
 }
 
-int find_vertex_normal_index(Model *pmodel, const Normal *pnormal)
+static int find_vertex_normal_index(Model *pmodel, const Normal *pnormal)
 {
 	int i = 0;
 	for (auto &normal : pmodel->normals)
@@ -1037,7 +1037,7 @@ int find_vertex_normal_index(Model *pmodel, const Normal *pnormal)
 	return i;
 }
 
-int find_vertex_index(Model *pmodel, Vertex *pv)
+static int find_vertex_index(Model *pmodel, Vertex *pv)
 {
 	int i = 0;
 	// assume 2 digits of accuracy
@@ -1062,7 +1062,7 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 }
 
 // Called for the base frame
-void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
+static void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 {
 	if (ptexture->flags & STUDIO_NF_CHROME)
 	{
@@ -1106,7 +1106,7 @@ void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 	ptexture->min_t = 0;
 }
 
-void reset_texture_coord_ranges(Mesh *pmesh, const Texture *ptexture)
+static void reset_texture_coord_ranges(Mesh *pmesh, const Texture *ptexture)
 {
 	// adjust top, left edge
 	for (int i = 0; i < pmesh->numtris; i++)
@@ -1120,7 +1120,7 @@ void reset_texture_coord_ranges(Mesh *pmesh, const Texture *ptexture)
 	}
 }
 
-void grab_bmp(const char *filename, Texture *ptexture)
+static void grab_bmp(const char *filename, Texture *ptexture)
 {
 	if (int result = load_bmp(filename, &ptexture->ppicture,
 							  (std::uint8_t **)&ptexture->ppal,
@@ -1131,7 +1131,7 @@ void grab_bmp(const char *filename, Texture *ptexture)
 	}
 }
 
-void resize_texture(const QC &qc, Texture *ptexture)
+static void resize_texture(const QC &qc, Texture *ptexture)
 {
 	// Keep the original texture without resizing to avoid uv shift
 	ptexture->skintop = static_cast<int>(ptexture->min_t);
@@ -1202,7 +1202,7 @@ void resize_texture(const QC &qc, Texture *ptexture)
 	free(ptexture->ppal);
 }
 
-void grab_skin(const QC &qc, Texture *ptexture)
+static void grab_skin(const QC &qc, Texture *ptexture)
 {
 	std::filesystem::path texture_path{(qc.cdtexture / ptexture->name).lexically_normal()};
 	if (!std::filesystem::exists(texture_path))
@@ -1221,7 +1221,7 @@ void grab_skin(const QC &qc, Texture *ptexture)
 	}
 }
 
-void set_skin_values(const QC &qc)
+static void set_skin_values(const QC &qc)
 {
 
 	printf("\nGrabbing texture:\n");
@@ -1304,7 +1304,7 @@ void set_skin_values(const QC &qc)
 	}
 }
 
-void build_reference(const Model *pmodel)
+static void build_reference(const Model *pmodel)
 {
 	Vector3 bone_angles{};
 
@@ -1343,7 +1343,7 @@ void build_reference(const Model *pmodel)
 	}
 }
 
-void parse_smd_triangles(const QC &qc, Model *pmodel)
+static void parse_smd_triangles(const QC &qc, Model *pmodel)
 {
 	Vector3 vmin{99999, 99999, 99999};
 
@@ -1455,7 +1455,7 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 	}
 }
 
-void parse_smd_reference_skeleton(const QC &qc, std::vector<Node> &nodes,
+static void parse_smd_reference_skeleton(const QC &qc, std::vector<Node> &nodes,
 								  std::vector<Bone> &bones,
 								  std::filesystem::path &path)
 {
@@ -1487,7 +1487,7 @@ void parse_smd_reference_skeleton(const QC &qc, std::vector<Node> &nodes,
 	}
 }
 
-int parse_smd_nodes(const QC &qc, std::vector<Node> &nodes)
+static int parse_smd_nodes(const QC &qc, std::vector<Node> &nodes)
 {
 	int index;
 	std::string bone_name;
@@ -1527,7 +1527,7 @@ int parse_smd_nodes(const QC &qc, std::vector<Node> &nodes)
 	return 0;
 }
 
-void parse_smd_reference(const QC &qc, std::filesystem::path &smd_ref_path, Model *pmodel)
+static void parse_smd_reference(const QC &qc, std::filesystem::path &smd_ref_path, Model *pmodel)
 {
 	std::filesystem::path smd_path;
 	std::string cmd;
@@ -1598,7 +1598,7 @@ void parse_smd_reference(const QC &qc, std::filesystem::path &smd_ref_path, Mode
 	fclose(g_smdfile);
 }
 
-void cmd_eyeposition(QC &qc, std::string &token)
+static void cmd_eyeposition(QC &qc, std::string &token)
 {
 	// rotate points into frame of reference so model points down the positive x
 	// axis
@@ -1612,19 +1612,19 @@ void cmd_eyeposition(QC &qc, std::string &token)
 	qc.eyeposition[2] = std::stof(token);
 }
 
-void cmd_flags(QC &qc, std::string &token)
+static void cmd_flags(QC &qc, std::string &token)
 {
 	get_token(false, token);
 	qc.flags = std::stoi(token);
 }
 
-void cmd_modelname(QC &qc, std::string &token)
+static void cmd_modelname(QC &qc, std::string &token)
 {
 	get_token(false, token);
 	qc.modelname = token;
 }
 
-void cmd_body_option_studio(QC &qc, std::string &token)
+static void cmd_body_option_studio(QC &qc, std::string &token)
 {
 	if (!get_token(false, token))
 		return;
@@ -1659,7 +1659,7 @@ void cmd_body_option_studio(QC &qc, std::string &token)
 	qc.scale_body_and_sequence = qc.scale;
 }
 
-int cmd_body_option_blank(QC &qc)
+static int cmd_body_option_blank(QC &qc)
 {
 	Model *new_submodel = new Model();
 
@@ -1670,7 +1670,7 @@ int cmd_body_option_blank(QC &qc)
 	return 0;
 }
 
-void cmd_bodygroup(QC &qc, std::string &token)
+static void cmd_bodygroup(QC &qc, std::string &token)
 {
 	if (!get_token(false, token))
 		return;
@@ -1710,7 +1710,7 @@ void cmd_bodygroup(QC &qc, std::string &token)
 	}
 }
 
-void cmd_body(QC &qc, std::string &token)
+static void cmd_body(QC &qc, std::string &token)
 {
 	if (!get_token(false, token))
 		return;
@@ -1732,7 +1732,7 @@ void cmd_body(QC &qc, std::string &token)
 	cmd_body_option_studio(qc, token);
 }
 
-void parse_smd_animation_skeleton(const QC &qc, Animation &anim)
+static void parse_smd_animation_skeleton(const QC &qc, Animation &anim)
 {
 	Vector3 pos;
 	Vector3 rot;
@@ -1816,7 +1816,7 @@ void parse_smd_animation_skeleton(const QC &qc, Animation &anim)
 	error("unexpected EOF: " + anim.name);
 }
 
-void shift_option_animation(Animation &anim)
+static void shift_option_animation(Animation &anim)
 {
 	const int size = (anim.endframe - anim.startframe + 1) * sizeof(Vector3);
 	for (int j = 0; j < anim.nodes.size(); j++)
@@ -1835,7 +1835,7 @@ void shift_option_animation(Animation &anim)
 	}
 }
 
-void parse_smd_animation(const QC &qc, std::filesystem::path &sequence_smd_path, Animation &anim)
+static void parse_smd_animation(const QC &qc, std::filesystem::path &sequence_smd_path, Animation &anim)
 {
 	std::filesystem::path smd_path;
 	std::string cmd;
@@ -1905,7 +1905,7 @@ void parse_smd_animation(const QC &qc, std::filesystem::path &sequence_smd_path,
 	fclose(g_smdfile);
 }
 
-int cmd_sequence_option_event(std::string &token, Sequence &seq)
+static int cmd_sequence_option_event(std::string &token, Sequence &seq)
 {
 	if (seq.events.size() >= MAXSTUDIOEVENTS)
 	{
@@ -1931,7 +1931,7 @@ int cmd_sequence_option_event(std::string &token, Sequence &seq)
 	return 0;
 }
 
-int cmd_sequence_option_fps(std::string &token, Sequence &seq)
+static int cmd_sequence_option_fps(std::string &token, Sequence &seq)
 {
 	get_token(false, token);
 	seq.fps = std::stof(token);
@@ -1939,7 +1939,7 @@ int cmd_sequence_option_fps(std::string &token, Sequence &seq)
 	return 0;
 }
 
-void cmd_origin(QC &qc, std::string &token)
+static void cmd_origin(QC &qc, std::string &token)
 {
 	get_token(false, token);
 	qc.origin[0] = std::stof(token);
@@ -1957,7 +1957,7 @@ void cmd_origin(QC &qc, std::string &token)
 	}
 }
 
-void cmd_sequence_option_origin(QC &qc, std::string &token)
+static void cmd_sequence_option_origin(QC &qc, std::string &token)
 {
 	get_token(false, token);
 	qc.sequence_origin[0] = std::stof(token);
@@ -1969,32 +1969,32 @@ void cmd_sequence_option_origin(QC &qc, std::string &token)
 	qc.sequence_origin[2] = std::stof(token);
 }
 
-void cmd_sequence_option_rotate(QC &qc, std::string &token)
+static void cmd_sequence_option_rotate(QC &qc, std::string &token)
 {
 	get_token(false, token);
 	qc.rotate = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
-void cmd_scale(QC &qc, std::string &token)
+static void cmd_scale(QC &qc, std::string &token)
 {
 	get_token(false, token);
 	qc.scale = qc.scale_body_and_sequence = std::stof(token);
 }
 
-void cmd_rotate(QC &qc, std::string &token) // XDM
+static void cmd_rotate(QC &qc, std::string &token) // XDM
 {
 	if (!get_token(false, token))
 		return;
 	qc.rotate = to_radians(std::stof(token) + ENGINE_ORIENTATION);
 }
 
-void cmd_sequence_option_scale(QC &qc, std::string &token)
+static void cmd_sequence_option_scale(QC &qc, std::string &token)
 {
 	get_token(false, token);
 	qc.scale_body_and_sequence = std::stof(token);
 }
 
-int cmd_sequence_option_action(const std::string &szActivity)
+static int cmd_sequence_option_action(const std::string &szActivity)
 {
 	for (int i = 0; activity_map[i].name; i++)
 	{
@@ -2010,7 +2010,7 @@ int cmd_sequence_option_action(const std::string &szActivity)
 	return 0;
 }
 
-int cmd_sequence(QC &qc, std::string &token)
+static int cmd_sequence(QC &qc, std::string &token)
 {
 	int depth = 0;
 	std::vector<std::filesystem::path> smd_files;
@@ -2179,7 +2179,7 @@ int cmd_sequence(QC &qc, std::string &token)
 	return 0;
 }
 
-int cmd_controller(QC &qc, std::string &token)
+static int cmd_controller(QC &qc, std::string &token)
 {
 	if (get_token(false, token))
 	{
@@ -2220,7 +2220,7 @@ int cmd_controller(QC &qc, std::string &token)
 	return 1;
 }
 
-void cmd_bbox(QC &qc, std::string &token)
+static void cmd_bbox(QC &qc, std::string &token)
 { // min
 	get_token(false, token);
 	qc.bbox[0].x = std::stof(token);
@@ -2241,7 +2241,7 @@ void cmd_bbox(QC &qc, std::string &token)
 	qc.bbox[1].z = std::stof(token);
 }
 
-void cmd_cbox(QC &qc, std::string &token)
+static void cmd_cbox(QC &qc, std::string &token)
 { // min
 	get_token(false, token);
 	qc.cbox[0].x = std::stof(token);
@@ -2262,20 +2262,20 @@ void cmd_cbox(QC &qc, std::string &token)
 	qc.cbox[1].z = std::stof(token);
 }
 
-void cmd_mirror(QC &qc, std::string &token)
+static void cmd_mirror(QC &qc, std::string &token)
 {
 	get_token(false, token);
 	std::string bonename{token};
 	qc.mirroredbones.push_back(bonename);
 }
 
-void cmd_gamma(QC &qc, std::string &token)
+static void cmd_gamma(QC &qc, std::string &token)
 {
 	get_token(false, token);
 	qc.gamma = std::stof(token);
 }
 
-int cmd_texturegroup(QC &qc, std::string &token)
+static int cmd_texturegroup(QC &qc, std::string &token)
 {
 	int depth = 0;
 	int col_index = 0;
@@ -2332,7 +2332,7 @@ int cmd_texturegroup(QC &qc, std::string &token)
 	return 0;
 }
 
-int cmd_hitgroup(QC &qc, std::string &token)
+static int cmd_hitgroup(QC &qc, std::string &token)
 {
 	HitGroup newhg{};
 	get_token(false, token);
@@ -2344,7 +2344,7 @@ int cmd_hitgroup(QC &qc, std::string &token)
 	return 0;
 }
 
-int cmd_hitbox(QC &qc, std::string &token)
+static int cmd_hitbox(QC &qc, std::string &token)
 {
 	HitBox newhb{};
 	get_token(false, token);
@@ -2369,7 +2369,7 @@ int cmd_hitbox(QC &qc, std::string &token)
 	return 0;
 }
 
-int cmd_attachment(QC &qc, std::string &token)
+static int cmd_attachment(QC &qc, std::string &token)
 {
 	Attachment newattach{};
 	// index
@@ -2397,7 +2397,7 @@ int cmd_attachment(QC &qc, std::string &token)
 	return 0;
 }
 
-void cmd_renamebone(QC &qc, std::string &token)
+static void cmd_renamebone(QC &qc, std::string &token)
 {
 	RenameBone rename{};
 	get_token(false, token);
@@ -2407,7 +2407,7 @@ void cmd_renamebone(QC &qc, std::string &token)
 	qc.renamebones.push_back(rename);
 }
 
-void cmd_texrendermode(std::string &token)
+static void cmd_texrendermode(std::string &token)
 {
 	get_token(false, token);
 	const std::string tex_name{extension_to_lowercase(token)};
@@ -2437,7 +2437,7 @@ void cmd_texrendermode(std::string &token)
 		error("Texture \"" + tex_name + "\" has unknown render mode: " + token);
 }
 
-void parse_qc_file(const std::filesystem::path &working_dir, QC &qc)
+static void parse_qc_file(const std::filesystem::path &working_dir, QC &qc)
 {
 	std::string token;
 	while (true)
@@ -2579,7 +2579,7 @@ void parse_qc_file(const std::filesystem::path &working_dir, QC &qc)
 	}
 }
 
-void usage(const char *program_name)
+static void usage(const char *program_name)
 {
 	std::cerr
 		<< "Usage: " << program_name << " <inputfile.qc> <flags>\n"
