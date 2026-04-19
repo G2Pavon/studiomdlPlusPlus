@@ -17,14 +17,12 @@ std::uint8_t *g_bufferstart;
 
 void write_bone_info(StudioHeader *header, QC &qc)
 {
-	int i, j;
-
 	// save bone info
 	StudioBone *pbone = (StudioBone *)g_currentposition;
 	header->numbones = g_bonetable.size();
 	header->boneindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < g_bonetable.size(); i++)
+	for (int i = 0; i < g_bonetable.size(); i++)
 	{
 		std::strcpy(pbone[i].name, g_bonetable[i].name.c_str());
 		pbone[i].parent = g_bonetable[i].parent;
@@ -45,17 +43,17 @@ void write_bone_info(StudioHeader *header, QC &qc)
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	// map bonecontroller to bones
-	for (i = 0; i < g_bonetable.size(); i++)
+	for (int i = 0; i < g_bonetable.size(); i++)
 	{
-		for (j = 0; j < DEGREESOFFREEDOM; j++)
+		for (int j = 0; j < DEGREESOFFREEDOM; j++)
 		{
 			pbone[i].bonecontroller[j] = -1;
 		}
 	}
 
-	for (i = 0; i < qc.bonecontrollers.size(); i++)
+	for (int i = 0; i < qc.bonecontrollers.size(); i++)
 	{
-		j = qc.bonecontrollers[i].bone;
+		int j = qc.bonecontrollers[i].bone;
 		switch (qc.bonecontrollers[i].type & STUDIO_TYPES)
 		{
 		case STUDIO_X:
@@ -87,7 +85,7 @@ void write_bone_info(StudioHeader *header, QC &qc)
 	header->numbonecontrollers = qc.bonecontrollers.size();
 	header->bonecontrollerindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < qc.bonecontrollers.size(); i++)
+	for (int i = 0; i < qc.bonecontrollers.size(); i++)
 	{
 		pbonecontroller[i].bone = qc.bonecontrollers[i].bone;
 		pbonecontroller[i].index = qc.bonecontrollers[i].index;
@@ -103,7 +101,7 @@ void write_bone_info(StudioHeader *header, QC &qc)
 	header->numattachments = qc.attachments.size();
 	header->attachmentindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < qc.attachments.size(); i++)
+	for (int i = 0; i < qc.attachments.size(); i++)
 	{
 		pattachment[i].bone = qc.attachments[i].bone;
 		pattachment[i].org = qc.attachments[i].org;
@@ -116,7 +114,7 @@ void write_bone_info(StudioHeader *header, QC &qc)
 	header->numhitboxes = qc.hitboxes.size();
 	header->hitboxindex = static_cast<int>(g_currentposition - g_bufferstart);
 
-	for (i = 0; i < qc.hitboxes.size(); i++)
+	for (int i = 0; i < qc.hitboxes.size(); i++)
 	{
 		pbbox[i].bone = qc.hitboxes[i].bone;
 		pbbox[i].group = qc.hitboxes[i].group;
@@ -128,15 +126,13 @@ void write_bone_info(StudioHeader *header, QC &qc)
 }
 void write_sequence_info(StudioHeader *header, QC &qc, int &frames, float &seconds)
 {
-	int i, j;
-
 	// save sequence info
 	StudioSequenceDescription *pseqdesc = (StudioSequenceDescription *)g_currentposition;
 	header->numseq = qc.sequences.size();
 	header->seqindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += qc.sequences.size() * sizeof(StudioSequenceDescription);
 
-	for (i = 0; i < qc.sequences.size(); i++, pseqdesc++)
+	for (int i = 0; i < qc.sequences.size(); i++, pseqdesc++)
 	{
 		std::strcpy(pseqdesc->label, qc.sequences[i].name.c_str());
 		pseqdesc->numframes = qc.sequences[i].numframes;
@@ -179,7 +175,7 @@ void write_sequence_info(StudioHeader *header, QC &qc, int &frames, float &secon
 			pseqdesc->numevents = qc.sequences[i].events.size();
 			pseqdesc->eventindex = static_cast<int>(g_currentposition - g_bufferstart);
 			g_currentposition += pseqdesc->numevents * sizeof(StudioAnimationEvent);
-			for (j = 0; j < qc.sequences[i].events.size(); j++)
+			for (int j = 0; j < qc.sequences[i].events.size(); j++)
 			{
 				pevent[j].frame = qc.sequences[i].events[j].frame - qc.sequences[i].frameoffset;
 				pevent[j].event = qc.sequences[i].events[j].event;
@@ -204,9 +200,9 @@ void write_sequence_info(StudioHeader *header, QC &qc, int &frames, float &secon
 	header->transitionindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_numxnodes * g_numxnodes * sizeof(std::uint8_t);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
-	for (i = 0; i < g_numxnodes; i++)
+	for (int i = 0; i < g_numxnodes; i++)
 	{
-		for (j = 0; j < g_numxnodes; j++)
+		for (int j = 0; j < g_numxnodes; j++)
 		{
 			*ptransition++ = static_cast<std::uint8_t>(g_xnode[i][j]);
 		}
@@ -215,9 +211,6 @@ void write_sequence_info(StudioHeader *header, QC &qc, int &frames, float &secon
 
 std::uint8_t *write_animations(QC &qc, std::uint8_t *pData, const std::uint8_t *pStart, int group)
 {
-	StudioAnimationFrameOffset *panim;
-	StudioAnimationValue *panimvalue;
-
 	// hack for seqgroup 0
 	// pseqgroup->data = (pData - pStart);
 
@@ -226,12 +219,12 @@ std::uint8_t *write_animations(QC &qc, std::uint8_t *pData, const std::uint8_t *
 		if (qc.sequences[i].seqgroup == group)
 		{
 			// save animations
-			panim = (StudioAnimationFrameOffset *)pData;
+			StudioAnimationFrameOffset *panim = (StudioAnimationFrameOffset *)pData;
 			qc.sequences[i].animindex = static_cast<int>(pData - pStart);
 			pData += qc.sequences[i].anims.size() * g_bonetable.size() * sizeof(StudioAnimationFrameOffset);
 			pData = (std::uint8_t *)ALIGN(pData);
 
-			panimvalue = (StudioAnimationValue *)pData;
+			StudioAnimationValue *panimvalue = (StudioAnimationValue *)pData;
 			for (int blends = 0; blends < qc.sequences[i].anims.size(); blends++)
 			{
 				// save animation value info
@@ -269,12 +262,8 @@ std::uint8_t *write_animations(QC &qc, std::uint8_t *pData, const std::uint8_t *
 
 void write_textures(StudioHeader *header)
 {
-	int i;
-	StudioTexture *ptexture;
-	short *pref;
-
 	// save bone info
-	ptexture = (StudioTexture *)g_currentposition;
+	StudioTexture *ptexture = (StudioTexture *)g_currentposition;
 	header->numtextures = g_textures.size();
 	header->textureindex = static_cast<int>(g_currentposition - g_bufferstart);
 	g_currentposition += g_textures.size() * sizeof(StudioTexture);
@@ -283,9 +272,9 @@ void write_textures(StudioHeader *header)
 	header->skinindex = static_cast<int>(g_currentposition - g_bufferstart);
 	header->numskinref = g_skinrefcount;
 	header->numskinfamilies = g_skinfamiliescount;
-	pref = (short *)g_currentposition;
+	short *pref = (short *)g_currentposition;
 
-	for (i = 0; i < header->numskinfamilies; i++)
+	for (int i = 0; i < header->numskinfamilies; i++)
 	{
 		for (int j = 0; j < header->numskinref; j++)
 		{
@@ -298,7 +287,7 @@ void write_textures(StudioHeader *header)
 
 	header->texturedataindex = static_cast<int>(g_currentposition - g_bufferstart); // must be the end of the file!
 
-	for (i = 0; i < g_textures.size(); i++)
+	for (int i = 0; i < g_textures.size(); i++)
 	{
 		std::strcpy(ptexture[i].name, g_textures[i].name.c_str());
 		ptexture[i].flags = g_textures[i].flags;
@@ -313,8 +302,6 @@ void write_textures(StudioHeader *header)
 
 void write_model(StudioHeader *header, QC &qc)
 {
-	int i, j, k;
-
 	StudioBodyPart *pbodypart = (StudioBodyPart *)g_currentposition;
 	header->numbodyparts = qc.bodyparts.size();
 	header->bodypartindex = static_cast<int>(g_currentposition - g_bufferstart);
@@ -323,7 +310,7 @@ void write_model(StudioHeader *header, QC &qc)
 	StudioModel *pmodel = (StudioModel *)g_currentposition;
 	g_currentposition += qc.submodels.size() * sizeof(StudioModel);
 
-	for (i = 0, j = 0; i < qc.bodyparts.size(); i++)
+	for (int i = 0, j = 0; i < qc.bodyparts.size(); i++)
 	{
 		std::strcpy(pbodypart[i].name, qc.bodyparts[i].name.c_str());
 		pbodypart[i].nummodels = qc.bodyparts[i].num_submodels;
@@ -334,7 +321,7 @@ void write_model(StudioHeader *header, QC &qc)
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
 	std::intptr_t cur = reinterpret_cast<std::intptr_t>(g_currentposition);
-	for (i = 0; i < qc.submodels.size(); i++)
+	for (int i = 0; i < qc.submodels.size(); i++)
 	{
 		int normmap[MAXSTUDIOVERTS];
 		int normimap[MAXSTUDIOVERTS];
@@ -345,9 +332,9 @@ void write_model(StudioHeader *header, QC &qc)
 		// save bbox info
 
 		// remap normals to be sorted by skin reference
-		for (j = 0; j < qc.submodels[i]->nummesh; j++)
+		for (int j = 0; j < qc.submodels[i]->nummesh; j++)
 		{
-			for (k = 0; k < qc.submodels[i]->normals.size(); k++)
+			for (int k = 0; k < qc.submodels[i]->normals.size(); k++)
 			{
 				if (qc.submodels[i]->normals[k].skinref == qc.submodels[i]->pmeshes[j]->skinref)
 				{
@@ -363,7 +350,7 @@ void write_model(StudioHeader *header, QC &qc)
 		std::uint8_t *pbone = g_currentposition;
 		pmodel[i].numverts = qc.submodels[i]->verts.size();
 		pmodel[i].vertinfoindex = static_cast<int>(g_currentposition - g_bufferstart);
-		for (j = 0; j < pmodel[i].numverts; j++)
+		for (int j = 0; j < pmodel[i].numverts; j++)
 		{
 			*pbone++ = static_cast<std::uint8_t>(qc.submodels[i]->verts[j].bone_id);
 		}
@@ -372,7 +359,7 @@ void write_model(StudioHeader *header, QC &qc)
 		// save normal bones
 		pmodel[i].numnorms = qc.submodels[i]->normals.size();
 		pmodel[i].norminfoindex = static_cast<int>((std::uint8_t *)pbone - g_bufferstart);
-		for (j = 0; j < pmodel[i].numnorms; j++)
+		for (int j = 0; j < pmodel[i].numnorms; j++)
 		{
 			*pbone++ = static_cast<std::uint8_t>(qc.submodels[i]->normals[normimap[j]].bone_id);
 		}
@@ -392,12 +379,12 @@ void write_model(StudioHeader *header, QC &qc)
 			pmodel[i].normindex = static_cast<int>((std::uint8_t *)pnorm - g_bufferstart);
 			g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 
-			for (j = 0; j < qc.submodels[i]->verts.size(); j++)
+			for (int j = 0; j < qc.submodels[i]->verts.size(); j++)
 			{
 				pvert[j] = qc.submodels[i]->verts[j].pos;
 			}
 
-			for (j = 0; j < qc.submodels[i]->normals.size(); j++)
+			for (int j = 0; j < qc.submodels[i]->normals.size(); j++)
 			{
 				pnorm[j] = qc.submodels[i]->normals[normimap[j]].pos;
 			}
@@ -406,9 +393,7 @@ void write_model(StudioHeader *header, QC &qc)
 		}
 		// save mesh info
 		{
-
-			StudioMesh *pmesh;
-			pmesh = (StudioMesh *)g_currentposition;
+			StudioMesh *pmesh = (StudioMesh *)g_currentposition;
 			pmodel[i].nummesh = qc.submodels[i]->nummesh;
 			pmodel[i].meshindex = static_cast<int>(g_currentposition - g_bufferstart);
 			g_currentposition += pmodel[i].nummesh * sizeof(StudioMesh);
@@ -416,24 +401,22 @@ void write_model(StudioHeader *header, QC &qc)
 
 			int total_tris = 0;
 			int total_strips = 0;
-			TriangleVert *psrctri;
-			for (j = 0; j < qc.submodels[i]->nummesh; j++)
+			for (int j = 0; j < qc.submodels[i]->nummesh; j++)
 			{
-				int numCmdBytes;
 				std::uint8_t *pCmdSrc;
 
 				pmesh[j].numtris = qc.submodels[i]->pmeshes[j]->numtris;
 				pmesh[j].skinref = qc.submodels[i]->pmeshes[j]->skinref;
 				pmesh[j].numnorms = qc.submodels[i]->pmeshes[j]->numnorms;
 
-				psrctri = (TriangleVert *)(qc.submodels[i]->pmeshes[j]->triangles);
-				for (k = 0; k < pmesh[j].numtris * 3; k++)
+				TriangleVert *psrctri = (TriangleVert *)(qc.submodels[i]->pmeshes[j]->triangles);
+				for (int k = 0; k < pmesh[j].numtris * 3; k++)
 				{
 					psrctri->normindex = normmap[psrctri->normindex];
 					psrctri++;
 				}
 
-				numCmdBytes = build_tris(qc.submodels[i]->pmeshes[j]->triangles, qc.submodels[i]->pmeshes[j], &pCmdSrc);
+				int numCmdBytes = build_tris(qc.submodels[i]->pmeshes[j]->triangles, qc.submodels[i]->pmeshes[j], &pCmdSrc);
 
 				pmesh[j].triindex = static_cast<int>(g_currentposition - g_bufferstart);
 				memcpy(g_currentposition, pCmdSrc, numCmdBytes);

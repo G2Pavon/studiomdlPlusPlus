@@ -59,9 +59,6 @@ void clip_rotations(Vector3 rot)
 
 void extract_motion(QC &qc)
 {
-	int j, k;
-	int blend_index;
-
 	// extract linear motion, Relative movement distance between the first and last frame
 	for (auto &sequence : qc.sequences)
 	{
@@ -80,7 +77,7 @@ void extract_motion(QC &qc)
 			if (sequence.motiontype & STUDIO_LZ)
 				motion.z = ppos[last_frame].z - ppos[start_frame].z;
 
-			for (j = 0; j < sequence.numframes; j++)
+			for (int j = 0; j < sequence.numframes; j++)
 			{
 				Vector3 adjusted_pos{};
 				for (last_frame = 0; last_frame < sequence.anims[0].nodes.size(); last_frame++)
@@ -92,7 +89,7 @@ void extract_motion(QC &qc)
 						adjusted_pos =
 							motion * (static_cast<float>(j) /
 									  static_cast<float>(sequence.numframes - 1));
-						for (blend_index = 0; blend_index < sequence.anims.size();
+						for (int blend_index = 0; blend_index < sequence.anims.size();
 							 blend_index++)
 						{
 							sequence.anims[blend_index].pos[last_frame][j] =
@@ -114,14 +111,14 @@ void extract_motion(QC &qc)
 	for (auto &sequence : qc.sequences)
 	{
 		int type_unused_motion = sequence.motiontype;
-		for (k = 0; k < sequence.anims[0].nodes.size(); k++)
+		for (int k = 0; k < sequence.anims[0].nodes.size(); k++)
 		{
 			if (sequence.anims[0].nodes[k].parent == -1)
 			{
-				for (blend_index = 0; blend_index < sequence.anims.size();
+				for (int blend_index = 0; blend_index < sequence.anims.size();
 					 blend_index++)
 				{
-					for (j = 0; j < sequence.numframes; j++)
+					for (int j = 0; j < sequence.numframes; j++)
 					{
 						if (type_unused_motion & STUDIO_XR)
 							sequence.anims[blend_index].rot[k][j].x = sequence.anims[blend_index].rot[k][0].x;
@@ -207,9 +204,6 @@ int find_node(const std::string &name)
 
 void make_transitions(QC &qc)
 {
-	int i, j;
-	int hit;
-
 	// Add in direct node transitions
 	for (auto &sequence : qc.sequences)
 	{
@@ -230,10 +224,10 @@ void make_transitions(QC &qc)
 	// Add multi-stage transitions
 	while (true)
 	{
-		hit = 0;
-		for (i = 1; i <= g_numxnodes; i++)
+		int hit = 0;
+		for (int i = 1; i <= g_numxnodes; i++)
 		{
-			for (j = 1; j <= g_numxnodes; j++)
+			for (int j = 1; j <= g_numxnodes; j++)
 			{
 				// If I can't go there directly
 				if (i != j && g_xnode[i - 1][j - 1] == 0)
@@ -254,9 +248,9 @@ void make_transitions(QC &qc)
 		}
 
 		// Reset previous pass so the links can be used in the next pass
-		for (i = 1; i <= g_numxnodes; i++)
+		for (int i = 1; i <= g_numxnodes; i++)
 		{
-			for (j = 1; j <= g_numxnodes; j++)
+			for (int j = 1; j <= g_numxnodes; j++)
 			{
 				g_xnode[i - 1][j - 1] = abs(g_xnode[i - 1][j - 1]);
 			}
@@ -1070,8 +1064,6 @@ int find_vertex_index(Model *pmodel, Vertex *pv)
 // Called for the base frame
 void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 {
-	int i, j;
-
 	if (ptexture->flags & STUDIO_NF_CHROME)
 	{
 		ptexture->skintop = 0;
@@ -1079,9 +1071,9 @@ void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 		ptexture->skinwidth = (ptexture->srcwidth + 3) & ~3;
 		ptexture->skinheight = ptexture->srcheight;
 
-		for (i = 0; i < pmesh->numtris; i++)
+		for (int i = 0; i < pmesh->numtris; i++)
 		{
-			for (j = 0; j < 3; j++)
+			for (int j = 0; j < 3; j++)
 			{
 				pmesh->triangles[i][j].s = 0;
 				pmesh->triangles[i][j].t = +1; // ??
@@ -1095,9 +1087,9 @@ void texture_coord_ranges(Mesh *pmesh, Texture *ptexture)
 	}
 
 	// convert to pixel coordinates
-	for (i = 0; i < pmesh->numtris; i++)
+	for (int i = 0; i < pmesh->numtris; i++)
 	{
-		for (j = 0; j < 3; j++)
+		for (int j = 0; j < 3; j++)
 		{
 			// round to fix UV shift
 			pmesh->triangles[i][j].s = static_cast<int>(std::round(
@@ -1141,8 +1133,6 @@ void grab_bmp(const char *filename, Texture *ptexture)
 
 void resize_texture(const QC &qc, Texture *ptexture)
 {
-	int i, t;
-
 	// Keep the original texture without resizing to avoid uv shift
 	ptexture->skintop = static_cast<int>(ptexture->min_t);
 	ptexture->skinleft = static_cast<int>(ptexture->min_s);
@@ -1172,7 +1162,7 @@ void resize_texture(const QC &qc, Texture *ptexture)
 
 	// Move the picture data to the model area, replicating missing data, deleting
 	// unused data.
-	for (i = 0, t = ptexture->srcheight - ptexture->skinheight -
+	for (int i = 0, t = ptexture->srcheight - ptexture->skinheight -
 					ptexture->skintop + 10 * ptexture->srcheight;
 		 i < ptexture->skinheight; i++, t++)
 	{
@@ -1197,7 +1187,7 @@ void resize_texture(const QC &qc, Texture *ptexture)
 	{
 		const std::uint8_t *psrc = (std::uint8_t *)ptexture->ppal;
 		const float g = qc.gamma / 1.8f;
-		for (i = 0; i < 768; i++)
+		for (int i = 0; i < 768; i++)
 		{
 			pdest[i] =
 				static_cast<uint8_t>(std::round(pow(psrc[i] / 255.0, g) * 255));
@@ -1233,7 +1223,6 @@ void grab_skin(const QC &qc, Texture *ptexture)
 
 void set_skin_values(QC &qc)
 {
-	int i, j;
 
 	printf("\nGrabbing texture:\n");
 	for (auto &texture : g_textures)
@@ -1248,7 +1237,7 @@ void set_skin_values(QC &qc)
 
 	for (auto &submodel : qc.submodels)
 	{
-		for (j = 0; j < submodel->nummesh; j++)
+		for (int j = 0; j < submodel->nummesh; j++)
 		{
 			texture_coord_ranges(submodel->pmeshes[j],
 								 &g_textures[submodel->pmeshes[j]->skinref]);
@@ -1281,7 +1270,7 @@ void set_skin_values(QC &qc)
 
 	for (auto *submodel : qc.submodels)
 	{
-		for (j = 0; j < submodel->nummesh; j++)
+		for (int j = 0; j < submodel->nummesh; j++)
 		{
 			reset_texture_coord_ranges(submodel->pmeshes[j],
 									   &g_textures[submodel->pmeshes[j]->skinref]);
@@ -1289,16 +1278,17 @@ void set_skin_values(QC &qc)
 	}
 
 	// build texture groups
+	int i;
 	for (i = 0; i < MAXSTUDIOSKINS; i++)
 	{
-		for (j = 0; j < MAXSTUDIOSKINS; j++)
+		for (int j = 0; j < MAXSTUDIOSKINS; j++)
 		{
 			g_skinref[i][j] = j;
 		}
 	}
 	for (i = 0; i < qc.texturegroup_rows; i++)
 	{
-		for (j = 0; j < qc.texturegroup_cols; j++)
+		for (int j = 0; j < qc.texturegroup_cols; j++)
 		{
 			g_skinref[i][qc.texturegroups[0][j]] = qc.texturegroups[i][j];
 		}
@@ -1936,13 +1926,10 @@ int cmd_sequence_option_event(std::string &token, Sequence &seq)
 	}
 
 	get_token(false, token);
-	int event_id;
-
-	event_id = std::stoi(token);
+	int event_id = std::stoi(token);
 
 	get_token(false, token);
-	int frame;
-	frame = std::stoi(token);
+	int frame = std::stoi(token);
 
 	seq.events.emplace_back(Event{event_id, frame, ""});
 
@@ -2040,7 +2027,6 @@ int cmd_sequence(QC &qc, std::string &token)
 {
 	int depth = 0;
 	std::vector<std::filesystem::path> smd_files;
-	int i;
 	int start = 0;
 	int end = MAXSTUDIOANIMATIONS - 1;
 
@@ -2169,7 +2155,7 @@ int cmd_sequence(QC &qc, std::string &token)
 			std::filesystem::path smd_path{token};
 			smd_files.push_back(smd_path);
 		}
-		else if ((i = cmd_sequence_option_action(token)) != 0)
+		else if (int i = cmd_sequence_option_action(token); i != 0)
 		{
 			newseq.activity = i;
 			get_token(false, token);
@@ -2307,7 +2293,6 @@ void cmd_gamma(QC &qc, std::string &token)
 
 int cmd_texturegroup(QC &qc, std::string &token)
 {
-	int i;
 	int depth = 0;
 	int col_index = 0;
 	int row_index = 0;
@@ -2350,7 +2335,7 @@ int cmd_texturegroup(QC &qc, std::string &token)
 		}
 		else if (depth == 2)
 		{
-			i = find_texture_index(token);
+			int i = find_texture_index(token);
 			qc.texturegroups[row_index][col_index] = i;
 			if (row_index != 0)
 				g_textures[i].parent = qc.texturegroups[0][col_index];

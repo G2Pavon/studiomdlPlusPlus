@@ -25,21 +25,20 @@ Mesh *g_pmesh;
 
 void find_neighbor(int starttri, int startv)
 {
-	TriangleVert m1, m2;
-	int j, k;
-	TriangleVert *last, *check;
+	int j;
+	TriangleVert *check;
 
 	// used[starttri] |= (1 << startv);
-	last = &g_triangles[starttri][0];
+	TriangleVert *last = &g_triangles[starttri][0];
 
-	m1 = last[(startv + 1) % 3];
-	m2 = last[(startv + 0) % 3];
+	TriangleVert m1 = last[(startv + 1) % 3];
+	TriangleVert m2 = last[(startv + 0) % 3];
 
 	for (j = starttri + 1, check = &g_triangles[starttri + 1][0]; j < g_pmesh->numtris; j++, check += 3)
 	{
 		if (g_used[j] == 7)
 			continue;
-		for (k = 0; k < 3; k++)
+		for (int k = 0; k < 3; k++)
 		{
 			if (memcmp(&check[k], &m1, sizeof(m1)))
 				continue;
@@ -61,9 +60,6 @@ void find_neighbor(int starttri, int startv)
 
 int strip_length(int starttri, int startv)
 {
-	int j;
-	int k;
-
 	g_used[starttri] = 2;
 
 	g_stripverts[0] = (startv) % 3;
@@ -77,6 +73,7 @@ int strip_length(int starttri, int startv)
 
 	while (true)
 	{
+		int j, k;
 		if (g_stripcount & 1)
 		{
 			j = g_neighbortri[starttri][(startv + 1) % 3];
@@ -101,7 +98,7 @@ int strip_length(int starttri, int startv)
 	}
 
 	// clear the temp used flags
-	for (j = 0; j < g_pmesh->numtris; j++)
+	for (int j = 0; j < g_pmesh->numtris; j++)
 		if (g_used[j] == 2)
 			g_used[j] = 0;
 
@@ -110,9 +107,6 @@ int strip_length(int starttri, int startv)
 
 int fan_length(int starttri, int startv)
 {
-	int j;
-	int k;
-
 	g_used[starttri] = 2;
 
 	g_stripverts[0] = (startv) % 3;
@@ -126,8 +120,8 @@ int fan_length(int starttri, int startv)
 
 	while (true)
 	{
-		j = g_neighbortri[starttri][(startv + 2) % 3];
-		k = g_neighboredge[starttri][(startv + 2) % 3];
+		int j = g_neighbortri[starttri][(startv + 2) % 3];
+		int k = g_neighboredge[starttri][(startv + 2) % 3];
 
 		if (j == -1 || g_used[j])
 			break;
@@ -142,7 +136,7 @@ int fan_length(int starttri, int startv)
 		startv = k;
 	}
 	// clear the temp used flags
-	for (j = 0; j < g_pmesh->numtris; j++)
+	for (int j = 0; j < g_pmesh->numtris; j++)
 		if (g_used[j] == 2)
 			g_used[j] = 0;
 
@@ -154,21 +148,18 @@ int g_numcommandnodes;
 
 int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 {
-	int i, j, k, m;
-	int len, bestlen, besttype;
+	int besttype;
 	int bestverts[MAXSTUDIOTRIANGLES];
 	int besttris[MAXSTUDIOTRIANGLES];
 	int peak[MAXSTUDIOTRIANGLES];
 	int total = 0;
-	long t;
-	int maxlen;
 
 	g_triangles = x;
 	g_pmesh = y;
 
-	t = time(nullptr);
+	long t = time(nullptr);
 
-	for (i = 0; i < g_pmesh->numtris; i++)
+	for (int i = 0; i < g_pmesh->numtris; i++)
 	{
 		g_neighbortri[i][0] = g_neighbortri[i][1] = g_neighbortri[i][2] = -1;
 		g_used[i] = 0;
@@ -176,9 +167,9 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 	}
 
 	// printf("finding neighbors\n");
-	for (i = 0; i < g_pmesh->numtris; i++)
+	for (int i = 0; i < g_pmesh->numtris; i++)
 	{
-		for (k = 0; k < 3; k++)
+		for (int k = 0; k < 3; k++)
 		{
 			if (g_used[i] & (1 << k))
 				continue;
@@ -196,7 +187,7 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 	int numcommands = 0;
 	std::memset(g_used, 0, sizeof(g_used));
 
-	for (i = 0; i < g_pmesh->numtris;)
+	for (int i = 0; i < g_pmesh->numtris;)
 	{
 		// pick an unused triangle and start the trifan
 		if (g_used[i])
@@ -205,10 +196,10 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 			continue;
 		}
 
-		maxlen = 9999;
-		bestlen = 0;
-		m = 0;
-		for (k = i; k < g_pmesh->numtris && bestlen < 127; k++)
+		int maxlen = 9999;
+		int bestlen = 0;
+		int m = 0;
+		for (int k = i; k < g_pmesh->numtris && bestlen < 127; k++)
 		{
 			int localpeak = 0;
 
@@ -223,6 +214,7 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 			{
 				for (int startv = 0; startv < 3; startv++)
 				{
+					int len;
 					if (type == 1)
 						len = fan_length(k, startv);
 					else
@@ -235,7 +227,7 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 					{
 						besttype = type;
 						bestlen = len;
-						for (j = 0; j < bestlen; j++)
+						for (int j = 0; j < bestlen; j++)
 						{
 							besttris[j] = g_striptris[j];
 							bestverts[j] = g_stripverts[j];
@@ -257,7 +249,7 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 		maxlen = bestlen;
 
 		// mark the tris on the best strip as used
-		for (j = 0; j < bestlen; j++)
+		for (int j = 0; j < bestlen; j++)
 			g_used[besttris[j]] = 1;
 
 		if (besttype == 1)
@@ -265,11 +257,9 @@ int build_tris(TriangleVert (*x)[3], Mesh *y, std::uint8_t **ppdata)
 		else
 			g_commands[numcommands++] = static_cast<short>(bestlen);
 
-		for (j = 0; j < bestlen; j++)
+		for (int j = 0; j < bestlen; j++)
 		{
-			TriangleVert *tri;
-
-			tri = &g_triangles[besttris[j]][bestverts[j]];
+			TriangleVert *tri = &g_triangles[besttris[j]][bestverts[j]];
 
 			g_commands[numcommands++] = static_cast<short>(tri->vertindex);
 			g_commands[numcommands++] = static_cast<short>(tri->normindex);

@@ -7,7 +7,7 @@
 
 int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height)
 {
-	int i, rc = 0;
+	int rc = 0;
 	FILE *pfile = nullptr;
 	BITMAPFILEHEADER bmfh;
 	BITMAPINFOHEADER bmih;
@@ -107,7 +107,7 @@ int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *w
 	pb = pbPal;
 
 	// Copy over used entries
-	for (i = 0; i < static_cast<int>(bmih.biClrUsed); i++)
+	for (int i = 0; i < static_cast<int>(bmih.biClrUsed); i++)
 	{
 		*pb++ = rgrgbPalette[i].rgbRed;
 		*pb++ = rgrgbPalette[i].rgbGreen;
@@ -115,7 +115,7 @@ int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *w
 	}
 
 	// Fill in unused entries with 0,0,0
-	for (i = bmih.biClrUsed; i < 256; i++)
+	for (int i = bmih.biClrUsed; i < 256; i++)
 	{
 		*pb++ = 0;
 		*pb++ = 0;
@@ -139,7 +139,7 @@ int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *w
 
 	// Reverse the order of the data
 	pb += (bmih.biHeight - 1) * biTrueWidth;
-	for (i = 0; i < bmih.biHeight; i++)
+	for (int i = 0; i < bmih.biHeight; i++)
 	{
 		std::memcpy(&pbBmpBits[biTrueWidth * i], pb, biTrueWidth);
 		pb -= biTrueWidth;
