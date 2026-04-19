@@ -202,7 +202,7 @@ int find_node(const std::string &name)
 	return -1;
 }
 
-void make_transitions(QC &qc)
+void make_transitions(const QC &qc)
 {
 	// Add in direct node transitions
 	for (auto &sequence : qc.sequences)
@@ -912,7 +912,7 @@ void simplify_model(QC &qc)
 	}
 }
 
-int lookup_control(const std::string token)
+int lookup_control(const std::string& token)
 {
 	if (case_insensitive_compare(token, "X"))
 		return STUDIO_X;
@@ -939,7 +939,7 @@ int lookup_control(const std::string token)
 	return -1;
 }
 
-int find_texture_index(const std::string texturename)
+int find_texture_index(const std::string& texturename)
 {
 	int i = 0;
 	for (auto &texture : g_textures)
@@ -967,7 +967,7 @@ int find_texture_index(const std::string texturename)
 	return i;
 }
 
-Mesh *find_mesh_by_texture(Model *pmodel, const std::string texturename)
+Mesh *find_mesh_by_texture(Model *pmodel, const std::string& texturename)
 {
 	int i;
 	int j = find_texture_index(texturename);
@@ -1221,7 +1221,7 @@ void grab_skin(const QC &qc, Texture *ptexture)
 	}
 }
 
-void set_skin_values(QC &qc)
+void set_skin_values(const QC &qc)
 {
 
 	printf("\nGrabbing texture:\n");
@@ -1355,7 +1355,6 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 		if (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
 			nullptr)
 		{
-			Mesh *pmesh;
 			TriangleVert *ptriangle_vert;
 			int parent_bone;
 
@@ -1374,7 +1373,7 @@ void parse_smd_triangles(const QC &qc, Model *pmodel)
 							   .base(),
 						   material.end());
 
-			pmesh = find_mesh_by_texture(pmodel, material);
+			Mesh *pmesh = find_mesh_by_texture(pmodel, material);
 
 			for (int j = 0; j < 3; j++)
 			{
@@ -1508,7 +1507,7 @@ int parse_smd_nodes(const QC &qc, std::vector<Node> &nodes)
 			// Check for mirrored bones
 			for (int i = 0; i < qc.mirroredbones.size(); i++)
 			{
-				if (case_insensitive_compare(bone_name, qc.mirroredbones[i].data()))
+				if (case_insensitive_compare(bone_name, qc.mirroredbones[i]))
 				{
 					nodes.back().mirrored = 1;
 				}
@@ -1556,7 +1555,7 @@ void parse_smd_reference(const QC &qc, std::filesystem::path &smd_ref_path, Mode
 
 	printf("Grabbing reference: %s\n\n", smd_path.string().c_str());
 
-	if ((g_smdfile = fopen(smd_path.string().c_str(), "r")) == 0)
+	if ((g_smdfile = fopen(smd_path.string().c_str(), "r")) == nullptr)
 	{
 		fprintf(stderr, "reader: could not open file '%s'\n", smd_path.c_str());
 	}
@@ -1569,7 +1568,7 @@ void parse_smd_reference(const QC &qc, std::filesystem::path &smd_ref_path, Mode
 
 		if (!(iss >> cmd))
 			continue;
-		else if (case_insensitive_compare(cmd, "version"))
+		if (case_insensitive_compare(cmd, "version"))
 		{
 			if (!(iss >> smd_version))
 			{
@@ -1595,8 +1594,6 @@ void parse_smd_reference(const QC &qc, std::filesystem::path &smd_ref_path, Mode
 		{
 			parse_smd_triangles(qc, pmodel);
 		}
-		else
-			continue;
 	}
 	fclose(g_smdfile);
 }
@@ -1695,16 +1692,10 @@ void cmd_bodygroup(QC &qc, std::string &token)
 
 	while (true)
 	{
-		int is_started = 0;
 		get_token(true, token);
 		if (end_of_qc_file)
 			return;
-
-		if (token[0] == '{')
-		{
-			is_started = 1;
-		}
-		else if (token[0] == '}')
+		if (token[0] == '}')
 		{
 			break;
 		}
@@ -1717,8 +1708,6 @@ void cmd_bodygroup(QC &qc, std::string &token)
 			cmd_body_option_blank(qc);
 		}
 	}
-
-	return;
 }
 
 void cmd_body(QC &qc, std::string &token)
@@ -1876,10 +1865,10 @@ void parse_smd_animation(const QC &qc, std::filesystem::path &sequence_smd_path,
 
 	printf("Grabbing animation: %s\n", smd_path.string().c_str());
 
-	if ((g_smdfile = fopen(smd_path.string().c_str(), "r")) == 0)
+	if ((g_smdfile = fopen(smd_path.string().c_str(), "r")) == nullptr)
 	{
 		fprintf(stderr, "reader: could not open file '%s'\n", smd_path.c_str());
-		error(0);
+		error("Something went wrong");
 	}
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
@@ -1890,7 +1879,7 @@ void parse_smd_animation(const QC &qc, std::filesystem::path &sequence_smd_path,
 
 		if (!(iss >> cmd))
 			continue;
-		else if (case_insensitive_compare(cmd, "version"))
+		if (case_insensitive_compare(cmd, "version"))
 		{
 			if (!(iss >> smd_version))
 			{
@@ -1912,8 +1901,6 @@ void parse_smd_animation(const QC &qc, std::filesystem::path &sequence_smd_path,
 			parse_smd_animation_skeleton(qc, anim);
 			shift_option_animation(anim);
 		}
-		else
-			continue;
 	}
 	fclose(g_smdfile);
 }
@@ -2007,7 +1994,7 @@ void cmd_sequence_option_scale(QC &qc, std::string &token)
 	qc.scale_body_and_sequence = std::stof(token);
 }
 
-int cmd_sequence_option_action(std::string &szActivity)
+int cmd_sequence_option_action(const std::string &szActivity)
 {
 	for (int i = 0; activity_map[i].name; i++)
 	{
@@ -2018,7 +2005,7 @@ int cmd_sequence_option_action(std::string &szActivity)
 	}
 	if (case_insensitive_n_compare(szActivity, "ACT_", 4))
 	{
-		return std::stoi(&szActivity[4]);
+		return std::stoi(szActivity.substr(4));
 	}
 	return 0;
 }
@@ -2061,10 +2048,7 @@ int cmd_sequence(QC &qc, std::string &token)
 			{
 				break;
 			}
-			else
-			{
-				get_token(false, token);
-			}
+			get_token(false, token);
 		}
 
 		if (end_of_qc_file)
@@ -2197,9 +2181,9 @@ int cmd_sequence(QC &qc, std::string &token)
 
 int cmd_controller(QC &qc, std::string &token)
 {
-	BoneController newbc{};
 	if (get_token(false, token))
 	{
+		BoneController newbc{};
 		if (token == "mouth")
 		{
 			newbc.index = 4;
