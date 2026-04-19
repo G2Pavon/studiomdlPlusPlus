@@ -14,6 +14,8 @@
  ****/
 #pragma once
 
+#include "monsters/activity.hpp"
+
 #define _A(a) {a, #a}
 
 ActivityMap activity_map[] =

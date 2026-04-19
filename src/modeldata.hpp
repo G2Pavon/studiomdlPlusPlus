@@ -1,7 +1,6 @@
 /*
     Internal data used by studiomdl which is then transferred/mapped to the real .mdl data
 */
-
 #pragma once
 
 #include <string>

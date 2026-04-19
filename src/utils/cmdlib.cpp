@@ -1,9 +1,10 @@
-// cmdlib.cpp
 #include "cmdlib.hpp"
+
 #include <algorithm>
 #include <cstdarg>
-#include <cstring>
 #include <iostream>
+#include <stdexcept>
+
 
 void error(const std::string &message)
 {

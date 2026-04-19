@@ -1,3 +1,5 @@
+#include "writemdl.hpp"
+
 #include <cstring>
 
 #include "format/mdl.hpp"
@@ -5,7 +7,7 @@
 #include "studiomdl.hpp"
 #include "utils/mathlib.hpp"
 #include "utils/stripification.hpp"
-#include "writemdl.hpp"
+#include "utils/cmdlib.hpp"
 
 constexpr int FILEBUFFER = 16 * 1024 * 1024;
 extern int g_numcommandnodes;

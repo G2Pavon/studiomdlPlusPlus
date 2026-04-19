@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "format/qc.hpp"
-#include "utils/cmdlib.hpp"
 
 #define ALIGN(a) (((uintptr_t)(a) + 3) & ~(uintptr_t)3)
 

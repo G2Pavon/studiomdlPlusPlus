@@ -1,10 +1,8 @@
-// cmdlib.hpp
 #pragma once
 
 #include <filesystem>
 #include <fstream>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <vector>
 

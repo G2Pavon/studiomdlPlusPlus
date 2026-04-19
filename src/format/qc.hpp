@@ -7,7 +7,6 @@
 
 #include "format/mdl.hpp"
 #include "modeldata.hpp"
-#include "utils/cmdlib.hpp"
 #include "utils/mathlib.hpp"
 
 class QC

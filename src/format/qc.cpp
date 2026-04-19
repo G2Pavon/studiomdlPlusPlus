@@ -1,7 +1,8 @@
-// qc.cpp
 #include "qc.hpp"
-#include "cmdlib.hpp"
+
 #include <iostream>
+
+#include "utils/cmdlib.hpp"
 
 std::vector<char> qc_script_buffer;
 char *qc_stream_p = nullptr;

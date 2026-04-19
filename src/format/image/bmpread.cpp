@@ -1,9 +1,9 @@
+#include "format/image/bmp.hpp"
+
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#include "format/image/bmp.hpp"
 
 int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height)
 {

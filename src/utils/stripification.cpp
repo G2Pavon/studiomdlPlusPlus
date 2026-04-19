@@ -1,11 +1,12 @@
 // tristrip - convert triangle list into tristrips and fans
+#include "utils/stripification.hpp"
+
 #include <cstring>
 #include <ctime>
 
 #include "format/mdl.hpp"
 #include "modeldata.hpp"
 #include "utils/cmdlib.hpp"
-#include "utils/stripification.hpp"
 
 int g_used[MAXSTUDIOTRIANGLES];
 // the command list holds counts and s/t values that are valid for

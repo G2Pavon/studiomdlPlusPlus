@@ -1,4 +1,3 @@
-// mathlib.c -- math primitives
 #pragma once
 
 #include <array>

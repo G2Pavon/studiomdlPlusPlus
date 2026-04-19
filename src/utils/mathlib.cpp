@@ -1,9 +1,6 @@
-// mathlib.c -- math primitives
+#include "mathlib.hpp"
 
 #include <cmath>
-
-#include "cmdlib.hpp"
-#include "mathlib.hpp"
 
 float to_radians(float deg)
 {
