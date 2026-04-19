@@ -23,7 +23,7 @@ int g_neighboredge[MAXSTUDIOTRIANGLES][3];
 TriangleVert (*g_triangles)[3];
 Mesh *g_pmesh;
 
-void find_neighbor(int starttri, int startv)
+static void find_neighbor(int starttri, int startv)
 {
 	int j;
 	TriangleVert *check;
@@ -58,7 +58,7 @@ void find_neighbor(int starttri, int startv)
 	}
 }
 
-int strip_length(int starttri, int startv)
+static int strip_length(int starttri, int startv)
 {
 	g_used[starttri] = 2;
 
@@ -105,7 +105,7 @@ int strip_length(int starttri, int startv)
 	return g_stripcount;
 }
 
-int fan_length(int starttri, int startv)
+static int fan_length(int starttri, int startv)
 {
 	g_used[starttri] = 2;
 

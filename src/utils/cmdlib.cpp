@@ -11,7 +11,7 @@ void error(const std::string &message)
     throw std::runtime_error("ERROR: " + message);
 }
 
-int file_length(std::ifstream &file)
+static int file_length(std::ifstream &file)
 {
     file.seekg(0, std::ios::end);
     int length = file.tellg();
@@ -27,7 +27,7 @@ std::unique_ptr<std::ofstream> safe_open_write(const std::filesystem::path &file
     return file;
 }
 
-void safe_read(std::ifstream &file, void *buffer, std::size_t count)
+static void safe_read(std::ifstream &file, void *buffer, std::size_t count)
 {
     if (!file.read(reinterpret_cast<char *>(buffer), count))
         error("File read failure");

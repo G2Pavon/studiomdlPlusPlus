@@ -6,11 +6,9 @@
 #include <string>
 #include <vector>
 
-int file_length(std::ifstream &file);
 void error(const std::string &message);
 
 std::unique_ptr<std::ofstream> safe_open_write(const std::filesystem::path &filename);
-void safe_read(std::ifstream &file, void *buffer, std::size_t count);
 void safe_write(std::ofstream &file, const void *buffer, std::size_t count);
 
 std::vector<char> load_file(const std::filesystem::path &filename);

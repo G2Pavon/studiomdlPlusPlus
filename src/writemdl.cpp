@@ -15,7 +15,10 @@ extern int g_numcommandnodes;
 std::uint8_t *g_currentposition;
 std::uint8_t *g_bufferstart;
 
-void write_bone_info(StudioHeader *header, QC &qc)
+#define ALIGN(a) (((uintptr_t)(a) + 3) & ~(uintptr_t)3)
+
+
+static void write_bone_info(StudioHeader *header, QC &qc)
 {
 	// save bone info
 	StudioBone *pbone = (StudioBone *)g_currentposition;
@@ -124,7 +127,7 @@ void write_bone_info(StudioHeader *header, QC &qc)
 	g_currentposition += qc.hitboxes.size() * sizeof(StudioHitbox);
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 }
-void write_sequence_info(StudioHeader *header, QC &qc, int &frames, float &seconds)
+static void write_sequence_info(StudioHeader *header, QC &qc, int &frames, float &seconds)
 {
 	// save sequence info
 	StudioSequenceDescription *pseqdesc = (StudioSequenceDescription *)g_currentposition;
@@ -209,7 +212,7 @@ void write_sequence_info(StudioHeader *header, QC &qc, int &frames, float &secon
 	}
 }
 
-std::uint8_t *write_animations(QC &qc, std::uint8_t *pData, const std::uint8_t *pStart, int group)
+static std::uint8_t *write_animations(QC &qc, std::uint8_t *pData, const std::uint8_t *pStart, int group)
 {
 	// hack for seqgroup 0
 	// pseqgroup->data = (pData - pStart);
@@ -260,7 +263,7 @@ std::uint8_t *write_animations(QC &qc, std::uint8_t *pData, const std::uint8_t *
 	return pData;
 }
 
-void write_textures(StudioHeader *header)
+static void write_textures(StudioHeader *header)
 {
 	// save bone info
 	StudioTexture *ptexture = (StudioTexture *)g_currentposition;
@@ -300,7 +303,7 @@ void write_textures(StudioHeader *header)
 	g_currentposition = (std::uint8_t *)ALIGN(g_currentposition);
 }
 
-void write_model(StudioHeader *header, QC &qc)
+static void write_model(StudioHeader *header, QC &qc)
 {
 	StudioBodyPart *pbodypart = (StudioBodyPart *)g_currentposition;
 	header->numbodyparts = qc.bodyparts.size();
