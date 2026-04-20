@@ -1210,7 +1210,7 @@ static void grab_skin(const QC &qc, Texture *ptexture)
 		error("Cannot find \"" + ptexture->name + "\" texture in \"" +
 			  qc.cdtexture.string() + "\" or path does not exist\n");
 	}
-	if (texture_path.extension() == ".bmp")
+	if (case_insensitive_compare(texture_path.extension().string(), ".bmp"))
 	{
 		grab_bmp(texture_path.string().c_str(), ptexture);
 	}
