@@ -9,6 +9,9 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cmath>
+#include <cstdint>
+#include <unordered_map>
 
 #include "format/image/bmp.hpp"
 #include "format/mdl.hpp"
@@ -43,6 +46,9 @@ std::array<std::array<int, MAXSTUDIOSKINS>, 256>
 	g_skinref; // [skin][skinref], returns texture index
 int g_skinrefcount;
 int g_skinfamiliescount;
+
+std::unordered_map<uint64_t, int> g_unique_vertices;
+std::unordered_map<uint64_t, std::vector<int>> g_unique_normals;
 
 // ---------------------------------------
 static void clip_rotations(Vector3 rot)
@@ -1018,47 +1024,78 @@ static TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, const int index)
 
 static int find_vertex_normal_index(Model *pmodel, const Normal *pnormal)
 {
-	int i = 0;
-	for (auto &normal : pmodel->normals)
-	{
-		if (normal.pos.dot(pnormal->pos) > g_flagnormalblendangle &&
-			normal.bone_id == pnormal->bone_id &&
-			normal.skinref == pnormal->skinref)
-		{
-			return i;
-		}
-		i++;
-	}
-	if (i >= MAXSTUDIOVERTS)
-	{
-		error("too many normals in model: \"" + std::string(pmodel->name) + "\"\n");
-	}
-	pmodel->normals.push_back(*pnormal);
-	return i;
+    const int16_t id = static_cast<int16_t>(pnormal->bone_id);
+    const int16_t sr = static_cast<int16_t>(pnormal->skinref);
+
+    const int8_t qx = static_cast<int8_t>(std::round(pnormal->pos[0] * 127.0f));
+    const int8_t qy = static_cast<int8_t>(std::round(pnormal->pos[1] * 127.0f));
+    const int8_t qz = static_cast<int8_t>(std::round(pnormal->pos[2] * 127.0f));
+
+    const uint64_t key = (static_cast<uint64_t>(static_cast<uint16_t>(id)) << 48) |
+                         (static_cast<uint64_t>(static_cast<uint16_t>(sr)) << 32) |
+                         (static_cast<uint64_t>(static_cast<uint8_t>(qx))  << 24) |
+                         (static_cast<uint64_t>(static_cast<uint8_t>(qy))  << 16) |
+                         (static_cast<uint64_t>(static_cast<uint8_t>(qz)));
+
+    auto it = g_unique_normals.find(key);
+    if (it != g_unique_normals.end())
+    {
+        for (int index : it->second)
+        {
+            const auto& normal = pmodel->normals[index];
+
+            if (normal.pos.dot(pnormal->pos) > g_flagnormalblendangle)
+            {
+                return index;
+            }
+        }
+    }
+
+    const int index = static_cast<int>(pmodel->normals.size());
+    if (index >= MAXSTUDIOVERTS)
+    {
+        error("too many normals in model: \"" + std::string(pmodel->name) + "\"\n");
+    }
+
+    pmodel->normals.push_back(*pnormal);
+    g_unique_normals[key].push_back(index);
+
+    return index;
 }
 
 static int find_vertex_index(Model *pmodel, Vertex *pv)
 {
-	int i = 0;
+    const int16_t id = static_cast<int16_t>(pv->bone_id);
+    const int16_t qx = static_cast<int16_t>(pv->pos[0] * 100.0f);
+    const int16_t qy = static_cast<int16_t>(pv->pos[1] * 100.0f);
+    const int16_t qz = static_cast<int16_t>(pv->pos[2] * 100.0f);
+
+    const uint64_t key = (static_cast<uint64_t>(static_cast<uint16_t>(id)) << 48) |
+                         (static_cast<uint64_t>(static_cast<uint16_t>(qx)) << 32) |
+                         (static_cast<uint64_t>(static_cast<uint16_t>(qy)) << 16) |
+                         (static_cast<uint64_t>(static_cast<uint16_t>(qz)));
+
+    auto it = g_unique_vertices.find(key);
+    if (it != g_unique_vertices.end())
+    {
+        return it->second;
+    }
+
+    const int index = static_cast<int>(pmodel->verts.size());
+    if (index >= MAXSTUDIOVERTS)
+    {
+        error("too many vertices in model: \"" + pmodel->name + "\"\n");
+    }
+
 	// assume 2 digits of accuracy
 	pv->pos[0] = static_cast<int>(pv->pos[0] * 100.0f) / 100.0f;
 	pv->pos[1] = static_cast<int>(pv->pos[1] * 100.0f) / 100.0f;
 	pv->pos[2] = static_cast<int>(pv->pos[2] * 100.0f) / 100.0f;
 
-	for (auto &vert : pmodel->verts)
-	{
-		if ((vert.pos == pv->pos) && vert.bone_id == pv->bone_id)
-		{
-			return i;
-		}
-		i++;
-	}
-	if (pmodel->verts.size() >= MAXSTUDIOVERTS)
-	{
-		error("too many vertices in model: \"" + pmodel->name + "\"\n");
-	}
-	pmodel->verts.push_back(*pv);
-	return i;
+    pmodel->verts.push_back(*pv);
+    g_unique_vertices[key] = index;
+
+    return index;
 }
 
 // Called for the base frame
@@ -1348,6 +1385,9 @@ static void parse_smd_triangles(const QC &qc, Model *pmodel)
 	Vector3 vmin{99999, 99999, 99999};
 
 	build_reference(pmodel);
+
+    g_unique_vertices.clear();
+    g_unique_normals.clear();
 
 	// load the base triangles
 	while (true)
