@@ -918,7 +918,7 @@ static void simplify_model(QC &qc)
 	}
 }
 
-static int lookup_control(const std::string& token)
+static int lookup_control(const std::string &token)
 {
 	if (case_insensitive_compare(token, "X"))
 		return STUDIO_X;
@@ -945,7 +945,7 @@ static int lookup_control(const std::string& token)
 	return -1;
 }
 
-static int find_texture_index(const std::string& texturename) // Common QC and SMD parser
+static int find_texture_index(const std::string &texturename) // Common QC and SMD parser
 {
 	int i = 0;
 	for (auto &texture : g_textures)
@@ -973,7 +973,7 @@ static int find_texture_index(const std::string& texturename) // Common QC and S
 	return i;
 }
 
-static Mesh *find_mesh_by_texture(Model *pmodel, const std::string& texturename) // SMD Parser
+static Mesh *find_mesh_by_texture(Model *pmodel, const std::string &texturename) // SMD Parser
 {
 	int i;
 	int j = find_texture_index(texturename);
@@ -1024,78 +1024,78 @@ static TriangleVert *find_mesh_triangle_by_index(Mesh *pmesh, const int index)
 
 static int find_vertex_normal_index(Model *pmodel, const Normal *pnormal)
 {
-    const int16_t id = static_cast<int16_t>(pnormal->bone_id);
-    const int16_t sr = static_cast<int16_t>(pnormal->skinref);
+	const int16_t id = static_cast<int16_t>(pnormal->bone_id);
+	const int16_t sr = static_cast<int16_t>(pnormal->skinref);
 
-    const int8_t qx = static_cast<int8_t>(std::round(pnormal->pos[0] * 127.0f));
-    const int8_t qy = static_cast<int8_t>(std::round(pnormal->pos[1] * 127.0f));
-    const int8_t qz = static_cast<int8_t>(std::round(pnormal->pos[2] * 127.0f));
+	const int8_t qx = static_cast<int8_t>(std::round(pnormal->pos[0] * 127.0f));
+	const int8_t qy = static_cast<int8_t>(std::round(pnormal->pos[1] * 127.0f));
+	const int8_t qz = static_cast<int8_t>(std::round(pnormal->pos[2] * 127.0f));
 
-    const uint64_t key = (static_cast<uint64_t>(static_cast<uint16_t>(id)) << 48) |
-                         (static_cast<uint64_t>(static_cast<uint16_t>(sr)) << 32) |
-                         (static_cast<uint64_t>(static_cast<uint8_t>(qx))  << 24) |
-                         (static_cast<uint64_t>(static_cast<uint8_t>(qy))  << 16) |
-                         (static_cast<uint64_t>(static_cast<uint8_t>(qz)));
+	const uint64_t key = (static_cast<uint64_t>(static_cast<uint16_t>(id)) << 48) |
+						 (static_cast<uint64_t>(static_cast<uint16_t>(sr)) << 32) |
+						 (static_cast<uint64_t>(static_cast<uint8_t>(qx)) << 24) |
+						 (static_cast<uint64_t>(static_cast<uint8_t>(qy)) << 16) |
+						 (static_cast<uint64_t>(static_cast<uint8_t>(qz)));
 
-    auto it = g_unique_normals.find(key);
-    if (it != g_unique_normals.end())
-    {
-        for (int index : it->second)
-        {
-            const auto& normal = pmodel->normals[index];
+	auto it = g_unique_normals.find(key);
+	if (it != g_unique_normals.end())
+	{
+		for (int index : it->second)
+		{
+			const auto &normal = pmodel->normals[index];
 
-            if (normal.pos.dot(pnormal->pos) > g_flagnormalblendangle)
-            {
-                return index;
-            }
-        }
-    }
+			if (normal.pos.dot(pnormal->pos) > g_flagnormalblendangle)
+			{
+				return index;
+			}
+		}
+	}
 
-    const int index = static_cast<int>(pmodel->normals.size());
-    if (index >= MAXSTUDIOVERTS)
-    {
-        error("too many normals in model: \"" + std::string(pmodel->name) + "\"\n");
-    }
+	const int index = static_cast<int>(pmodel->normals.size());
+	if (index >= MAXSTUDIOVERTS)
+	{
+		error("too many normals in model: \"" + std::string(pmodel->name) + "\"\n");
+	}
 
-    pmodel->normals.push_back(*pnormal);
-    g_unique_normals[key].push_back(index);
+	pmodel->normals.push_back(*pnormal);
+	g_unique_normals[key].push_back(index);
 
-    return index;
+	return index;
 }
 
 static int find_vertex_index(Model *pmodel, Vertex *pv)
 {
-    const int16_t id = static_cast<int16_t>(pv->bone_id);
-    const int16_t qx = static_cast<int16_t>(pv->pos[0] * 100.0f);
-    const int16_t qy = static_cast<int16_t>(pv->pos[1] * 100.0f);
-    const int16_t qz = static_cast<int16_t>(pv->pos[2] * 100.0f);
+	const int16_t id = static_cast<int16_t>(pv->bone_id);
+	const int16_t qx = static_cast<int16_t>(pv->pos[0] * 100.0f);
+	const int16_t qy = static_cast<int16_t>(pv->pos[1] * 100.0f);
+	const int16_t qz = static_cast<int16_t>(pv->pos[2] * 100.0f);
 
-    const uint64_t key = (static_cast<uint64_t>(static_cast<uint16_t>(id)) << 48) |
-                         (static_cast<uint64_t>(static_cast<uint16_t>(qx)) << 32) |
-                         (static_cast<uint64_t>(static_cast<uint16_t>(qy)) << 16) |
-                         (static_cast<uint64_t>(static_cast<uint16_t>(qz)));
+	const uint64_t key = (static_cast<uint64_t>(static_cast<uint16_t>(id)) << 48) |
+						 (static_cast<uint64_t>(static_cast<uint16_t>(qx)) << 32) |
+						 (static_cast<uint64_t>(static_cast<uint16_t>(qy)) << 16) |
+						 (static_cast<uint64_t>(static_cast<uint16_t>(qz)));
 
-    auto it = g_unique_vertices.find(key);
-    if (it != g_unique_vertices.end())
-    {
-        return it->second;
-    }
+	auto it = g_unique_vertices.find(key);
+	if (it != g_unique_vertices.end())
+	{
+		return it->second;
+	}
 
-    const int index = static_cast<int>(pmodel->verts.size());
-    if (index >= MAXSTUDIOVERTS)
-    {
-        error("too many vertices in model: \"" + pmodel->name + "\"\n");
-    }
+	const int index = static_cast<int>(pmodel->verts.size());
+	if (index >= MAXSTUDIOVERTS)
+	{
+		error("too many vertices in model: \"" + pmodel->name + "\"\n");
+	}
 
 	// assume 2 digits of accuracy
 	pv->pos[0] = static_cast<int>(pv->pos[0] * 100.0f) / 100.0f;
 	pv->pos[1] = static_cast<int>(pv->pos[1] * 100.0f) / 100.0f;
 	pv->pos[2] = static_cast<int>(pv->pos[2] * 100.0f) / 100.0f;
 
-    pmodel->verts.push_back(*pv);
-    g_unique_vertices[key] = index;
+	pmodel->verts.push_back(*pv);
+	g_unique_vertices[key] = index;
 
-    return index;
+	return index;
 }
 
 // Called for the base frame
@@ -1200,7 +1200,7 @@ static void resize_texture(const QC &qc, Texture *ptexture)
 	// Move the picture data to the model area, replicating missing data, deleting
 	// unused data.
 	for (int i = 0, t = ptexture->srcheight - ptexture->skinheight -
-					ptexture->skintop + 10 * ptexture->srcheight;
+						ptexture->skintop + 10 * ptexture->srcheight;
 		 i < ptexture->skinheight; i++, t++)
 	{
 		while (t >= ptexture->srcheight)
@@ -1386,8 +1386,8 @@ static void parse_smd_triangles(const QC &qc, Model *pmodel)
 
 	build_reference(pmodel);
 
-    g_unique_vertices.clear();
-    g_unique_normals.clear();
+	g_unique_vertices.clear();
+	g_unique_normals.clear();
 
 	// load the base triangles
 	while (true)
@@ -1496,8 +1496,8 @@ static void parse_smd_triangles(const QC &qc, Model *pmodel)
 }
 
 static void parse_smd_reference_skeleton(const QC &qc, std::vector<Node> &nodes,
-								  std::vector<Bone> &bones,
-								  std::filesystem::path &path)
+										 std::vector<Bone> &bones,
+										 std::filesystem::path &path)
 {
 	std::ifstream smdstream{path};
 	std::string line, cmd;
@@ -1574,7 +1574,7 @@ static void parse_smd_reference(const QC &qc, std::filesystem::path &smd_ref_pat
 	int smd_version;
 	g_smdlinecount = 0;
 
-	if (smd_ref_path.extension().empty()) // TODO: Add error check if extension != ".smd"
+	if (!case_insensitive_compare(smd_ref_path.extension().string(), ".smd"))
 	{
 		smd_ref_path += ".smd";
 	}
@@ -1882,11 +1882,10 @@ static void parse_smd_animation(const QC &qc, std::filesystem::path &sequence_sm
 	int smd_version;
 	g_smdlinecount = 0;
 
-	if (sequence_smd_path.extension().empty()) // TODO: Add error check if extension != ".smd"
+	if (!case_insensitive_compare(sequence_smd_path.extension().string(), ".smd"))
 	{
 		sequence_smd_path += ".smd";
 	}
-
 	anim.name = sequence_smd_path.stem().string();
 
 	if (sequence_smd_path.is_relative())
