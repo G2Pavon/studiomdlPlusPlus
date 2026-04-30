@@ -755,9 +755,9 @@ static void simplify_model(QC &qc)
 				for (auto &bone : g_bonetable)
 				{
 					Vector3 angles{
-						to_degrees(anim.rot[j][n][0]),
-						to_degrees(anim.rot[j][n][1]),
-						to_degrees(anim.rot[j][n][2])};
+						anim.rot[j][n][0],
+						anim.rot[j][n][1],
+						anim.rot[j][n][2]};
 
 					bonematrix = angle_matrix(angles);
 
@@ -1348,9 +1348,9 @@ static void build_reference(const Model *pmodel)
 	for (int i = 0; i < pmodel->nodes.size(); i++)
 	{
 		// convert to degrees
-		bone_angles[0] = to_degrees(pmodel->skeleton[i].rot[0]);
-		bone_angles[1] = to_degrees(pmodel->skeleton[i].rot[1]);
-		bone_angles[2] = to_degrees(pmodel->skeleton[i].rot[2]);
+		bone_angles[0] = pmodel->skeleton[i].rot[0];
+		bone_angles[1] = pmodel->skeleton[i].rot[1];
+		bone_angles[2] = pmodel->skeleton[i].rot[2];
 
 		int parent = pmodel->nodes[i].parent;
 		if (parent == -1)

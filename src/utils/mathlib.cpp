@@ -59,21 +59,30 @@ Matrix3x4 angle_matrix(const Vector3 &angles)
 	*/
 	Matrix3x4 m = {};
 
-	float yaw = to_radians(angles.z);
-	float pitch = to_radians(angles.y);
-	float roll = to_radians(angles.x);
+	float yaw = angles.z;
+	float pitch = angles.y;
+	float roll = angles.x;
 
-	m[0][0] = std::cos(pitch) * std::cos(yaw);
-	m[1][0] = std::cos(pitch) * std::sin(yaw);
-	m[2][0] = -std::sin(pitch);
+	float cpitch = std::cos(pitch);
+	float spitch = std::sin(pitch);
 
-	m[0][1] = std::sin(roll) * std::sin(pitch) * std::cos(yaw) + std::cos(roll) * -std::sin(yaw);
-	m[1][1] = std::sin(roll) * std::sin(pitch) * std::sin(yaw) + std::cos(roll) * std::cos(yaw);
-	m[2][1] = std::sin(roll) * std::cos(pitch);
+	float cyaw = std::cos(yaw);
+	float syaw = std::sin(yaw);
 
-	m[0][2] = std::cos(roll) * std::sin(pitch) * std::cos(yaw) + -std::sin(roll) * -std::sin(yaw);
-	m[1][2] = std::cos(roll) * std::sin(pitch) * std::sin(yaw) + -std::sin(roll) * std::cos(yaw);
-	m[2][2] = std::cos(roll) * std::cos(pitch);
+	float croll = std::cos(roll);
+	float sroll = std::sin(roll);
+
+	m[0][0] = cpitch * cyaw;
+	m[1][0] = cpitch * syaw;
+	m[2][0] = -spitch;
+
+	m[0][1] = sroll * spitch * cyaw + croll * -syaw;
+	m[1][1] = sroll * spitch * syaw + croll * cyaw;
+	m[2][1] = sroll * cpitch;
+
+	m[0][2] = croll * spitch * cyaw + -sroll * -syaw;
+	m[1][2] = croll * spitch * syaw + -sroll * cyaw;
+	m[2][2] = croll * cpitch;
 
 	m[0][3] = 0.0;
 	m[1][3] = 0.0;
@@ -103,21 +112,30 @@ Matrix3x4 angle_i_matrix(const Vector3 &angles)
 	 */
 	Matrix3x4 m = {};
 
-	float yaw = to_radians(angles.z);
-	float pitch = to_radians(angles.y);
-	float roll = to_radians(angles.x);
+	float yaw = angles.z;
+	float pitch = angles.y;
+	float roll = angles.x;
 
-	m[0][0] = std::cos(pitch) * std::cos(yaw);
-	m[1][0] = std::sin(roll) * std::sin(pitch) * std::cos(yaw) + std::cos(roll) * -std::sin(yaw);
-	m[2][0] = std::cos(roll) * std::sin(pitch) * std::cos(yaw) + -std::sin(roll) * -std::sin(yaw);
+	float cpitch = std::cos(pitch);
+	float spitch = std::sin(pitch);
 
-	m[0][1] = std::cos(pitch) * std::sin(yaw);
-	m[1][1] = std::sin(roll) * std::sin(pitch) * std::sin(yaw) + std::cos(roll) * std::cos(yaw);
-	m[2][1] = std::cos(roll) * std::sin(pitch) * std::sin(yaw) + -std::sin(roll) * std::cos(yaw);
+	float cyaw = std::cos(yaw);
+	float syaw = std::sin(yaw);
 
-	m[0][2] = -std::sin(pitch);
-	m[1][2] = std::sin(roll) * std::cos(pitch);
-	m[2][2] = std::cos(roll) * std::cos(pitch);
+	float croll = std::cos(roll);
+	float sroll = std::sin(roll);
+
+	m[0][0] = cpitch * cyaw;
+	m[1][0] = sroll * spitch * cyaw + croll * -syaw;
+	m[2][0] = croll * spitch * cyaw + -sroll * -syaw;
+
+	m[0][1] = cpitch * syaw;
+	m[1][1] = sroll * spitch * syaw + croll * cyaw;
+	m[2][1] = croll * spitch * syaw + -sroll * cyaw;
+
+	m[0][2] = -spitch;
+	m[1][2] = sroll * cpitch;
+	m[2][2] = croll * cpitch;
 
 	m[0][3] = 0.0;
 	m[1][3] = 0.0;
@@ -201,14 +219,8 @@ Vector3 vector_transform(const Vector3 &in1, const Matrix3x4 &in2)
 	 *
 	 */
 	Vector3 out;
-
-	Vector3 row0(in2[0][0], in2[0][1], in2[0][2]);
-	Vector3 row1(in2[1][0], in2[1][1], in2[1][2]);
-	Vector3 row2(in2[2][0], in2[2][1], in2[2][2]);
-
-	out.x = in1.dot(row0) + in2[0][3];
-	out.y = in1.dot(row1) + in2[1][3];
-	out.z = in1.dot(row2) + in2[2][3];
-
+	out.x = in1.x * in2[0][0] + in1.y * in2[0][1] + in1.z * in2[0][2] + in2[0][3];
+	out.y = in1.x * in2[1][0] + in1.y * in2[1][1] + in1.z * in2[1][2] + in2[1][3];
+	out.z = in1.x * in2[2][0] + in1.y * in2[2][1] + in1.z * in2[2][2] + in2[2][3];
 	return out;
 }
