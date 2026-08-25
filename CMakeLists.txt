@@ -21,3 +21,32 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE src src/utils src/format /src/format/image src/monsters)
+
+set(MDLTOOL_SOURCES
+    src/utils/cmdlib.cpp
+    src/format/image/bmpread.cpp
+    src/mdl/mdl_reader.cpp
+    src/mdl/mdl_validator.cpp
+    src/mdl/mdl_writer.cpp
+    src/mdl/texture_importer.cpp
+    src/mdl/skin_family_editor.cpp
+    src/tools/mdltool_main.cpp
+)
+
+add_executable(mdltool++ ${MDLTOOL_SOURCES})
+target_include_directories(mdltool++ PRIVATE src src/utils src/format src/format/image)
+
+enable_testing()
+
+add_executable(mdltool_tests
+    src/utils/cmdlib.cpp
+    src/format/image/bmpread.cpp
+    src/mdl/mdl_reader.cpp
+    src/mdl/mdl_validator.cpp
+    src/mdl/mdl_writer.cpp
+    src/mdl/texture_importer.cpp
+    src/mdl/skin_family_editor.cpp
+    tests/mdltool_tests.cpp
+)
+target_include_directories(mdltool_tests PRIVATE src src/utils src/format src/format/image)
+add_test(NAME mdltool_tests COMMAND mdltool_tests)
