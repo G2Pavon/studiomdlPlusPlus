@@ -1,0 +1,14 @@
+# Target labels
+ nfd-populate
+# Source files and their labels
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/nfd-populate
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/8b245ae75f56945b444a631a23878815/nfd-populate.rule
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/38a55e635b14d2b147002a6335bcef67/nfd-populate-complete.rule
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/a75660c2485bfded1ec28ed2e0ea8d61/nfd-populate-build.rule
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/a75660c2485bfded1ec28ed2e0ea8d61/nfd-populate-configure.rule
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/a75660c2485bfded1ec28ed2e0ea8d61/nfd-populate-download.rule
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/a75660c2485bfded1ec28ed2e0ea8d61/nfd-populate-install.rule
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/a75660c2485bfded1ec28ed2e0ea8d61/nfd-populate-mkdir.rule
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/a75660c2485bfded1ec28ed2e0ea8d61/nfd-populate-patch.rule
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/a75660c2485bfded1ec28ed2e0ea8d61/nfd-populate-test.rule
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/a75660c2485bfded1ec28ed2e0ea8d61/nfd-populate-update.rule

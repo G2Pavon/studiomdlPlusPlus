@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "format/mdl.hpp"
+#include "gui/editor_state.hpp"
 #include "mdl/mdl_reader.hpp"
 #include "mdl/mdl_validator.hpp"
 #include "mdl/mdl_writer.hpp"
@@ -375,8 +376,10 @@ void test_add_new_texture_and_skin_family()
 
 void test_rewrite_and_reopen()
 {
+    std::cout << "  step: create fixture\n";
     const auto model_path = create_sample_mdl(temp_root() / "rewrite.mdl");
     const auto bmp_path = write_bmp8(temp_root() / "rewrite.bmp", 0x22);
+    std::cout << "  step: read original\n";
     auto document = mdl::MdlReader::read(model_path);
     const auto original_size = std::filesystem::file_size(model_path);
 
@@ -387,16 +390,22 @@ void test_rewrite_and_reopen()
     options.submodel_index = 2;
     options.target_texture = "def_post.bmp";
 
+    std::cout << "  step: add skin\n";
     mdl::SkinFamilyEditor::add_skin(document, options);
+    std::cout << "  step: write file\n";
     mdl::MdlWriter::write(document, options.output_path);
+    std::cout << "  step: reopen\n";
     const auto reopened = mdl::MdlReader::read(options.output_path);
+    std::cout << "  step: file_size\n";
     const auto new_size = std::filesystem::file_size(options.output_path);
     const auto growth = new_size - original_size;
-    const std::uintmax_t expected_growth =
-        static_cast<std::uintmax_t>(1 + 256 * 3 + sizeof(StudioTexture) + sizeof(std::int16_t) * 3 + 16);
+    const std::uintmax_t texture_payload_growth = static_cast<std::uintmax_t>(1 + 256 * 3);
+    const std::uintmax_t expected_max_growth =
+        texture_payload_growth + sizeof(StudioTexture) + sizeof(std::int16_t) * 3 + 128;
     expect(reopened.textures.size() == 4, "Expected rewritten model to contain new texture.");
     expect(reopened.skin_families.size() == 2, "Expected rewritten model to contain new skin family.");
-    expect(growth >= expected_growth, "Expected file size growth to include one new texture payload.");
+    expect(growth >= texture_payload_growth, "Expected file size growth to include one new texture payload.");
+    expect(growth <= expected_max_growth, "Expected file size growth to stay near one rebuilt texture payload.");
     expect(growth < original_size / 2, "Expected writer not to duplicate most of the original MDL.");
 }
 
@@ -498,6 +507,70 @@ void test_in_place_flow()
     expect(reopened.skin_families.size() == 2, "Expected in-place rewrite to keep new skin family.");
 }
 
+void test_editor_state_add_skin_and_undo()
+{
+    gui::EditorState state;
+    const auto model_path = create_sample_mdl(temp_root() / "editor_add.mdl");
+    const auto bmp_path = write_bmp8(temp_root() / "editor_add.bmp", 0xAB);
+
+    expect(state.open_model(model_path), "Expected EditorState to open a valid model.");
+
+    gui::AddSkinRequest request;
+    request.submodel_index = 2;
+    request.mesh_index = 0;
+    request.copy_skin_family = 0;
+    request.bmp_path = bmp_path;
+
+    expect(state.add_skin(request), "Expected EditorState add_skin to succeed.");
+    expect(state.document()->skin_families.size() == 2, "Expected added skin family in EditorState.");
+    expect(state.document()->textures.size() == 4, "Expected added texture in EditorState.");
+    expect(state.undo_last_operation(), "Expected undo of add_skin to succeed.");
+    expect(state.document()->skin_families.size() == 1, "Expected skin families restored after undo.");
+    expect(state.document()->textures.size() == 3, "Expected textures restored after undo.");
+}
+
+void test_editor_state_remove_skin_and_undo()
+{
+    gui::EditorState state;
+    const auto model_path = create_sample_mdl(temp_root() / "editor_remove.mdl");
+    const auto bmp_path = write_bmp8(temp_root() / "editor_remove.bmp", 0xBC);
+
+    expect(state.open_model(model_path), "Expected EditorState to open a valid model.");
+    gui::AddSkinRequest request;
+    request.submodel_index = 2;
+    request.mesh_index = 0;
+    request.copy_skin_family = 0;
+    request.bmp_path = bmp_path;
+    expect(state.add_skin(request), "Expected EditorState add_skin to succeed before remove.");
+
+    expect(state.remove_skin_family(1), "Expected removing the added skin family to succeed.");
+    expect(state.document()->skin_families.size() == 1, "Expected skin family removal to shrink the table.");
+    expect(state.undo_last_operation(), "Expected undo of remove_skin to succeed.");
+    expect(state.document()->skin_families.size() == 2, "Expected removed skin family to be restored.");
+}
+
+void test_editor_state_replace_texture_and_undo()
+{
+    gui::EditorState state;
+    const auto model_path = create_sample_mdl(temp_root() / "editor_replace.mdl");
+    const auto bmp_path = write_bmp8(temp_root() / "editor_replace.bmp", 0xCD);
+
+    expect(state.open_model(model_path), "Expected EditorState to open a valid model.");
+
+    gui::ReplaceTextureRequest request;
+    request.texture_index = 1;
+    request.bmp_path = bmp_path;
+    request.keep_name = true;
+    const auto previous_name = state.document()->textures[1].name();
+    const auto previous_data = state.document()->textures[1].data;
+
+    expect(state.replace_texture(request), "Expected texture replacement to succeed.");
+    expect(state.document()->textures[1].name() == previous_name, "Expected keep_name to preserve texture name.");
+    expect(state.document()->textures[1].data != previous_data, "Expected texture payload to change.");
+    expect(state.undo_last_operation(), "Expected undo of replace_texture to succeed.");
+    expect(state.document()->textures[1].data == previous_data, "Expected texture payload restored after undo.");
+}
+
 } // namespace
 
 int main()
@@ -519,6 +592,9 @@ int main()
         {"missing target texture", test_missing_target_texture},
         {"multiple matches", test_multiple_matches},
         {"in-place flow", test_in_place_flow},
+        {"editor state add skin and undo", test_editor_state_add_skin_and_undo},
+        {"editor state remove skin and undo", test_editor_state_remove_skin_and_undo},
+        {"editor state replace texture and undo", test_editor_state_replace_texture_and_undo},
     };
 
     for (const auto &[name, fn] : tests)

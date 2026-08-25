@@ -1,0 +1,12 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=url
+command=C:/Program Files/CMake/bin/cmake.exe;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;D:/MDL/build_gui/_deps/nfd-subbuild/nfd-populate-prefix/src/nfd-populate-stamp/download-nfd-populate.cmake;COMMAND;C:/Program Files/CMake/bin/cmake.exe;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;D:/MDL/build_gui/_deps/nfd-subbuild/nfd-populate-prefix/src/nfd-populate-stamp/verify-nfd-populate.cmake;COMMAND;C:/Program Files/CMake/bin/cmake.exe;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;D:/MDL/build_gui/_deps/nfd-subbuild/nfd-populate-prefix/src/nfd-populate-stamp/extract-nfd-populate.cmake
+source_dir=D:/MDL/build_gui/_deps/nfd-src
+work_dir=D:/MDL/build_gui/_deps
+url(s)=https://github.com/btzy/nativefiledialog-extended/archive/86f742bab39f1b253ad111e8ce776b46dd1ccdbe.zip
+hash=
+      no_extract=
+

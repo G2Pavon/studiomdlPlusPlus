@@ -25,6 +25,8 @@ std::string base_name(const std::filesystem::path &path)
 
 AddSkinResult SkinFamilyEditor::add_skin(MdlDocument &document, const AddSkinOptions &options)
 {
+    AddSkinResult result;
+
     if (options.copy_skin_index < 0 ||
         options.copy_skin_index >= static_cast<int>(document.skin_families.size()))
     {
@@ -92,6 +94,7 @@ AddSkinResult SkinFamilyEditor::add_skin(MdlDocument &document, const AddSkinOpt
     {
         texture_index = static_cast<int>(document.textures.size());
         document.textures.push_back(imported.texture);
+        result.texture_added = true;
     }
 
     auto new_family = document.skin_families[static_cast<std::size_t>(options.copy_skin_index)];
@@ -101,11 +104,94 @@ AddSkinResult SkinFamilyEditor::add_skin(MdlDocument &document, const AddSkinOpt
     }
     document.skin_families.push_back(std::move(new_family));
 
-    AddSkinResult result;
     result.new_skin_index = static_cast<int>(document.skin_families.size()) - 1;
     result.texture_index = texture_index;
     result.output_path = options.output_path;
     result.updated_skinrefs = matching_skinrefs;
+    return result;
+}
+
+RemoveSkinResult SkinFamilyEditor::remove_skin_family(MdlDocument &document, int skin_index)
+{
+    if (skin_index <= 0 || skin_index >= static_cast<int>(document.skin_families.size()))
+    {
+        throw std::runtime_error(
+            "Error: skin family " + std::to_string(skin_index) + " cannot be removed.");
+    }
+
+    RemoveSkinResult result;
+    result.removed_skin_index = skin_index;
+    result.removed_family = document.skin_families[static_cast<std::size_t>(skin_index)];
+    document.skin_families.erase(document.skin_families.begin() + skin_index);
+    return result;
+}
+
+std::vector<std::string> SkinFamilyEditor::describe_texture_usage(
+    const MdlDocument &document,
+    int texture_index)
+{
+    if (texture_index < 0 || texture_index >= static_cast<int>(document.textures.size()))
+    {
+        throw std::runtime_error("Error: texture index is out of range.");
+    }
+
+    std::vector<std::string> usages;
+    for (std::size_t family_index = 0; family_index < document.skin_families.size(); ++family_index)
+    {
+        const auto &family = document.skin_families[family_index];
+        for (std::size_t skinref = 0; skinref < family.size(); ++skinref)
+        {
+            if (family[skinref] == texture_index)
+            {
+                usages.push_back(
+                    "Skin family " + std::to_string(family_index) +
+                    ", skinref " + std::to_string(skinref));
+            }
+        }
+    }
+
+    for (const auto &submodel : document.submodels)
+    {
+        for (const auto &mesh : submodel.meshes)
+        {
+            if (mesh.family0_texture_index == texture_index)
+            {
+                usages.push_back(
+                    "Submodel " + std::to_string(submodel.global_index) +
+                    ", mesh " + std::to_string(mesh.mesh_index));
+            }
+        }
+    }
+
+    return usages;
+}
+
+ReplaceTextureResult SkinFamilyEditor::replace_texture(
+    MdlDocument &document,
+    int texture_index,
+    const std::filesystem::path &bmp_path,
+    bool keep_name)
+{
+    if (texture_index < 0 || texture_index >= static_cast<int>(document.textures.size()))
+    {
+        throw std::runtime_error("Error: texture index is out of range.");
+    }
+
+    auto imported = TextureImporter::import_bmp(bmp_path);
+    ReplaceTextureResult result;
+    result.texture_index = texture_index;
+    result.previous_texture = document.textures[static_cast<std::size_t>(texture_index)];
+    result.usage_descriptions = describe_texture_usage(document, texture_index);
+
+    if (keep_name)
+    {
+        std::memcpy(imported.texture.header.name,
+                    result.previous_texture.header.name,
+                    sizeof(imported.texture.header.name));
+    }
+
+    document.textures[static_cast<std::size_t>(texture_index)] = imported.texture;
+    result.current_texture = document.textures[static_cast<std::size_t>(texture_index)];
     return result;
 }
 } // namespace mdl

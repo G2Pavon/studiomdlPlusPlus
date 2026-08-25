@@ -1,0 +1,7 @@
+D:/MDL/build_core/CMakeFiles/mdl_core.dir
+D:/MDL/build_core/CMakeFiles/studiomdl++.dir
+D:/MDL/build_core/CMakeFiles/mdltool++.dir
+D:/MDL/build_core/CMakeFiles/mdltool_tests.dir
+D:/MDL/build_core/CMakeFiles/RUN_TESTS.dir
+D:/MDL/build_core/CMakeFiles/ALL_BUILD.dir
+D:/MDL/build_core/CMakeFiles/ZERO_CHECK.dir

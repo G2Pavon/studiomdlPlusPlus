@@ -1,0 +1,61 @@
+Start testing: Aug 25 21:14 Финляндия (лето)
+----------------------------------------------------------
+1/1 Testing: mdltool_tests
+1/1 Test: mdltool_tests
+Command: "D:/MDL/build_gui/bin/Release/mdltool_tests.exe"
+Directory: D:/MDL/build_gui
+"mdltool_tests" start time: Aug 25 21:14 Финляндия (лето)
+Output:
+----------------------------------------------------------
+[RUN] read valid mdl
+[PASS] read valid mdl
+[RUN] invalid signature
+[PASS] invalid signature
+[RUN] invalid version
+[PASS] invalid version
+[RUN] invalid offsets
+[PASS] invalid offsets
+[RUN] submodel list
+[PASS] submodel list
+[RUN] texture list
+[PASS] texture list
+[RUN] skin table
+[PASS] skin table
+[RUN] add new texture and skin family
+[PASS] add new texture and skin family
+[RUN] rewrite and reopen
+  step: create fixture
+  step: read original
+  step: add skin
+  step: write file
+  step: reopen
+  step: file_size
+[PASS] rewrite and reopen
+[RUN] preserve sections
+[PASS] preserve sections
+[RUN] reject 24bit bmp
+BMP file not 8 bit
+[PASS] reject 24bit bmp
+[RUN] bad submodel index
+[PASS] bad submodel index
+[RUN] missing target texture
+[PASS] missing target texture
+[RUN] multiple matches
+[PASS] multiple matches
+[RUN] in-place flow
+[PASS] in-place flow
+[RUN] editor state add skin and undo
+[PASS] editor state add skin and undo
+[RUN] editor state remove skin and undo
+[PASS] editor state remove skin and undo
+[RUN] editor state replace texture and undo
+[PASS] editor state replace texture and undo
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"mdltool_tests" end time: Aug 25 21:14 Финляндия (лето)
+"mdltool_tests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Aug 25 21:14 Финляндия (лето)

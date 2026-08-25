@@ -1,0 +1,3 @@
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/nfd-populate.dir
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/ALL_BUILD.dir
+D:/MDL/build_gui/_deps/nfd-subbuild/CMakeFiles/ZERO_CHECK.dir
