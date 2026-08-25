@@ -1,12 +1,16 @@
 #pragma once
 
 #include <filesystem>
+#include <cstdio>
 #include <fstream>
 #include <memory>
 #include <string>
 #include <vector>
 
 void error(const std::string &message);
+std::string path_to_utf8(const std::filesystem::path &path);
+std::FILE *path_fopen(const std::filesystem::path &path, const char *mode);
+std::vector<std::filesystem::path> get_native_args(int argc, char **argv);
 
 std::unique_ptr<std::ofstream> safe_open_write(const std::filesystem::path &filename);
 void safe_write(std::ofstream &file, const void *buffer, std::size_t count);

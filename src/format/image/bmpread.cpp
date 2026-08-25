@@ -5,7 +5,9 @@
 #include <cstdlib>
 #include <cstring>
 
-int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height)
+#include "utils/cmdlib.hpp"
+
+int load_bmp(const std::filesystem::path &file_path, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height)
 {
 	int rc = 0;
 	FILE *pfile = nullptr;
@@ -26,7 +28,7 @@ int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *w
 	}
 
 	// File exists?
-	pfile = fopen(szFile, "rb");
+	pfile = path_fopen(file_path, "rb");
 	if (pfile == nullptr)
 	{
 		fprintf(stderr, "unable to open BMP file\n");

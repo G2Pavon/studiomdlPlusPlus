@@ -42,3 +42,4 @@ ipch
 *.json
 studiomdl.log
 .vscode/settings.json
+/python

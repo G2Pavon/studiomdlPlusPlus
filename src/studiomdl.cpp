@@ -1157,14 +1157,14 @@ static void reset_texture_coord_ranges(Mesh *pmesh, const Texture *ptexture)
 	}
 }
 
-static void grab_bmp(const char *filename, Texture *ptexture)
+static void grab_bmp(const std::filesystem::path &filename, Texture *ptexture)
 {
 	if (int result = load_bmp(filename, &ptexture->ppicture,
 							  (std::uint8_t **)&ptexture->ppal,
 							  &ptexture->srcwidth, &ptexture->srcheight))
 	{
 		error("error " + std::to_string(result) + " reading BMP image \"" +
-			  filename + "\"\n");
+			  path_to_utf8(filename) + "\"\n");
 	}
 }
 
@@ -1245,15 +1245,15 @@ static void grab_skin(const QC &qc, Texture *ptexture)
 	if (!std::filesystem::exists(texture_path))
 	{
 		error("Cannot find \"" + ptexture->name + "\" texture in \"" +
-			  qc.cdtexture.string() + "\" or path does not exist\n");
+			  path_to_utf8(qc.cdtexture) + "\" or path does not exist\n");
 	}
 	if (case_insensitive_compare(texture_path.extension().string(), ".bmp"))
 	{
-		grab_bmp(texture_path.string().c_str(), ptexture);
+		grab_bmp(texture_path, ptexture);
 	}
 	else
 	{
-		error("Not supported texture format: \"" + texture_path.string() +
+		error("Not supported texture format: \"" + path_to_utf8(texture_path) +
 			  "\"\n");
 	}
 }
@@ -1590,14 +1590,14 @@ static void parse_smd_reference(const QC &qc, std::filesystem::path &smd_ref_pat
 
 	if (!std::filesystem::exists(smd_path))
 	{
-		error("Cannot find \"" + pmodel->name + "\" in " + smd_ref_path.string() + "\"\n");
+		error("Cannot find \"" + pmodel->name + "\" in \"" + path_to_utf8(smd_ref_path) + "\"\n");
 	}
 
-	printf("Grabbing reference: %s\n\n", smd_path.string().c_str());
+	printf("Grabbing reference: %s\n\n", path_to_utf8(smd_path).c_str());
 
-	if ((g_smdfile = fopen(smd_path.string().c_str(), "r")) == nullptr)
+	if ((g_smdfile = path_fopen(smd_path, "r")) == nullptr)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", smd_path.c_str());
+		fprintf(stderr, "reader: could not open file '%s'\n", path_to_utf8(smd_path).c_str());
 	}
 
 	while (fgets(g_currentsmdline, sizeof(g_currentsmdline), g_smdfile) !=
@@ -1899,14 +1899,14 @@ static void parse_smd_animation(const QC &qc, std::filesystem::path &sequence_sm
 
 	if (!std::filesystem::exists(smd_path))
 	{
-		error("Cannot find \"" + anim.name + ".smd\" in \"" + smd_path.string() + "\"\n");
+		error("Cannot find \"" + anim.name + ".smd\" in \"" + path_to_utf8(smd_path) + "\"\n");
 	}
 
-	printf("Grabbing animation: %s\n", smd_path.string().c_str());
+	printf("Grabbing animation: %s\n", path_to_utf8(smd_path).c_str());
 
-	if ((g_smdfile = fopen(smd_path.string().c_str(), "r")) == nullptr)
+	if ((g_smdfile = path_fopen(smd_path, "r")) == nullptr)
 	{
-		fprintf(stderr, "reader: could not open file '%s'\n", smd_path.c_str());
+		fprintf(stderr, "reader: could not open file '%s'\n", path_to_utf8(smd_path).c_str());
 		error("Something went wrong");
 	}
 
@@ -2618,7 +2618,7 @@ static void parse_qc_file(const std::filesystem::path &working_dir, QC &qc)
 	}
 }
 
-static void usage(const char *program_name)
+static void usage(const std::string &program_name)
 {
 	std::cerr
 		<< "Usage: " << program_name << " <inputfile.qc> <flags>\n"
@@ -2629,11 +2629,11 @@ static void usage(const char *program_name)
 	std::exit(EXIT_FAILURE);
 }
 
-int main(int argc, char **argv)
+static int run(int argc, const std::vector<std::filesystem::path> &argv)
 {
 	if (argc < 2)
 	{
-		usage(argv[0]);
+		usage(path_to_utf8(argv[0]));
 	}
 
 	std::filesystem::path qc_input_path = argv[1];
@@ -2644,9 +2644,10 @@ int main(int argc, char **argv)
 
 	for (int i = 2; i < argc; ++i)
 	{
-		if (argv[i][0] == '-')
+		const std::string arg = path_to_utf8(argv[i]);
+		if (!arg.empty() && arg[0] == '-')
 		{
-			switch (argv[i][1])
+			switch (arg[1])
 			{
 			case 'f':
 				g_flaginvertnormals = true;
@@ -2658,7 +2659,8 @@ int main(int argc, char **argv)
 				}
 				try
 				{
-					g_flagnormalblendangle = std::cos(to_radians(std::stof(argv[++i])));
+					g_flagnormalblendangle =
+						std::cos(to_radians(std::stof(path_to_utf8(argv[++i]))));
 				}
 				catch (const std::invalid_argument &)
 				{
@@ -2669,12 +2671,12 @@ int main(int argc, char **argv)
 				g_flagkeepallbones = true;
 				break;
 			default:
-				error("Unknown flag: " + std::string(argv[i]));
+				error("Unknown flag: " + arg);
 			}
 		}
 		else
 		{
-			error("Unexpected argument: " + std::string(argv[i]));
+			error("Unexpected argument: " + arg);
 		}
 	}
 
@@ -2690,4 +2692,10 @@ int main(int argc, char **argv)
 	write_file(working_dir, qc);
 
 	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	std::vector<std::filesystem::path> args = get_native_args(argc, argv);
+	return run(static_cast<int>(args.size()), args);
 }

@@ -2,13 +2,66 @@
 
 #include <algorithm>
 #include <cstdarg>
+#include <cstdio>
 #include <iostream>
 #include <stdexcept>
+#ifdef _WIN32
+#include <windows.h>
+#include <shellapi.h>
+#endif
 
 
 void error(const std::string &message)
 {
     throw std::runtime_error("ERROR: " + message);
+}
+
+std::string path_to_utf8(const std::filesystem::path &path)
+{
+#ifdef _WIN32
+    return path.u8string();
+#else
+    return path.string();
+#endif
+}
+
+std::FILE *path_fopen(const std::filesystem::path &path, const char *mode)
+{
+#ifdef _WIN32
+    std::wstring wmode;
+    while (*mode)
+    {
+        wmode.push_back(static_cast<wchar_t>(*mode++));
+    }
+    return _wfopen(path.c_str(), wmode.c_str());
+#else
+    return std::fopen(path.c_str(), mode);
+#endif
+}
+
+std::vector<std::filesystem::path> get_native_args(int argc, char **argv)
+{
+    std::vector<std::filesystem::path> args;
+#ifdef _WIN32
+    int wide_argc = 0;
+    wchar_t **wide_argv = CommandLineToArgvW(GetCommandLineW(), &wide_argc);
+    if (wide_argv != nullptr)
+    {
+        args.reserve(wide_argc);
+        for (int i = 0; i < wide_argc; ++i)
+        {
+            args.emplace_back(wide_argv[i]);
+        }
+        LocalFree(wide_argv);
+        return args;
+    }
+#endif
+    args.reserve(argc);
+    for (int i = 0; i < argc; ++i)
+    {
+        args.emplace_back(argv[i]);
+    }
+    return args;
 }
 
 static int file_length(std::ifstream &file)
@@ -23,7 +76,7 @@ std::unique_ptr<std::ofstream> safe_open_write(const std::filesystem::path &file
 {
     auto file = std::make_unique<std::ofstream>(filename, std::ios::binary);
     if (!file || !file->is_open())
-        error("Error opening " + filename.string());
+        error("Error opening " + path_to_utf8(filename));
     return file;
 }
 
@@ -43,7 +96,7 @@ std::vector<char> load_file(const std::filesystem::path &filename)
 {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open())
-        error("Error opening " + filename.string());
+        error("Error opening " + path_to_utf8(filename));
 
     int length = file_length(file);
     std::vector<char> buffer(length + 1, '\0');

@@ -446,7 +446,7 @@ void write_file(std::filesystem::path path, QC &qc)
 	//
 	std::filesystem::path mdl_file = path / file_name;
 	printf("---------------------\n");
-	printf("Writing %s:\n", mdl_file.string().c_str());
+	printf("Writing %s:\n", path_to_utf8(mdl_file).c_str());
 	std::unique_ptr<std::ofstream> modelouthandle = safe_open_write(mdl_file);
 	if (!modelouthandle)
 	{

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 
 // __attribute__((packed)) on non-Intel arch may cause some unexpected error, plz be informed.
 #pragma pack(push, 1)
@@ -51,4 +52,4 @@ struct RGBQUAD
 };
 // for biBitCount is 16/24/32, it may be useless
 
-int load_bmp(const char *szFile, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height);
+int load_bmp(const std::filesystem::path &file, uint8_t **ppbBits, uint8_t **ppbPalette, int *width, int *height);
