@@ -18,6 +18,24 @@ std::size_t align_up(std::size_t value)
     return (value + (kAlignment - 1)) & ~(kAlignment - 1);
 }
 
+std::size_t first_rebuilt_section_offset(const MdlDocument &document)
+{
+    std::size_t offset = document.bytes.size();
+
+    const auto consider = [&](int candidate)
+    {
+        if (candidate >= 0)
+        {
+            offset = std::min(offset, static_cast<std::size_t>(candidate));
+        }
+    };
+
+    consider(document.header.textureindex);
+    consider(document.header.skinindex);
+    consider(document.header.texturedataindex);
+    return offset;
+}
+
 void write_header(std::vector<std::byte> &buffer, const StudioHeader &header)
 {
     if (buffer.size() < sizeof(StudioHeader))
@@ -45,9 +63,13 @@ void save_bytes(const std::filesystem::path &path, const std::vector<std::byte> 
 void MdlWriter::write(const MdlDocument &document, const std::filesystem::path &path)
 {
     StudioHeader header = document.header;
-    std::vector<std::byte> buffer = document.bytes;
+    const auto preserved_size = first_rebuilt_section_offset(document);
+    if (preserved_size < sizeof(StudioHeader) || preserved_size > document.bytes.size())
+    {
+        throw std::runtime_error("Error: invalid preserved MDL prefix.");
+    }
 
-    buffer.resize(static_cast<std::size_t>(document.header.length));
+    std::vector<std::byte> buffer(document.bytes.begin(), document.bytes.begin() + preserved_size);
     buffer.resize(align_up(buffer.size()), std::byte{0});
 
     header.numtextures = static_cast<int>(document.textures.size());
@@ -79,6 +101,7 @@ void MdlWriter::write(const MdlDocument &document, const std::filesystem::path &
     }
     buffer.resize(align_up(buffer.size()), std::byte{0});
 
+    header.length = static_cast<int>(buffer.size());
     std::memcpy(buffer.data() + header.textureindex,
                 texture_headers.data(),
                 texture_headers.size() * sizeof(StudioTexture));
@@ -91,7 +114,6 @@ void MdlWriter::write(const MdlDocument &document, const std::filesystem::path &
         skin_offset += family.size();
     }
 
-    header.length = static_cast<int>(buffer.size());
     write_header(buffer, header);
     save_bytes(path, buffer);
 }

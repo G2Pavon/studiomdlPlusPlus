@@ -378,6 +378,7 @@ void test_rewrite_and_reopen()
     const auto model_path = create_sample_mdl(temp_root() / "rewrite.mdl");
     const auto bmp_path = write_bmp8(temp_root() / "rewrite.bmp", 0x22);
     auto document = mdl::MdlReader::read(model_path);
+    const auto original_size = std::filesystem::file_size(model_path);
 
     mdl::AddSkinOptions options;
     options.model_path = model_path;
@@ -389,8 +390,14 @@ void test_rewrite_and_reopen()
     mdl::SkinFamilyEditor::add_skin(document, options);
     mdl::MdlWriter::write(document, options.output_path);
     const auto reopened = mdl::MdlReader::read(options.output_path);
+    const auto new_size = std::filesystem::file_size(options.output_path);
+    const auto growth = new_size - original_size;
+    const std::uintmax_t expected_growth =
+        static_cast<std::uintmax_t>(1 + 256 * 3 + sizeof(StudioTexture) + sizeof(std::int16_t) * 3 + 16);
     expect(reopened.textures.size() == 4, "Expected rewritten model to contain new texture.");
     expect(reopened.skin_families.size() == 2, "Expected rewritten model to contain new skin family.");
+    expect(growth >= expected_growth, "Expected file size growth to include one new texture payload.");
+    expect(growth < original_size / 2, "Expected writer not to duplicate most of the original MDL.");
 }
 
 void test_preserve_sections()
